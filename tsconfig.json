@@ -15,6 +15,5 @@
     "declaration": true,
     "composite": true
   },
-  "include": ["./common/**/*"],
-  "exclude": ["**/node_modules/**", "**/lib/**"],
+  "exclude": ["**/node_modules/**/*", "**/lib/**/*"],
 }

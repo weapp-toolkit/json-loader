@@ -5,9 +5,8 @@
   "author": "CryUshio <1151291182@qq.com>",
   "homepage": "https://github.com/weapp-toolkit/weapp-webpack-toolkit#readme",
   "license": "ISC",
-  "files": [
-    "**/*.d.ts"
-  ],
+  "main": "./index.d.ts",
+  "types": "./index.d.ts",
   "publishConfig": {
     "access": "public"
   },

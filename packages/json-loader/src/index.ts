@@ -3,6 +3,7 @@ import { getOptions } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import { IWeappConfigJSON } from './types';
+import { getConfigJsonType } from './utils';
 
 export interface JsonLoaderOptions {
   preprocessor: (config: Partial<IWeappConfigJSON>, type: string) => Partial<IWeappConfigJSON>
@@ -37,6 +38,13 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
     json = JSON.parse(sourceString);
   } catch (e) {
     console.error(e);
+    return;
+  }
+
+  const configJsonType = getConfigJsonType(json);
+
+  /** JSON 文件不是 app、分包、页面、组件类型，不处理 */
+  if (!configJsonType) {
     return;
   }
 }
