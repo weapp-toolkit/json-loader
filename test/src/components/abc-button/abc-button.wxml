@@ -1,0 +1,2 @@
+<wxs src="./index.wxs" module="cpt"></wxs>
+<view class="abc-button {{type}}-{{color}} {{disabled ? 'disabled' : ''}} ext-class" bind:tap="onClick" style="{{cpt.getWidth(width)}}"><slot></slot></view>

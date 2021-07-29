@@ -1,0 +1,22 @@
+{
+  "name": "@weapp-toolkit/weapp-types",
+  "version": "1.0.0",
+  "description": "weapp declarations",
+  "author": "CryUshio <1151291182@qq.com>",
+  "homepage": "https://github.com/weapp-toolkit/weapp-webpack-toolkit#readme",
+  "license": "ISC",
+  "files": [
+    "**/*.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weapp-toolkit/weapp-webpack-toolkit.git"
+  },
+  "scripts": {},
+  "bugs": {
+    "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/issues"
+  }
+}

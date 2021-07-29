@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@tencent/eslint-config-imweb": "^1.1.0"
+  },
+  "dependencies": {
+    "@tencent/abcmouse-sdk-mp-tools": "^2.4.7"
+  }
+}

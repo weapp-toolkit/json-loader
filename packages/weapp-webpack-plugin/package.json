@@ -1,0 +1,53 @@
+{
+  "name": "@weapp-toolkit/weapp-webpack-plugin",
+  "version": "1.0.0",
+  "description": "miniprogram webpack json loader",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "tsc -w",
+    "dev:test": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
+    "build": "rimraf lib && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weapp-toolkit/weapp-webpack-toolkit.git"
+  },
+  "keywords": [
+    "webpack",
+    "loader",
+    "wx",
+    "wxapp",
+    "miniprogram",
+    "微信小程序",
+    "小程序",
+    "app.json"
+  ],
+  "author": {
+    "name": "CryUshio",
+    "email": "1151291182@qq.com",
+    "url": "https://github.com/CryUshio"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit.git/issues"
+  },
+  "homepage": "https://github.com/weapp-toolkit/weapp-webpack-toolkit.git#readme",
+  "engines": {
+    "node": ">=8"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/index.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test"
+    }
+  },
+  "devDependencies": {
+  }
+}

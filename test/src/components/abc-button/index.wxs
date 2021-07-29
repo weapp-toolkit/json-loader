@@ -1,0 +1,15 @@
+/* eslint-disable */
+
+var getWidth = function(width) {
+  if (!width) {
+    return '';
+  }
+  if (typeof width === 'number') {
+    return 'width: ' + width + 'px;';
+  }
+  return 'width: ' + width + ';';
+}
+
+module.exports = {
+  getWidth: getWidth
+}
