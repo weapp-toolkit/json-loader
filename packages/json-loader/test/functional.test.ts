@@ -12,8 +12,11 @@ runLoaders(
       {
         loader: path.resolve(__dirname, '../lib/index.js'),
         options: {
-          test: true,
-          preprocessor: () => {}
+          preprocessor: {
+            page: {
+              backgroundColor: '#f2f2f2'
+            }
+          }
         },
       },
     ],

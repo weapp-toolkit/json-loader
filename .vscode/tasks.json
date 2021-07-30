@@ -28,6 +28,7 @@
     {
       "label": "json-loader: dev",
       "dependsOn": [
+        "core: tsc-dev",
         "json-loader: tsc-dev",
         "json-loader: tsc-test-dev"
       ],
@@ -48,6 +49,14 @@
       "problemMatcher": [],
       "label": "json-loader: tsc-test-dev",
       "detail": "json-loader: 源码运行测试"
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "packages/core/",
+      "problemMatcher": [],
+      "label": "core: tsc-dev",
+      "detail": "core: 开发模式"
     }
   ]
 }

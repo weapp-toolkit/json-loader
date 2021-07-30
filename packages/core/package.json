@@ -1,0 +1,28 @@
+{
+  "name": "@weapp-toolkit/core",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "CryUshio <1151291182@qq.com>",
+  "homepage": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/packages/core#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weapp-toolkit/weapp-webpack-toolkit.git"
+  },
+  "scripts": {
+    "dev": "tsc -w"
+  },
+  "bugs": {
+    "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/issues"
+  }
+}
