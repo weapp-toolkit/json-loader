@@ -1,0 +1,18 @@
+0 silly argv {
+0 silly argv   _: [ 'add' ],
+0 silly argv   scope: '@weapp-toolkit/weapp-webpack-plugin',
+0 silly argv   globs: [],
+0 silly argv   lernaVersion: '4.0.0',
+0 silly argv   '$0': '/Users/charryhuang/.npm-global/bin/lerna',
+0 silly argv   pkg: '@@weapp-toolkit/weapp-types'
+0 silly argv }
+1 notice cli v4.0.0
+2 verbose rootPath /Users/charryhuang/develop/my-projects/weapp-webpack-toolkit
+3 info versioning independent
+4 error Error: Invalid package name "@": name can only contain URL-friendly characters
+4 error     at invalidPackageName (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/npm-package-arg/npa.js:84:15)
+4 error     at Result.setName (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/npm-package-arg/npa.js:119:11)
+4 error     at new Result (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/npm-package-arg/npa.js:110:10)
+4 error     at resolve (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/npm-package-arg/npa.js:54:15)
+4 error     at npa (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/npm-package-arg/npa.js:48:10)
+4 error     at AddCommand.initialize (/Users/charryhuang/develop/my-projects/weapp-webpack-toolkit/node_modules/@lerna/add/index.js:39:17)

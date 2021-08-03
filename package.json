@@ -2,9 +2,11 @@
   "name": "root",
   "private": true,
   "devDependencies": {
+    "@babel/core": "^7.14.8",
     "@types/json-schema": "^7.0.8",
     "@typescript-eslint/eslint-plugin": "^4.28.4",
     "@typescript-eslint/parser": "^4.28.4",
+    "babel-loader": "^8.2.2",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "eslint": "^7.31.0",
     "eslint-config-prettier": "^8.3.0",

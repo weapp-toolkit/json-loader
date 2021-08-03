@@ -41,6 +41,7 @@ export interface IWeappAppConfig {
   pages: string[] /** 页面路径列表 */;
   tabBar?: IWeappTabBar /** 底部 tab 栏的表现 */;
   subpackages?: IWeappSubPackage[] /** 分包结构配置 */;
+  subPackages?: IWeappSubPackage[] /** 分包结构配置 */;
   workers?: string /** Worker 代码放置的目录 */;
   usingComponents?: IWeappUsingComponent /** 全局自定义组件配置 */;
   sitemapLocation: string /** 指明 sitemap.json 的位置 */;
@@ -53,6 +54,8 @@ export interface IWeappAppConfig {
 export interface IWeappPageConfig {
   backgroundColor?: string;
   usingComponents?: IWeappUsingComponent;
+  componentGenerics?: Record<string, boolean | { default: string }>;
+  navigationBarTitleText?: string;
 }
 
 /**

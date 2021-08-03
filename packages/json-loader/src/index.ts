@@ -76,13 +76,13 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
   let mixinJson = json;
   switch (configJsonType) {
     case 'app':
-      mixinJson = deepAssign(json, preprocessor.app || {});
+      mixinJson = preprocessor.app ? deepAssign(json, preprocessor.app) : json;
       break;
     case 'page':
-      mixinJson = deepAssign(json, preprocessor.page || {});
+      mixinJson = preprocessor.page ? deepAssign(json, preprocessor.page) : json;
       break;
     case 'component':
-      mixinJson = deepAssign(json, preprocessor.component || {});
+      mixinJson = preprocessor.component ? deepAssign(json, preprocessor.component) : json;
     default:
       break;
   }

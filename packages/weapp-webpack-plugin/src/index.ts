@@ -1,27 +1,29 @@
-import { Compiler, EntryPlugin  } from 'webpack';
+import { Compiler } from 'webpack';
+import { DependencyPlugin } from './plugins/DependencyPlugin';
 
-export interface IWeappWebpackPluginOption {
-
+export interface IWeappWebpackPluginOptions {
+  ignore?: [];
 }
 
 export default class WeappWebpackPlugin {
-  static PLUGIN_NAME = 'weapp-webpack-plugin';
+  static PLUGIN_NAME = 'WeappWebpackPlugin';
 
-  constructor(option: IWeappWebpackPluginOption = {}) {
+  /** 初始化选项 */
+  options: IWeappWebpackPluginOptions;
 
+  /** 处理依赖的插件 */
+  dependencyPlugin!: DependencyPlugin;
+
+  constructor(options: IWeappWebpackPluginOptions = {}) {
+    this.options = options;
   }
 
-  public apply(compiler: Compiler) {
-    this.setEntry(compiler);
-  }
+  public apply(compiler: Compiler): void {
+    console.info('skr: app', compiler.context);
 
-  private setEntry (compiler: Compiler) {
-    /** 使用这个钩子后会干掉 webpack 原本的 entryOption，如果不手动添加 entry，将会没有构造产物 */
-    compiler.hooks.entryOption.tap(WeappWebpackPlugin.PLUGIN_NAME, (context, entry) => {
-      console.info('skr: entry', entry);
-      new EntryPlugin(context, entry.app.import[0], 'app').apply(compiler);
-
-      return true;
+    this.dependencyPlugin = new DependencyPlugin({
+      ignore: this.options.ignore,
     });
+    this.dependencyPlugin.apply(compiler);
   }
 }

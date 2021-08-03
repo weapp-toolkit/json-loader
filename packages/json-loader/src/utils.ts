@@ -12,4 +12,7 @@ export const getConfigJsonType = (json: Partial<IWeappConfigJSON>): WeappConfigT
   if ('pages' in json) {
     return 'app';
   }
+  if ('navigationBarTitleText' in json) {
+    return 'page'
+  }
 };
