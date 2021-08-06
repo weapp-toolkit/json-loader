@@ -6,7 +6,7 @@ export interface IWeappTabBarItem {
   text: string /** tab 上按钮文字 */;
   iconPath?: string /** 图片路径，icon 大小限制为 40kb，建议尺寸为 81px * 81px，不支持网络图片。
   当 position 为 top 时，不显示 icon。 */;
-  selectedIconPath: string /** 选中时的图片路径，icon 大小限制为 40kb，建议尺寸为 81px * 81px，不支持网络图片。
+  selectedIconPath?: string /** 选中时的图片路径，icon 大小限制为 40kb，建议尺寸为 81px * 81px，不支持网络图片。
   当 position 为 top 时，不显示 icon。 */;
 }
 

@@ -4,7 +4,7 @@ import path from 'path';
 import glob from 'glob';
 import chalk from 'chalk';
 import globToReg from 'glob-to-regexp';
-import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
+import { IWeappAppConfig, IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 
 /**
  * 获取 app 入口文件路径
@@ -28,13 +28,35 @@ export const getAppEntry = (compiler: Compiler): string => {
 
 /**
  * 添加模块依赖
- * @param context
- * @param entryPath
- * @param chunkName
  * @param compiler
+ * @returns {Function}
+ *  @param context
+ *  @param entryPath
+ *  @param chunkName
  */
-export const addEntry = (context: string, entryPath: string, chunkName: string, compiler: Compiler): void => {
+export const addEntryFactory = (compiler: Compiler) => (context: string, entryPath: string, chunkName: string): void => {
   new EntryPlugin(context, entryPath, chunkName).apply(compiler);
+};
+
+/**
+ * 获取 page、component JSON 配置文件内的依赖
+ * @param jsonPath json 配置文件路径
+ */
+export const getPageOrComponentDependencies = (jsonPath: string): string[] => {
+  const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
+  const { usingComponents = {} } = json;
+
+  return Object.values(usingComponents);
+};
+
+/**
+ * 获取 page、component 的 wxml、css、wxs、json 等同名资源
+ * @param context 文件夹绝对路径
+ * @param basename 无扩展名文件名
+ */
+export const getPageOrComponentAssets = (context: string, basename: string): string[] => {
+  const files = fsx.readdirSync(context);
+  return files.filter((file) => path.basename(file) === basename);
 };
 
 type EntryType = Record<string, string>;

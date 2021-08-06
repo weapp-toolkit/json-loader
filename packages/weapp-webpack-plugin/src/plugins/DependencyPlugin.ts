@@ -1,9 +1,9 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { Resolver, createResolver } from '../utils/resolver';
+import { createResolver, Resolver } from '../utils/resolver';
 import { IDependencyPluginOptions } from '../types/DependencyPlugin';
-import { addEntry, getAppEntry } from '../utils/dependency';
-import { DependencyTree } from 'src/modules/DependencyTree';
+import { getAppEntry } from '../utils/dependency';
+import { DependencyTree } from '../modules/dependency/DependencyTree';
 
 /**
  * 处理小程序依赖以及依赖分析
@@ -28,13 +28,21 @@ export class DependencyPlugin {
 
   apply(compiler: Compiler): void {
     const app = getAppEntry(compiler);
-    /** 添加 app 入口文件到 app chunk */
-    addEntry(compiler.context, app, 'app', compiler);
 
     this.context = path.dirname(app);
-    this.resolver = createResolver(compiler);
+    this.resolver = createResolver(compiler, this.context);
+    this.dependencyTree = new DependencyTree({
+      context: this.context,
+      app,
+      resolver: this.resolver,
+      compiler,
+    });
 
-    compiler.hooks.beforeCompile.tapAsync(DependencyPlugin.PLUGIN_NAME, (params, callback) => {
+    compiler.hooks.beforeCompile.tapAsync(DependencyPlugin.PLUGIN_NAME, async (params, callback) => {
+      console.info(
+        'skr: resolver',
+        await this.resolver.resolve(process.cwd(), 'fs-extra'),
+      );
       // console.info('skr: beforeCompile', params);
       callback();
     });
