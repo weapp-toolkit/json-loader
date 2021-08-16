@@ -72,17 +72,16 @@ export class DependencyTree {
    * @param chunkName
    * @returns
    */
-  public getChunkEntries(chunkName: string): string[] {
+  public async getChunkEntries(chunkName: string): Promise<string[]> {
     const chunkEntries = this.chunks[chunkName];
 
     if (!chunkEntries || !chunkEntries.entries) {
       return [];
     }
 
-    return Array.from(chunkEntries.entries).reduce((entries: string[], entry) => {
-      entries.push(...entry.getChildrenRecursive());
-      return entries;
-    }, [])
+    return Promise.all(Array.from(chunkEntries.entries).reduce((entries: Promise<string>[], entry) => {
+      return entries.concat(entry.getChildrenRecursive());
+    }, []))
   }
 
   /**
@@ -90,17 +89,16 @@ export class DependencyTree {
    * @param chunkName
    * @returns
    */
-  public getChunkAssets(chunkName: string): string[] {
+  public async getChunkAssets(chunkName: string): Promise<string[]> {
     const chunkEntries = this.chunks[chunkName];
 
     if (!chunkEntries || !chunkEntries.entries) {
       return [];
     }
 
-    return Array.from(chunkEntries.entries).reduce((entries: string[], entry) => {
-      entries.push(...entry.getAssetsRecursive());
-      return entries;
-    }, [])
+    return Promise.all(Array.from(chunkEntries.entries).reduce((entries: Promise<string>[], entry) => {
+      return entries.concat(entry.getAssetsRecursive());
+    }, []));
   }
 
   /**
@@ -120,7 +118,7 @@ export class DependencyTree {
     /** 添加分包 chunk */
     const addSubPackageChunk = this.addSubPackageChunk(appJson);
 
-    await addApp, addPages, addComponents, addTabBar, addSubPackageChunk;
+    await Promise.all([addApp, addPages, addComponents, addTabBar, addSubPackageChunk]);
   }
 
   /**
@@ -149,6 +147,7 @@ export class DependencyTree {
           resources.push(this.resolve(iconPath));
         }
 
+        /** 可能存在选中态图标也可能不存在 */
         if (selectedIconPath) {
           resources.push(this.resolve(selectedIconPath));
         }
@@ -190,7 +189,6 @@ export class DependencyTree {
       resources.map(async (resource) => {
         /** 获取 js 路径 */
         const resourcePath = await resolve(resource);
-
         /** 添加到 chunk */
         await this.addToChunk(chunkName, resourcePath);
       }),
@@ -209,7 +207,14 @@ export class DependencyTree {
         entries: new Set(),
       };
     }
-    this.chunks[chunkName].entries.add(createDependencyTreeNode({ pathname: resourcePath }));
+
+    const dependencyTreeNode = createDependencyTreeNode({
+      pathname: resourcePath,
+      resolver: this.resolver,
+    });
+    await dependencyTreeNode.build();
+
+    this.chunks[chunkName].entries.add(dependencyTreeNode);
   }
 
   /**

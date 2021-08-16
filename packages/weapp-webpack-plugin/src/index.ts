@@ -19,7 +19,7 @@ export default class WeappWebpackPlugin {
   }
 
   public apply(compiler: Compiler): void {
-    console.info('skr: app', compiler.context);
+    console.info('skr: app ', compiler.context);
 
     this.dependencyPlugin = new DependencyPlugin({
       ignore: this.options.ignore,

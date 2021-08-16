@@ -37,11 +37,17 @@ export class DependencyPlugin {
       resolver: this.resolver,
       compiler,
     });
+    const buildTree = this.dependencyTree.build();
 
     compiler.hooks.beforeCompile.tapAsync(DependencyPlugin.PLUGIN_NAME, async (params, callback) => {
+      await buildTree;
       console.info(
-        'skr: resolver',
-        await this.resolver.resolve(process.cwd(), 'fs-extra'),
+        'skr: app dep tree',
+        await this.dependencyTree.getChunkEntries('app'),
+      );
+      console.info(
+        'skr: app assets tree',
+        await this.dependencyTree.getChunkAssets('app'),
       );
       // console.info('skr: beforeCompile', params);
       callback();

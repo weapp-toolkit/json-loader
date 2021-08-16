@@ -75,7 +75,7 @@ export const createResolver = (compiler: Compiler, appRoot: string): Resolver =>
   const resolveDependency = async (context: string, pathname: string) => {
     if (isRelativePath(pathname)) {
       return (
-        resolve(context, path.join('./', pathname))
+        resolve(context, './' + path.join(pathname))
           .then((res) => res)
           /** 相对路径找不到则可能是 npm 包 */
           .catch(() => resolve(process.cwd(), pathname))
@@ -108,7 +108,16 @@ export const replaceExt = (pathname: string, ext: string): string => {
   if (!ext.startsWith('.')) {
     throw new Error(`非法的扩展名: ${ext}, 必须以 '.' 开头`);
   }
-  return pathname.replace(/\.\w+$/, ext);
+  return pathname.replace(path.extname(pathname), ext);
+};
+
+/**
+ * 移除扩展名
+ * @param pathname 路径
+ * @returns
+ */
+ export const removeExt = (pathname: string): string => {
+  return pathname.replace(path.extname(pathname), '');
 };
 
 /**

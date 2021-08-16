@@ -1,21 +1,11 @@
 {
-  "compileOnSave": true,
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
-    "allowJs": false,
     "target": "ES2015",
-    "esModuleInterop": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": false,
-    "pretty": true,
-    "sourceMap": false,
-    "strict": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "skipLibCheck": true,
     "declaration": false,
     "outDir": ".",
   },
-  "include": ["./index.test.ts"],
+  "include": ["./*.ts"],
   "exclude": []
 }

@@ -2,12 +2,14 @@
   "name": "@weapp-toolkit/weapp-webpack-plugin",
   "version": "1.0.0",
   "description": "miniprogram webpack json loader",
-  "main": "./lib/index.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
   "scripts": {
     "test": "jest",
-    "dev": "tsc -w",
+    "dev": "rollup -c -w",
     "dev:test": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
-    "build": "rimraf lib && tsc"
+    "debug": "ts-node -P ./test/tsconfig.json --cwd-mode --files ./test/index.test.ts",
+    "build": "rimraf lib es && rollup -c"
   },
   "repository": {
     "type": "git",
@@ -53,11 +55,14 @@
     "enhanced-resolve": "^5.8.2",
     "fs-extra": "^10.0.0",
     "glob-to-regexp": "^0.4.1",
+    "globby": "11",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.12",
     "@types/glob-to-regexp": "^0.4.1",
-    "@types/lodash": "^4.14.171"
+    "@types/lodash": "^4.14.171",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.56.2"
   }
 }
