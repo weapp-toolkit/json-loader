@@ -62,6 +62,5 @@ export interface IWeappPageConfig {
  * 微信小程序组件配置
  */
 export interface IWeappComponentConfig {
-  component: true;
   usingComponents?: IWeappUsingComponent;
 }
