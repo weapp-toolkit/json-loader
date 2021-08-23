@@ -5,7 +5,7 @@
       "label": "weapp-plugin: dev",
       "dependsOn": [
         "weapp-plugin: tsc-dev",
-        "weapp-plugin: tsc-test-dev"
+        "weapp-plugin: tsc-debug-dev"
       ],
       "detail": "weapp-webpack-plugin 开发模式"
     },

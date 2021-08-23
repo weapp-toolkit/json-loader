@@ -3,6 +3,7 @@
  */
 export interface IDependencyPluginOptions {
   ignore?: Array<string | RegExp> /** 忽略的文件（夹） */;
+  dependencyTree: DependencyTree /** 依赖树实例 */;
 }
 
 /**
