@@ -24,6 +24,13 @@ export interface Resolver {
    * @returns
    */
   resolveDependency: (context: string, pathname: string) => Promise<string>;
+  /**
+   * 依赖路径解析同步方法
+   * @param context 文件夹
+   * @param pathname 文件路径
+   * @returns
+   */
+  resolveDependencySync: (context: string, pathname: string) => string;
 }
 
 /**
@@ -34,9 +41,16 @@ export interface Resolver {
  */
 export const createResolver = (compiler: Compiler, appRoot: string): Resolver => {
   const webpackResolveOptions = $.omit(compiler.options.resolve, ['plugins', 'fileSystem']);
+  const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
   const resolver = ResolverFactory.createResolver({
     extensions: ['.js', '.ts'],
-    fileSystem: new CachedInputFileSystem(fs, 4000),
+    fileSystem: nodeFileSystem,
+    ...webpackResolveOptions,
+  });
+  const syncResolver = ResolverFactory.createResolver({
+    extensions: ['.js', '.json'],
+    useSyncFileSystemCalls: true,
+    fileSystem: nodeFileSystem,
     ...webpackResolveOptions,
   });
 
@@ -59,7 +73,7 @@ export const createResolver = (compiler: Compiler, appRoot: string): Resolver =>
    * @returns
    */
   const resolveSync = (context: string, request: string) => {
-    const res = resolver.resolveSync({}, context, request);
+    const res = syncResolver.resolveSync({}, context, request);
     if (!res) {
       throw new Error(`找不到该文件：${request}, 查找路径：${context}.`);
     }
@@ -86,10 +100,31 @@ export const createResolver = (compiler: Compiler, appRoot: string): Resolver =>
     return resolve(appRoot, `.${pathname}`);
   };
 
+  /**
+   * 依赖路径解析同步方法
+   * @param context 文件夹
+   * @param pathname 文件路径
+   * @returns
+   */
+  const resolveDependencySync = (context: string, pathname: string) => {
+    if (isRelativePath(pathname)) {
+      try {
+        return resolveSync(context, './' + path.join(pathname));
+      } catch (error) {
+        /** 相对路径找不到则可能是 npm 包 */
+        return resolveSync(process.cwd(), pathname);
+      }
+    }
+
+    /** 如果是绝对路径从小程序根路径开始找 */
+    return resolveSync(appRoot, `.${pathname}`);
+  };
+
   return {
     resolve,
     resolveSync,
     resolveDependency,
+    resolveDependencySync,
   };
 };
 
@@ -116,7 +151,7 @@ export const replaceExt = (pathname: string, ext: string): string => {
  * @param pathname 路径
  * @returns
  */
- export const removeExt = (pathname: string): string => {
+export const removeExt = (pathname: string): string => {
   return pathname.replace(path.extname(pathname), '');
 };
 

@@ -32,7 +32,7 @@ export class DependencyTree {
   public resolver: Resolver;
 
   /** 模块路径解析，不带扩展名默认解析 js、ts 文件 */
-  public resolve: (pathname: string) => Promise<string>;
+  public resolve: (pathname: string) => string;
 
   /** 小程序根文件夹 */
   public context: string;
@@ -48,7 +48,7 @@ export class DependencyTree {
   constructor(options: IDependencyTreeOptions) {
     const { resolver, context, app, compiler } = options;
     this.resolver = resolver;
-    this.resolve = resolver.resolveDependency.bind(null, context);
+    this.resolve = resolver.resolveDependencySync.bind(null, context);
     this.context = context;
     this.app = app;
     this.compiler = compiler;
@@ -58,12 +58,12 @@ export class DependencyTree {
    * 构建依赖树
    * @param callback 构建完成回调函数
    */
-  public async build(callback?: () => void): Promise<void> {
+  public build(callback?: () => void): void {
     const { resolve } = this;
-    const appJsonPath = await resolve('app.json');
-    const appJson: IWeappAppConfig = await fsx.readJSON(appJsonPath);
+    const appJsonPath = resolve('app.json');
+    const appJson: IWeappAppConfig = fsx.readJSONSync(appJsonPath);
 
-    await this.addAppChunk(appJson);
+    this.addAppChunk(appJson);
     callback?.();
   }
 
@@ -72,16 +72,16 @@ export class DependencyTree {
    * @param chunkName
    * @returns
    */
-  public async getChunkEntries(chunkName: string): Promise<string[]> {
+  public getChunkEntries(chunkName: string): string[] {
     const chunkEntries = this.chunks[chunkName];
 
     if (!chunkEntries || !chunkEntries.entries) {
       return [];
     }
 
-    return Promise.all(Array.from(chunkEntries.entries).reduce((entries: Promise<string>[], entry) => {
+    return Array.from(chunkEntries.entries).reduce((entries: string[], entry) => {
       return entries.concat(entry.getChildrenRecursive());
-    }, []))
+    }, []);
   }
 
   /**
@@ -89,42 +89,40 @@ export class DependencyTree {
    * @param chunkName
    * @returns
    */
-  public async getChunkAssets(chunkName: string): Promise<string[]> {
+  public getChunkAssets(chunkName: string): string[] {
     const chunkEntries = this.chunks[chunkName];
 
     if (!chunkEntries || !chunkEntries.entries) {
       return [];
     }
 
-    return Promise.all(Array.from(chunkEntries.entries).reduce((entries: Promise<string>[], entry) => {
+    return Array.from(chunkEntries.entries).reduce((entries: string[], entry) => {
       return entries.concat(entry.getAssetsRecursive());
-    }, []));
+    }, []);
   }
 
   /**
    * 添加 app chunk
    */
-  private async addAppChunk(appJson: IWeappAppConfig) {
+  private addAppChunk(appJson: IWeappAppConfig) {
     const { pages, usingComponents = {}, tabBar } = appJson;
 
     /** 添加 app.js */
-    const addApp = this.addToChunk(APP_CHUNK_NAME, this.app);
+    this.addToChunk(APP_CHUNK_NAME, this.app);
     /** 添加主包里的 pages */
-    const addPages = this.addAllToChunk(APP_CHUNK_NAME, pages);
+    this.addAllToChunk(APP_CHUNK_NAME, pages);
     /** 添加主包使用的 components */
-    const addComponents = this.addAllToChunk(APP_CHUNK_NAME, Object.values(usingComponents));
+    this.addAllToChunk(APP_CHUNK_NAME, Object.values(usingComponents));
     /** 添加 TabBar */
-    const addTabBar = this.addTabBar(tabBar);
+    this.addTabBar(tabBar);
     /** 添加分包 chunk */
-    const addSubPackageChunk = this.addSubPackageChunk(appJson);
-
-    await Promise.all([addApp, addPages, addComponents, addTabBar, addSubPackageChunk]);
+    this.addSubPackageChunk(appJson);
   }
 
   /**
    * 添加 TabBar
    */
-  private async addTabBar(tabBar: IWeappAppConfig['tabBar']) {
+  private addTabBar(tabBar: IWeappAppConfig['tabBar']) {
     if (!tabBar) {
       return;
     }
@@ -133,49 +131,47 @@ export class DependencyTree {
 
     /** 如果是自定义 TabBar，解析自定义 TabBar 文件夹依赖 */
     if (custom) {
-      const tabBarEntryPath = await this.resolve(CUSTOM_TAB_BAR_CONTEXT);
-      await this.addToChunk(APP_CHUNK_NAME, tabBarEntryPath);
+      const tabBarEntryPath = this.resolve(CUSTOM_TAB_BAR_CONTEXT);
+      this.addToChunk(APP_CHUNK_NAME, tabBarEntryPath);
     }
 
     /** 获取 TabBar 列表配置里的图标资源 */
-    const assets = await Promise.all(
-      list.reduce((resources: Promise<string>[], listItem) => {
-        const { iconPath, selectedIconPath } = listItem;
+    const assets = list.reduce((resources: string[], listItem) => {
+      const { iconPath, selectedIconPath } = listItem;
 
-        /** 可能存在图标也可能不存在 */
-        if (iconPath) {
-          resources.push(this.resolve(iconPath));
-        }
+      /** 可能存在图标也可能不存在 */
+      if (iconPath) {
+        resources.push(this.resolve(iconPath));
+      }
 
-        /** 可能存在选中态图标也可能不存在 */
-        if (selectedIconPath) {
-          resources.push(this.resolve(selectedIconPath));
-        }
+      /** 可能存在选中态图标也可能不存在 */
+      if (selectedIconPath) {
+        resources.push(this.resolve(selectedIconPath));
+      }
 
-        return resources;
-      }, []),
-    );
+      return resources;
+    }, []);
 
-    await this.addToAppAssets(assets);
+    this.addToAppAssets(assets);
   }
 
   /**
    * 添加分包 chunk
    */
-  private async addSubPackageChunk(appJson: IWeappAppConfig) {
+  private addSubPackageChunk(appJson: IWeappAppConfig) {
     /** 两种字段在小程序里面都是合法的 */
     const subPackages = appJson.subpackages || appJson.subPackages || [];
-    return Promise.all(subPackages.map(async (subPackage) => {
+    subPackages.map((subPackage) => {
       const { root, pages } = subPackage;
       /** 获取分包根绝对路径 */
-      const context = path.dirname(await this.resolve(root));
+      const context = path.dirname(this.resolve(root));
       /** 根据分包路径生成 chunk name */
       const chunkName = encodeChunkName(root);
       /** 以分包根路径作为 context 生成 resolve 函数 */
-      const resolve = this.resolver.resolveDependency.bind(null, context);
+      const resolve = this.resolver.resolveDependencySync.bind(null, context);
 
       return this.addAllToChunk(chunkName, pages, resolve);
-    }));
+    });
   }
 
   /**
@@ -184,15 +180,13 @@ export class DependencyTree {
    * @param resources
    * @param resolve
    */
-  private async addAllToChunk(chunkName: string, resources: string[], resolve = this.resolve) {
-    return Promise.all(
-      resources.map(async (resource) => {
-        /** 获取 js 路径 */
-        const resourcePath = await resolve(resource);
-        /** 添加到 chunk */
-        await this.addToChunk(chunkName, resourcePath);
-      }),
-    );
+  private addAllToChunk(chunkName: string, resources: string[], resolve = this.resolve) {
+    resources.map((resource) => {
+      /** 获取 js 路径 */
+      const resourcePath = resolve(resource);
+      /** 添加到 chunk */
+      this.addToChunk(chunkName, resourcePath);
+    });
   }
 
   /**
@@ -200,7 +194,7 @@ export class DependencyTree {
    * @param chunkName chunk 名
    * @param resourcePath 资源绝对路径
    */
-  private async addToChunk(chunkName: string, resourcePath: string) {
+  private addToChunk(chunkName: string, resourcePath: string) {
     if (!this.chunks[chunkName]) {
       this.chunks[chunkName] = {
         chunkName,
@@ -212,7 +206,7 @@ export class DependencyTree {
       pathname: resourcePath,
       resolver: this.resolver,
     });
-    await dependencyTreeNode.build();
+    dependencyTreeNode.build();
 
     this.chunks[chunkName].entries.add(dependencyTreeNode);
   }
@@ -222,17 +216,15 @@ export class DependencyTree {
    * @param resources
    * @returns
    */
-  private async addToAppAssets(resources: string[]) {
+  private addToAppAssets(resources: string[]) {
     const { assets, resolve } = this;
 
-    return Promise.all(
-      resources.map(async (resource) => {
-        /** 获取 js 路径 */
-        const resourcePath = await resolve(resource);
+    resources.map((resource) => {
+      /** 获取 js 路径 */
+      const resourcePath = resolve(resource);
 
-        /** 添加到 assets */
-        assets.add(resourcePath);
-      }),
-    );
+      /** 添加到 assets */
+      assets.add(resourcePath);
+    });
   }
 }

@@ -1,8 +1,8 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { createResolver, Resolver } from '../utils/resolver';
+import { createResolver, removeExt, Resolver } from '../utils/resolver';
 import { IDependencyPluginOptions } from '../types/DependencyPlugin';
-import { getAppEntry } from '../utils/dependency';
+import { addEntryFactory, getAppEntry } from '../utils/dependency';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
 
 /**
@@ -22,6 +22,9 @@ export class DependencyPlugin {
   /** 依赖树 */
   dependencyTree!: DependencyTree;
 
+  /** 添加 entry 函数 */
+  addEntry!: (entryPath: string, chunkName: string) => void;
+
   constructor(options: IDependencyPluginOptions) {
     this.options = options;
   }
@@ -31,26 +34,50 @@ export class DependencyPlugin {
 
     this.context = path.dirname(app);
     this.resolver = createResolver(compiler, this.context);
+    this.addEntry = addEntryFactory(compiler).bind(this, process.cwd());
     this.dependencyTree = new DependencyTree({
       context: this.context,
       app,
       resolver: this.resolver,
       compiler,
     });
-    const buildTree = this.dependencyTree.build();
 
-    compiler.hooks.beforeCompile.tapAsync(DependencyPlugin.PLUGIN_NAME, async (params, callback) => {
-      await buildTree;
-      console.info(
-        'skr: app dep tree',
-        await this.dependencyTree.getChunkEntries('app'),
-      );
-      console.info(
-        'skr: app assets tree',
-        await this.dependencyTree.getChunkAssets('app'),
-      );
-      // console.info('skr: beforeCompile', params);
-      callback();
+
+    compiler.hooks.entryOption.tap(DependencyPlugin.PLUGIN_NAME, (context, entry) => {
+      console.info('skr: context', context);
+      this.setAllEntries(compiler);
+      return true;
+    });
+
+    // compiler.hooks.afterCompile.tap(DependencyPlugin.PLUGIN_NAME, (compilation) => {
+    //   console.info('skr: compilation', compilation.chunks);
+    // });
+
+    compiler.hooks.beforeCompile.tap(
+    	DependencyPlugin.PLUGIN_NAME,
+      () => {
+        console.info('skr: compiler entry', compiler.options.entry);
+      }
+    );
+  }
+
+  /**
+   * 添加项目所有依赖
+   */
+  setAllEntries(compiler: Compiler): void {
+    this.dependencyTree.build();
+    const chunks = this.dependencyTree.chunks;
+
+    Object.keys(chunks).map((chunkName) => {
+      const entries = this.dependencyTree.getChunkEntries(chunkName);
+      const assets = this.dependencyTree.getChunkAssets(chunkName);
+
+      entries.forEach((entry) => {
+        this.addEntry(entry, removeExt(path.basename(entry)));
+        // (compiler.options.entry as IWebpackEntryOption)[removeExt(path.basename(entry))] = entry;
+      });
+
+      // assets.forEach((asset) => this.addEntry(asset, chunkName));
     });
   }
 }

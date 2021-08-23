@@ -8,6 +8,7 @@ const main = () => {
       console.error(e);
     }
   });
+  // compiler.getInfrastructureLogger
 };
 
 main();

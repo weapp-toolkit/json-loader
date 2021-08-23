@@ -1,7 +1,7 @@
 import { Compiler, EntryPlugin } from 'webpack';
 import fsx from 'fs-extra';
 import path from 'path';
-import { IWeappAppConfig, IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
+import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import globby from 'globby';
 
 /**

@@ -11,3 +11,10 @@ export interface IDependencyPluginOptions {
 export interface IDependencyPluginChunk {
   name: string;
 }
+
+export interface IWebpackEntryOption {
+  // [key: string]: {
+  //   import: string[]
+  // }
+  [key: string]: string | string[];
+}

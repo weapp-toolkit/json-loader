@@ -1,6 +1,6 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import * as globby from 'globby';
+import globby from 'globby';
 import { replaceExt, Resolver } from '../../utils/resolver';
 import { IWeappComponentConfig, IWeappPageConfig } from '../../../../weapp-types';
 
@@ -33,7 +33,7 @@ export class DependencyTreeNode {
   public resolver: Resolver;
 
   /** 模块路径解析，不带扩展名默认解析 js、ts 文件 */
-  public resolve: (pathname: string) => Promise<string>;
+  public resolve: (pathname: string) => string;
 
   /** 依赖绝对路径 */
   public pathname: string;
@@ -68,36 +68,33 @@ export class DependencyTreeNode {
     this.pathname = pathname;
     this.context = context;
     this.resolver = resolver;
-    this.resolve = resolver.resolveDependency.bind(null, context);
+    this.resolve = resolver.resolveDependencySync.bind(null, context);
   }
 
   /**
    * 扫描 json 依赖，添加同名依赖（wxml、wxs 等）
    */
-  public async build(): Promise<void> {
+  public build(): void {
     const { type, resolve, basename } = this;
-
-    debugger;
 
     /** js 为入口文件，只有是 js 时才处理依赖 */
     if (type === 'js') {
-      const jsonPath = await resolve(replaceExt(basename, '.json'));
+      const jsonPath = resolve(replaceExt(basename, '.json'));
       const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
-      const addAllChildren = this.addAllChildren(Object.values(json.usingComponents || {}));
-      const addAllAssets = this.addAllAssets();
-      await Promise.all([addAllChildren, addAllAssets]);
+      this.addAllChildren(Object.values(json.usingComponents || {}));
+      this.addAllAssets();
     }
   }
 
   /** 递归所有的子依赖 */
-  public getChildrenRecursive(): Promise<string>[] {
+  public getChildrenRecursive(): string[] {
     const { pathname, children } = this;
 
-    const selfDependency = this.isAssets() ? [] : [Promise.resolve(pathname)];
+    const selfDependency = this.isAssets() ? [] : [pathname];
 
     /** 获取 children js */
-    const childrenDependencies = Array.from(children).reduce((deps: Promise<string>[], child) => {
+    const childrenDependencies = Array.from(children).reduce((deps: string[], child) => {
       return deps.concat(child.getChildrenRecursive());
     }, []);
 
@@ -105,20 +102,18 @@ export class DependencyTreeNode {
   }
 
   /** 递归所有子依赖的资源文件 */
-  public getAssetsRecursive(): Promise<string>[] {
+  public getAssetsRecursive(): string[] {
     const { pathname, assets, children } = this;
 
-    const selfDependency = this.isAssets() ? [Promise.resolve(pathname)] : [];
-
-    debugger;
+    const selfDependency = this.isAssets() ? [pathname] : [];
 
     /** 获取自身 assets */
-    const assetsDependencies = Array.from(assets).reduce((deps: Promise<string>[], asset) => {
+    const assetsDependencies = Array.from(assets).reduce((deps: string[], asset) => {
       return deps.concat(asset.getAssetsRecursive());
     }, []);
 
     /** 获取 children assets */
-    const childrenAssetsDependencies = Array.from(children).reduce((deps: Promise<string>[], child) => {
+    const childrenAssetsDependencies = Array.from(children).reduce((deps: string[], child) => {
       return deps.concat(child.getAssetsRecursive());
     }, []);
 
@@ -167,27 +162,25 @@ export class DependencyTreeNode {
    * @param resources
    * @param resolve
    */
-  private async addAllChildren(resources: string[], resolve = this.resolve) {
-    return Promise.all(
-      resources.map(async (resource) => {
-        /** 获取 js 路径 */
-        const resourcePath = await resolve(resource);
-        const dependencyTreeNode = createDependencyTreeNode({
-          pathname: resourcePath,
-          resolver: this.resolver,
-        });
-        await dependencyTreeNode.build();
+  private addAllChildren(resources: string[], resolve = this.resolve) {
+    resources.map((resource) => {
+      /** 获取 js 路径 */
+      const resourcePath = resolve(resource);
+      const dependencyTreeNode = createDependencyTreeNode({
+        pathname: resourcePath,
+        resolver: this.resolver,
+      });
+      dependencyTreeNode.build();
 
-        /** 添加到 children */
-        this.appendChild(dependencyTreeNode);
-      }),
-    );
+      /** 添加到 children */
+      this.appendChild(dependencyTreeNode);
+    });
   }
 
   /**
    * 添加所有同名资源文件，如 wxml、wxs
    */
-  private async addAllAssets() {
+  private addAllAssets() {
     const { basename, context, resolve } = this;
 
     const assets = globby.sync(replaceExt(basename, '.*'), {
@@ -195,19 +188,19 @@ export class DependencyTreeNode {
       ignore: ['*.{js,ts,wxs}'],
     });
 
-    await Promise.all(assets.map(async (resource) => {
+    assets.map((resource) => {
       /** 获取绝对路径 */
-      const resourcePath = await resolve(resource);
+      const resourcePath = resolve(resource);
 
       const dependencyTreeNode = createDependencyTreeNode({
         pathname: resourcePath,
         resolver: this.resolver,
       });
-      await dependencyTreeNode.build();
+      dependencyTreeNode.build();
 
       /** 添加到 assets */
       this.appendAsset(dependencyTreeNode);
-    }));
+    });
   }
 
   private appendChild(child: DependencyTreeNode): void {

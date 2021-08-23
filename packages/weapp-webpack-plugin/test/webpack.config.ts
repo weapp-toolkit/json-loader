@@ -12,8 +12,13 @@ const webpackConfig: webpack.Configuration = {
     filename: '[name].js',
   },
   target: 'node',
+  mode: 'development',
+  devtool: 'cheap-source-map',
   resolve: {
     extensions: ['.ts', '.js'],
+    alias: {
+      '@': path.resolve(__dirname, '../../../test/src')
+    }
   },
   module: {
     rules: [
