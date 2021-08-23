@@ -19,10 +19,10 @@
     },
     {
       "type": "npm",
-      "script": "dev:test",
+      "script": "debug:dev",
       "path": "packages/weapp-webpack-plugin/",
       "problemMatcher": [],
-      "label": "weapp-plugin: tsc-test-dev",
+      "label": "weapp-plugin: tsc-debug-dev",
       "detail": "weapp-webpack-plugin - 源码运行测试"
     },
     {

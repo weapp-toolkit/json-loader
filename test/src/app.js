@@ -1,4 +1,5 @@
 import Log from './libs/log';
+
 // 网络中断提醒
 wx.onNetworkStatusChange(({ isConnected }) => {
   if (!isConnected) {
