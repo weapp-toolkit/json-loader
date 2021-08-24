@@ -1,7 +1,7 @@
 import path from 'path';
 import webpack from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import WeappWebpackPlugin from '../src';
+import WeappWebpackPlugin from '../es';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
