@@ -7,23 +7,23 @@
         "weapp-plugin: tsc-dev",
         "weapp-plugin: tsc-debug-dev"
       ],
-      "detail": "weapp-webpack-plugin 开发模式"
+      "detail": "weapp-plugin 开发模式"
     },
     {
       "type": "npm",
       "script": "dev",
-      "path": "packages/weapp-webpack-plugin/",
+      "path": "packages/weapp-plugin/",
       "problemMatcher": [],
       "label": "weapp-plugin: tsc-dev",
-      "detail": "weapp-webpack-plugin - 源码编译"
+      "detail": "weapp-plugin - 源码编译"
     },
     {
       "type": "npm",
       "script": "debug:dev",
-      "path": "packages/weapp-webpack-plugin/",
+      "path": "packages/weapp-plugin/",
       "problemMatcher": [],
       "label": "weapp-plugin: tsc-debug-dev",
-      "detail": "weapp-webpack-plugin - 源码运行测试"
+      "detail": "weapp-plugin - 源码运行测试"
     },
     {
       "label": "json-loader: dev",

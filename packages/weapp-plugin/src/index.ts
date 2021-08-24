@@ -6,15 +6,15 @@ import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 import { getAppEntry } from './utils/dependency';
 import { createResolver } from './utils/resolver';
 
-export interface IWeappWebpackPluginOptions {
+export interface IWeappPluginOptions {
   ignore?: [];
 }
 
-export default class WeappWebpackPlugin {
-  static PLUGIN_NAME = 'WeappWebpackPlugin';
+export default class WeappPlugin {
+  static PLUGIN_NAME = 'WeappPlugin';
 
   /** 初始化选项 */
-  options: IWeappWebpackPluginOptions;
+  options: IWeappPluginOptions;
 
   /** 小程序项目根文件夹，app.json 所在目录 */
   context!: string;
@@ -28,7 +28,7 @@ export default class WeappWebpackPlugin {
   /** 处理 chunk 划分的插件 */
   OptimizeChunkPlugin!: OptimizeChunkPlugin;
 
-  constructor(options: IWeappWebpackPluginOptions = {}) {
+  constructor(options: IWeappPluginOptions = {}) {
     this.options = options;
   }
 

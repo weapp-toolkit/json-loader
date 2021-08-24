@@ -1,5 +1,5 @@
 {
-  "name": "@weapp-toolkit/weapp-webpack-plugin",
+  "name": "@weapp-toolkit/weapp-plugin",
   "version": "1.0.0",
   "description": "miniprogram webpack json loader",
   "main": "lib/index.js",

@@ -9,7 +9,8 @@ export default $.merge(commonConfig, {
   input: './src/index.ts',
   output: [{
     file: packageJson.main,
-    format: 'cjs'
+    format: 'cjs',
+    exports: 'auto',
   },
   {
     file: packageJson.module,
