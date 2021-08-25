@@ -7,5 +7,6 @@ import { IWeappConfigJSON, WeappConfigType } from './types';
  */
 export const getConfigJsonType = (json: Partial<IWeappConfigJSON>): WeappConfigType | void => {
   // 通过文件路径去 app.json 里面匹配是不是页面
+  /** @todo */
   return 'page';
 };
