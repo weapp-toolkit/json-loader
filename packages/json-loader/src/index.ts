@@ -2,8 +2,8 @@ import { loader } from 'webpack';
 import { getOptions } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
-import { deepAssign } from '@weapp-toolkit/core';
-import { IWeappAppConfig, IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
+import { merge } from '@weapp-toolkit/core';
+import { IWeappAppConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import { IWeappConfigJSON } from './types';
 import { getConfigJsonType } from './utils';
 
@@ -11,7 +11,6 @@ export interface JsonLoaderOptions {
   preprocessor?: {
     app?: Partial<IWeappAppConfig>;
     page?: Partial<IWeappPageConfig>;
-    component?: Partial<IWeappComponentConfig>;
   }
 }
 
@@ -27,9 +26,6 @@ const schema: JSONSchema7 = {
         page: {
           type: 'object',
         },
-        component: {
-          type: 'object',
-        },
       }
     },
   },
@@ -38,6 +34,8 @@ const schema: JSONSchema7 = {
 /**
  * 微信小程序 json 解析器
  * 只处理 app、page、分包、component 的 json 依赖解析
+ *
+ * 功能：可给 json 增加默认配置
  *
  * @param this
  * @param source
@@ -76,13 +74,11 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
   let mixinJson = json;
   switch (configJsonType) {
     case 'app':
-      mixinJson = preprocessor.app ? deepAssign(json, preprocessor.app) : json;
+      mixinJson = preprocessor.app ? merge(json, preprocessor.app) : json;
       break;
     case 'page':
-      mixinJson = preprocessor.page ? deepAssign(json, preprocessor.page) : json;
+      mixinJson = preprocessor.page ? merge(json, preprocessor.page) : json;
       break;
-    case 'component':
-      mixinJson = preprocessor.component ? deepAssign(json, preprocessor.component) : json;
     default:
       break;
   }
