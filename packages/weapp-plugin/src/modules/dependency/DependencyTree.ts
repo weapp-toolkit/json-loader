@@ -162,7 +162,7 @@ export class DependencyTree {
     /** 两种字段在小程序里面都是合法的 */
     const subPackages = appJson.subpackages || appJson.subPackages || [];
     subPackages.map((subPackage) => {
-      const { root, pages } = subPackage;
+      const { root, pages, independent } = subPackage;
       /** 获取分包根绝对路径 */
       const context = path.dirname(this.resolve(root));
       /** 根据分包路径生成 chunk name */
@@ -170,7 +170,8 @@ export class DependencyTree {
       /** 以分包根路径作为 context 生成 resolve 函数 */
       const resolve = this.resolver.resolveDependencySync.bind(null, context);
 
-      return this.addAllToChunk(chunkName, pages, resolve);
+      /** 如果是独立分包，单独为一个 chunk，否则加入 app chunk */
+      return this.addAllToChunk(independent ? chunkName : APP_CHUNK_NAME, pages, resolve);
     });
   }
 

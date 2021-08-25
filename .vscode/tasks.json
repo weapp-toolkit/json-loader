@@ -13,6 +13,7 @@
       "type": "npm",
       "script": "dev",
       "path": "packages/weapp-plugin/",
+      
       "problemMatcher": [],
       "label": "weapp-plugin: tsc-dev",
       "detail": "weapp-plugin - 源码编译"
@@ -24,6 +25,30 @@
       "problemMatcher": [],
       "label": "weapp-plugin: tsc-debug-dev",
       "detail": "weapp-plugin - 源码运行测试"
+    },
+    {
+      "label": "assets-loader: dev",
+      "dependsOn": [
+        "assets-loader: tsc-dev",
+        "assets-loader: tsc-test-dev"
+      ],
+      "detail": "assets-loader 开发模式"
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "packages/assets-loader/",
+      "problemMatcher": [],
+      "label": "assets-loader: tsc-dev",
+      "detail": "assets-loader: 源码编译"
+    },
+    {
+      "type": "npm",
+      "script": "dev:test",
+      "path": "packages/assets-loader/",
+      "problemMatcher": [],
+      "label": "assets-loader: tsc-test-dev",
+      "detail": "assets-loader: 源码运行测试"
     },
     {
       "label": "json-loader: dev",

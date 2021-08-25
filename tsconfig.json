@@ -16,6 +16,9 @@
     "declaration": true,
     "composite": true
   },
+  "typeAcquisition": {
+    "enable": true
+  },
   "exclude": [
     "lib/*",
     "es/*",
