@@ -1,10 +1,8 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "sourceMap": false,
-    "baseUrl": ".",
-    "skipLibCheck": true,
-    "declaration": false,
+    "module": "commonjs",
+    "target": "ES2015",
     "outDir": ".",
   },
   "include": ["./*.ts"],

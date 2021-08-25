@@ -4,9 +4,7 @@
 | package&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | description |
 |---|---|
 | json-loader | 处理 json 文件，可以添加自定义初始配置，如页面背景色 |
-| js-loader   | 处理 js 文件内的图片资源依赖 |
-| wxml-loader | 处理 wxml 内的依赖 |
-| wxs-loader  | 处理 wxs 内的依赖  |
+| assets-loader   | 处理 js、wxml、wxs 文件内的资源依赖 |
 | weapp-plugin | 处理 app、页面及组件依赖，优化 chunk 和独立分包的引用 |
 
 # Contribution

@@ -1,7 +1,7 @@
 import path from 'path';
 import { loader } from 'webpack';
 import { getOptions } from 'loader-utils';
-import { getAssets } from './utils';
+import { getAssets } from './core';
 
 
 /**
