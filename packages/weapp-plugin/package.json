@@ -7,9 +7,7 @@
   "scripts": {
     "test": "jest",
     "dev": "rollup -c -w",
-    "debug": "ts-node -P ./test/tsconfig.json --cwd-mode --files ./test/index.test.ts",
-    "debug:dev": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
-    "debug:dev-pure": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
+    "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
     "build": "rimraf lib es && rollup -c"
   },
   "repository": {

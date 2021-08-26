@@ -1,2 +1,2 @@
 export * from './utils/object';
-export * from './utils/string';
+export * from './utils/array';
