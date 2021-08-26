@@ -2,5 +2,8 @@
   "watch": [
     "./test",
     "./lib"
+  ],
+  "ignore": [
+    "./test/dist"
   ]
 }

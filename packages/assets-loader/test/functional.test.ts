@@ -24,6 +24,6 @@ runLoaders(
     // err: Error?
     // result.result: Buffer | String
     // The result
-    // console.info('skr: loader result', err, result);
+    console.info('skr: loader result', result);
   },
 );

@@ -1,8 +1,8 @@
-import path from 'path';
-import { loader } from 'webpack';
-import { getOptions } from 'loader-utils';
+import globby from 'globby';
+import { LoaderContext } from 'webpack';
+// import { getOptions } from 'loader-utils';
 import { getAssets } from './core';
-
+import { AssetsType } from './types';
 
 /**
  * 微信小程序 js 解析器
@@ -11,19 +11,43 @@ import { getAssets } from './core';
  * @param source
  * @returns
  */
-function loader(this: loader.LoaderContext, source: string | Buffer): void {
-  const options = getOptions(this);
+async function assetsLoader(this: LoaderContext<null>, source: string | Buffer): Promise<void> {
+  // const options = getOptions(this);
   const callback = this.async();
 
   // validate(schema, options);
 
   /** 将 source 转为 string 类型 */
   const sourceString = typeof source === 'string' ? source : source.toString();
+  const resolve = this.getResolve();
 
-  getAssets(this.context, sourceString);
+  const assets = getAssets(sourceString);
+  for await (const asset of assets) {
+    switch (asset.type) {
+      case AssetsType.Http:
+        break;
+      case AssetsType.Unknown:
+        break;
+      case AssetsType.Normal: {
+        const request = await resolve(this.context, asset.request);
+        this.addDependency(request);
+        break;
+      }
+      case AssetsType.Glob: {
+        const requests = globby.sync(asset.request, {
+          cwd: this.context,
+        });
+
+        requests.forEach(this.addDependency.bind(this));
+        break;
+      }
+      default:
+        break;
+    }
+  }
 
   /** 返回转为字符串后的 JSON */
   return callback?.(null, sourceString);
 }
 
-export default loader;
+export default assetsLoader;
