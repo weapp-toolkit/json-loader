@@ -1,4 +1,4 @@
-import { loader } from 'webpack';
+import { LoaderContext } from 'webpack';
 import { getOptions } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
@@ -8,6 +8,7 @@ import { IWeappConfigJSON } from './types';
 import { getConfigJsonType } from './utils';
 
 export interface JsonLoaderOptions {
+  appPath?: string;
   preprocessor?: {
     app?: Partial<IWeappAppConfig>;
     page?: Partial<IWeappPageConfig>;
@@ -41,7 +42,7 @@ const schema: JSONSchema7 = {
  * @param source
  * @returns
  */
-function loader(this: loader.LoaderContext, source: string | Buffer): void {
+function loader(this: LoaderContext<unknown>, source: string | Buffer): void {
   const options = getOptions(this) as JsonLoaderOptions;
   const callback = this.async();
 
@@ -53,6 +54,7 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
 
   console.info('skr: loader options', options, this.resourcePath);
 
+
   try {
     json = JSON.parse(sourceString);
   } catch (e) {
@@ -61,8 +63,16 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
     return;
   }
 
+  const { preprocessor = {}, appPath } = options;
+  /** 没有配置appJson入口文件，暂不处理 */
+  if (!appPath) {
+    return callback?.(null, source);
+  }
+
   /** 获取 JSON 的类型 */
-  const configJsonType = getConfigJsonType(json);
+  const configJsonType = getConfigJsonType(appPath, this.resourcePath);
+
+  console.info('skr: configJsonType', configJsonType);
 
   /** JSON 文件不是 app、分包、页面、组件类型，不处理 */
   if (!configJsonType) {
@@ -70,7 +80,6 @@ function loader(this: loader.LoaderContext, source: string | Buffer): void {
   }
 
   /** 将源文件和 loader 配置项配置进行混合 */
-  const { preprocessor = {} } = options;
   let mixinJson = json;
   switch (configJsonType) {
     case 'app':

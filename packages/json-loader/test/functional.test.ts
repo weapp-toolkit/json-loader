@@ -6,13 +6,18 @@ runLoaders(
   {
     // String: 资源的绝对路径 (可以增加查询字符串)
     resource: path.resolve(__dirname, '../../../test/src/app.json'),
+    // resource: path.resolve(__dirname, '../../../test/src/pages/index/index.json'),
 
     // String[] | {loader, options}[]: loader 的绝对路径 (可以增加查询字符串)
     loaders: [
       {
         loader: path.resolve(__dirname, '../lib/index.js'),
         options: {
+          appPath: path.resolve(__dirname, '../../../test/src/app.json'),
           preprocessor: {
+            app: {
+              resizable: true,
+            },
             page: {
               backgroundColor: '#f2f2f2'
             }
