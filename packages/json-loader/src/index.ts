@@ -42,7 +42,7 @@ const schema: JSONSchema7 = {
  * @param source
  * @returns
  */
-function loader(this: LoaderContext<unknown>, source: string | Buffer): void {
+function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer): void {
   const options = getOptions(this) as JsonLoaderOptions;
   const callback = this.async();
 

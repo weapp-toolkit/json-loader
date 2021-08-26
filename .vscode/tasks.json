@@ -4,8 +4,8 @@
     {
       "label": "weapp-plugin: dev",
       "dependsOn": [
-        "weapp-plugin: tsc-dev",
-        "weapp-plugin: tsc-debug-dev"
+        "weapp-plugin: dev",
+        "weapp-plugin: debug"
       ],
       "detail": "weapp-plugin 开发模式"
     },
@@ -15,22 +15,22 @@
       "path": "packages/weapp-plugin/",
       
       "problemMatcher": [],
-      "label": "weapp-plugin: tsc-dev",
+      "label": "weapp-plugin: dev",
       "detail": "weapp-plugin - 源码编译"
     },
     {
       "type": "npm",
-      "script": "debug:dev",
+      "script": "debug",
       "path": "packages/weapp-plugin/",
       "problemMatcher": [],
-      "label": "weapp-plugin: tsc-debug-dev",
-      "detail": "weapp-plugin - 源码运行测试"
+      "label": "weapp-plugin: debug",
+      "detail": "weapp-plugin - 源码调试"
     },
     {
       "label": "assets-loader: dev",
       "dependsOn": [
-        "assets-loader: tsc-dev",
-        "assets-loader: tsc-test-dev"
+        "assets-loader: dev",
+        "assets-loader: debug"
       ],
       "detail": "assets-loader 开发模式"
     },
@@ -39,21 +39,21 @@
       "script": "dev",
       "path": "packages/assets-loader/",
       "problemMatcher": [],
-      "label": "assets-loader: tsc-dev",
+      "label": "assets-loader: dev",
       "detail": "assets-loader: 源码编译"
     },
     {
       "type": "npm",
-      "script": "dev:test",
+      "script": "debug",
       "path": "packages/assets-loader/",
       "problemMatcher": [],
-      "label": "assets-loader: tsc-test-dev",
-      "detail": "assets-loader: 源码运行测试"
+      "label": "assets-loader: debug",
+      "detail": "assets-loader: 源码调试"
     },
     {
       "label": "json-loader: dev",
       "dependsOn": [
-        "core: tsc-dev",
+        "core: dev",
         "json-loader: tsc-dev",
         "json-loader: tsc-test-dev"
       ],
@@ -80,7 +80,7 @@
       "script": "dev",
       "path": "packages/core/",
       "problemMatcher": [],
-      "label": "core: tsc-dev",
+      "label": "core: dev",
       "detail": "core: 开发模式"
     }
   ]

@@ -20,7 +20,8 @@
     "url": "git+https://github.com/weapp-toolkit/weapp-webpack-toolkit.git"
   },
   "scripts": {
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "build": "rimraf lib && tsc"
   },
   "bugs": {
     "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/issues"
