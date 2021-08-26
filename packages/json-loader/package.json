@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "dev": "tsc -w",
+    "debug:dev": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
     "dev:test": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/functional.test.ts",
     "build": "rimraf lib && tsc"
   },

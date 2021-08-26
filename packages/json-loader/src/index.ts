@@ -63,7 +63,7 @@ function loader(this: LoaderContext<unknown>, source: string | Buffer): void {
     return;
   }
 
-  const outputPath = interpolateName(this, '[hash].[ext]', {
+  const outputPath = interpolateName(this, '[name].[ext]', {
     sourceString,
   });
 
