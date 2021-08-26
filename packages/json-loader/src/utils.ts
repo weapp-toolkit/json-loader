@@ -4,6 +4,8 @@ import { IWeappAppConfig, IWeappSubPackage } from '@weapp-toolkit/weapp-types';
 
 import fs from 'fs';
 
+let appCacheJson: IWeappAppConfig;
+
 /**
  * 获取 JSON 配置文件的类型
  * @param appPath app路径
@@ -36,9 +38,18 @@ export const getConfigJsonType = (appPath: string, sourcePath: string): WeappCon
   }
 };
 
+/**
+ * @description
+ * @param appJsonPath app.json路径
+ * 获取app.json内容，并做缓存
+ */
 export const getAppJson = (appJsonPath: string): IWeappAppConfig => {
+  if (appCacheJson) {
+    return appCacheJson;
+  }
   const appJsonStr = fs.readFileSync(appJsonPath, 'utf-8');
-  return (JSON.parse(appJsonStr)) as IWeappAppConfig;
+  appCacheJson = (JSON.parse(appJsonStr)) as IWeappAppConfig;
+  return appCacheJson;
 };
 
 /**
