@@ -51,6 +51,31 @@
       "detail": "assets-loader: 源码调试"
     },
     {
+      "label": "cdn-loader: dev",
+      "dependsOn": [
+        "core: dev",
+        "cdn-loader: tsc-dev",
+        "cdn-loader: tsc-test-dev"
+      ],
+      "detail": "cdn-loader 开发模式"
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "packages/cdn-loader/",
+      "problemMatcher": [],
+      "label": "cdn-loader: tsc-dev",
+      "detail": "cdn-loader: 源码编译"
+    },
+    {
+      "type": "npm",
+      "script": "dev:test",
+      "path": "packages/cdn-loader/",
+      "problemMatcher": [],
+      "label": "cdn-loader: tsc-test-dev",
+      "detail": "cdn-loader: 源码运行测试"
+    },
+    {
       "label": "json-loader: dev",
       "dependsOn": [
         "core: dev",

@@ -18,6 +18,9 @@ export interface JsonLoaderOptions {
 const schema: JSONSchema7 = {
   type: 'object',
   properties: {
+    appPath: {
+      type: 'string',
+    },
     preprocessor: {
       type: 'object',
       properties: {
@@ -98,8 +101,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** 输出到文件系统 */
   this.emitFile(outputPath, JSON.stringify(mixinJson));
-  /** 返回转为字符串后的 JSON */
-  return callback?.(null, JSON.stringify(mixinJson));
+  return;
 }
 
 export default loader;
