@@ -22,11 +22,13 @@ const webpackConfig: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.(json)$/,
+        test: /\.(jpg|png)$/,
         loader: path.resolve(__dirname, '../lib/index.js'),
         exclude: /node_modules/,
         options: {
           appPath: path.resolve(__dirname, '../../../test/src'),
+          context: process.cwd(),
+          outputPath: path.resolve(__dirname, '../../../test/dist'),
         },
       },
     ],

@@ -5,14 +5,16 @@ import path from 'path';
 runLoaders(
   {
     // String: 资源的绝对路径 (可以增加查询字符串)
-    resource: path.resolve(__dirname, '../../../test/src/app.js'),
+    resource: path.resolve(__dirname, '../../../test/src/libs/log.js'),
 
     // String[] | {loader, options}[]: loader 的绝对路径 (可以增加查询字符串)
     loaders: [
       {
         loader: path.resolve(__dirname, '../lib/index.js'),
         options: {
+          context: process.cwd(),
           appPath: path.resolve(__dirname, '../../../test/src'),
+          outputPath: path.resolve(__dirname, '../../../test/dist'),
         },
       },
     ],
@@ -25,7 +27,7 @@ runLoaders(
         content: string | Buffer,
         sourceMap?: string,
       ) => {
-        console.log('context, emifile', name, content, sourceMap);
+        // console.log('context, emifile', name, content, sourceMap);
       }
     },
 
@@ -33,6 +35,6 @@ runLoaders(
     readResource: fs.readFile.bind(fs),
   },
   function (err, result) {
-    console.info('skr: loader result', err, result);
+    console.info('[cdn-loader], end, err:', err);
   },
 );
