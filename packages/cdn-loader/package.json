@@ -1,13 +1,13 @@
 {
-  "name": "@weapp-toolkit/json-loader",
+  "name": "@weapp-toolkit/cdn-loader",
   "version": "1.0.0",
-  "description": "miniprogram webpack json loader",
+  "description": "miniprogram webpack cdn loader",
   "main": "./lib/index.js",
   "scripts": {
     "test": "jest",
     "dev": "tsc -w",
-    "debug:dev": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
-    "dev:test": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/functional.test.ts",
+    "debug:dev": "nodemon --config ./nodemon.json --exec 'CDN_URL=https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/ TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
+    "dev:test": "nodemon --config ./nodemon.json --exec 'CDN_URL=https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/ ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/functional.test.ts",
     "build": "rimraf lib && tsc"
   },
   "repository": {
@@ -21,8 +21,7 @@
     "wxapp",
     "miniprogram",
     "微信小程序",
-    "小程序",
-    "app.json"
+    "小程序"
   ],
   "author": {
     "name": "CryUshio",
