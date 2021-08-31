@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "weapp-plugin: dev",
+      "label": "weapp-plugin: watch",
       "dependsOn": [
         "weapp-plugin: dev",
         "weapp-plugin: debug"
@@ -27,8 +27,9 @@
       "detail": "weapp-plugin - 源码调试"
     },
     {
-      "label": "assets-loader: dev",
+      "label": "assets-loader: watch",
       "dependsOn": [
+        "core: dev",
         "assets-loader: dev",
         "assets-loader: debug"
       ],
@@ -51,11 +52,11 @@
       "detail": "assets-loader: 源码调试"
     },
     {
-      "label": "json-loader: dev",
+      "label": "json-loader: watch",
       "dependsOn": [
         "core: dev",
-        "json-loader: tsc-dev",
-        "json-loader: tsc-test-dev"
+        "json-loader: dev",
+        "json-loader: debug"
       ],
       "detail": "json-loader 开发模式"
     },
@@ -64,7 +65,7 @@
       "script": "dev",
       "path": "packages/json-loader/",
       "problemMatcher": [],
-      "label": "json-loader: tsc-dev",
+      "label": "json-loader: dev",
       "detail": "json-loader: 源码编译"
     },
     {
@@ -72,7 +73,7 @@
       "script": "dev:test",
       "path": "packages/json-loader/",
       "problemMatcher": [],
-      "label": "json-loader: tsc-test-dev",
+      "label": "json-loader: debug",
       "detail": "json-loader: 源码运行测试"
     },
     {

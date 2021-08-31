@@ -4,7 +4,8 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    main: path.resolve(__dirname, './src/main.js'),
+    // main: path.resolve(__dirname, './src/main.js'),
+    css: path.resolve(__dirname, './src/index.wxss'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -22,11 +23,22 @@ const webpackConfig: webpack.Configuration = {
         test: /\.(ts|js|wxml|wxs)$/,
         loader: path.resolve(__dirname, '../lib/index.js'),
       },
+      {
+        test: /\.wxss$/,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name].[ext]',
+          }
+        }, path.resolve(__dirname, '../lib/index.js'), 'extract-loader', 'css-loader'],
+      },
+      {
+        test: /\.(jpg|png)$/,
+        use: ['file-loader'],
+      },
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-  ],
+  plugins: [new CleanWebpackPlugin()],
 };
 
 export default webpackConfig;

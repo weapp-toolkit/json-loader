@@ -58,6 +58,9 @@
   "devDependencies": {
     "@types/loader-runner": "^2.2.4",
     "@types/loader-utils": "^2.0.3",
+    "css-loader": "5",
+    "extract-loader": "^5.1.0",
+    "file-loader": "^6.2.0",
     "loader-runner": "^4.2.0",
     "webpack": "^5.51.1"
   }
