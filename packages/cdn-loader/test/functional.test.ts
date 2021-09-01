@@ -5,7 +5,7 @@ import path from 'path';
 runLoaders(
   {
     // String: 资源的绝对路径 (可以增加查询字符串)
-    resource: path.resolve(__dirname, '../../../test/src/libs/log.js'),
+    resource: path.resolve(__dirname, '../../../test/src/assets/img/file.png'),
 
     // String[] | {loader, options}[]: loader 的绝对路径 (可以增加查询字符串)
     loaders: [

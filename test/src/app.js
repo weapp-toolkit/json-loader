@@ -17,8 +17,7 @@ App({
   globalData: {
 
   },
-  onLaunch(options) {
-    console.log(123);
+  onLaunch() {
     new Log().log(String(new Date().getHours()).padStart(2, '0'));
   },
 

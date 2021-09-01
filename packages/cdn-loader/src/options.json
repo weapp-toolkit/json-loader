@@ -10,9 +10,6 @@
     "outputPath": {
       "type": "string"
     },
-    "name": {
-      "type": "string"
-    },
     "context": {
       "description": "A custom file context (https://github.com/webpack-contrib/file-loader#context).",
       "type": "string"
