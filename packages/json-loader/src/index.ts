@@ -5,22 +5,19 @@ import { JSONSchema7 } from 'json-schema';
 import { merge } from '@weapp-toolkit/core';
 import { IWeappAppConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import { IWeappConfigJSON } from './types';
-import { getConfigJsonType } from './utils';
+import { getConfigJsonType, getAppEntryPath, Entry } from './utils';
 
 export interface JsonLoaderOptions {
-  appPath?: string;
   preprocessor?: {
     app?: Partial<IWeappAppConfig>;
     page?: Partial<IWeappPageConfig>;
   }
 }
 
+
 const schema: JSONSchema7 = {
   type: 'object',
   properties: {
-    appPath: {
-      type: 'string',
-    },
     preprocessor: {
       type: 'object',
       properties: {
@@ -57,7 +54,6 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   console.info('skr: loader options', options, this.resourcePath);
 
-
   try {
     json = JSON.parse(sourceString);
   } catch (e) {
@@ -70,16 +66,23 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     sourceString,
   });
 
-  const { preprocessor = {}, appPath } = options;
-  /** 没有配置appJson入口文件，暂不处理 */
-  if (!appPath) {
+  const { preprocessor = {} } = options;
+
+  /** 通过入口文件，找出app.json路径 */
+  const entry = (this._compiler?.options.entry) as Entry;
+  let appJsonPath = '';
+  if (entry) {
+    const entryFile = getAppEntryPath(entry);
+    /** app.json路径 */
+    appJsonPath = entryFile.replace(/\.(\w+)/, '.json');;
+  } else {
     return callback?.(null, source);
   }
 
   /** 获取 JSON 的类型 */
-  const configJsonType = getConfigJsonType(appPath, this.resourcePath);
+  const configJsonType = getConfigJsonType(appJsonPath, this.resourcePath);
 
-  console.info('skr: configJsonType', configJsonType);
+  console.info('[json-loader], json所属类型:', configJsonType);
 
   /** JSON 文件不是 app、分包、页面、组件类型，不处理 */
   if (!configJsonType) {
@@ -101,7 +104,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** 输出到文件系统 */
   this.emitFile(outputPath, JSON.stringify(mixinJson));
-  return;
+  return callback?.(null, source);
 }
 
 export default loader;

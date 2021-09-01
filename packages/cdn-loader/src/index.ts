@@ -3,14 +3,15 @@ import { getOptions, interpolateName } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import path from 'path';
+import fs from 'fs';
 
 import { getFileBasePath, normalizePath } from './util';
 import schema from './options.json';
 
 export interface JsonLoaderOptions {
+  cdn?: string;
   esModule?: boolean;
   appPath?: string;
-  outputPath?: string;
   context?: string;
   regExp?: string;
 }
@@ -32,16 +33,13 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     baseDataPath: 'optios',
   });
 
-  const { CDN_URL: cdnUrl } = process.env;
-  console.info('[cdn-loader], cdnUrl:', cdnUrl);
-
   /** cdn不存在则不处理 */
-  if (!cdnUrl) {
+  if (!options.cdn) {
     return callback(null, source);
   }
   console.info('[cdn-loader], context:', options.context, this.rootContext);
 
-  const { context, appPath, outputPath, } = options;
+  const { context, appPath, cdn } = options;
   const { rootContext } = this;
 
   let name = '[name]-[hash].[ext]';
@@ -53,35 +51,24 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     pathList.push(name);
     name = pathList.join('/');
   }
-  console.log('[cdn-loader], name', name);
 
   const filename = interpolateName(this, name, {
     context: context,
     content: source,
     regExp: options.regExp,
   });
-  console.log('[cdn-loader], filename', filename);
 
   /**
    * @description
    * 文件输出路径，实际的文件系统写入路径
    */
-  let fileOutputPath = filename;
-  if (outputPath) {
-    fileOutputPath = path.resolve(outputPath, filename);
-  }
-  console.log('[cdn-loader], fileOutputPath', fileOutputPath);
+  const fileOutputPath = filename;
 
   /**
    * @description
    * 文件的cdn访问路径拼接
    */
-  const fileCdnUrl = `${
-    cdnUrl.endsWith('/')
-      ? cdnUrl
-      : `${cdnUrl}/`
-  }${filename}`;
-  console.log('[cdn-loader], fileCdnUrl', fileCdnUrl);
+  const fileCdnUrl = `${cdn.endsWith('/')? cdn : `${cdn}/`}${filename}`;
 
   /**
    * @description assetInfo
@@ -96,7 +83,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
    * @description
    * webpack文件写入
    */
-  this.emitFile(fileOutputPath, source, undefined, assetInfo);
+  this.emitFile(fileOutputPath, fs.readFileSync(this.resourcePath), undefined, assetInfo);
 
   /**
    * @description
@@ -107,7 +94,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   /** 导出该文件路径 */
   const result = `${ esModule ? 'export default' : 'module.exports ='} "${fileCdnUrl}"`;
   console.log('[cdn-loader], result:', result);
-  return result;
+  callback(null, result);
 }
 
 export default loader;

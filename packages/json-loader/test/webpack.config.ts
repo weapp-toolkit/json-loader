@@ -4,8 +4,8 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: path.resolve(__dirname, '../../../test/src/app.json'),
-    index: path.resolve(__dirname, '../../../test/src/pages/index/index.json'),
+    app: path.resolve(__dirname, '../../../test/src/app.js'),
+    appJson: path.resolve(__dirname, '../../../test/src/app.json')
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -27,7 +27,6 @@ const webpackConfig: webpack.Configuration = {
         loader: path.resolve(__dirname, '../lib/index.js'),
         exclude: /node_modules/,
         options: {
-          appPath: path.resolve(__dirname, '../../../test/src/app.json'),
           preprocessor: {
             app: {
               resizable: true,

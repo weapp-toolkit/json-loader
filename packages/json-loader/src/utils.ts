@@ -65,3 +65,26 @@ export const getSubpackagesPathList = (subpackages: IWeappSubPackage[] ): string
     return acc;
   }, []);
 };
+
+export interface Entry {
+  [key: string]: {
+    import: string[]
+  }
+}
+/**
+ * getAppEntryPath
+ * @param entry webpack entry
+ * @description
+ * 获取entry主入口文件路径
+ */
+export const getAppEntryPath = (entry: Entry): string => {
+  /** 优先或取main,获取app */
+  const main = entry.main || entry.app;
+  if (main) {
+    return main.import[0];
+  } else {
+    /** 取第一个 */
+    const appKey = Object.keys(entry)[0];
+    return entry[appKey].import[0];
+  };
+};

@@ -70,7 +70,7 @@
     },
     {
       "type": "npm",
-      "script": "dev:test",
+      "script": "debug",
       "path": "packages/cdn-loader/",
       "problemMatcher": [],
       "label": "cdn-loader: debug",
@@ -95,7 +95,7 @@
     },
     {
       "type": "npm",
-      "script": "dev:test",
+      "script": "debug",
       "path": "packages/json-loader/",
       "problemMatcher": [],
       "label": "json-loader: debug",

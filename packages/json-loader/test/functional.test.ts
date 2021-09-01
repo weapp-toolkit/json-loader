@@ -13,7 +13,6 @@ runLoaders(
       {
         loader: path.resolve(__dirname, '../lib/index.js'),
         options: {
-          appPath: path.resolve(__dirname, '../../../test/src/app.json'),
           preprocessor: {
             app: {
               resizable: true,
