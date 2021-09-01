@@ -1,5 +1,7 @@
+import path from 'path';
 import globby from 'globby';
 import { LoaderContext } from 'webpack';
+import { promiseParallel } from '@weapp-toolkit/core';
 // import { getOptions } from 'loader-utils';
 import { getAssets } from './core';
 import { AssetsType } from './types';
@@ -21,6 +23,9 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
   const sourceString = typeof source === 'string' ? source : source.toString();
   const resolve = this.getResolve();
 
+  console.info('skr: sourceString ', this.resourcePath, sourceString);
+  return callback?.(null, sourceString);
+
   const assets = getAssets(sourceString);
   for await (const asset of assets) {
     switch (asset.type) {
@@ -38,7 +43,16 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
           cwd: this.context,
         });
 
-        requests.forEach(this.addDependency.bind(this));
+        await Promise.all(requests.map(async (request) => {
+          const resolvedRequest = await resolve(this.context, './' + request);
+          this.addDependency(resolvedRequest);
+          // this.emitFile(path.relative(this.context), '');
+        }));
+        // promiseParallel(Array.prototype.forEach, requests, async (request) => {
+        //   const resolvedRequest = await resolve(this.context, './' + request);
+        //   this.addDependency(resolvedRequest);
+        // });
+
         break;
       }
       default:
