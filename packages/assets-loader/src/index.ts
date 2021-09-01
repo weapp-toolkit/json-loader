@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import globby from 'globby';
 import { LoaderContext } from 'webpack';
 import { promiseParallel } from '@weapp-toolkit/core';
@@ -53,9 +54,11 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
         await Promise.all(requests.map(async (request) => {
           const resolvedRequest = await resolve(this.context, './' + request);
           this.addDependency(resolvedRequest);
-          this.loadModule(resolvedRequest, () => {});
-          // this.emitFile(path.relative(this.context), '');
+          // this.loadModule(resolvedRequest, () => {});
+          /** 无法处理，直接按照相对路径生成 */
+          this.emitFile(path.relative(this.context, resolvedRequest), fs.readFileSync(resolvedRequest));
         }));
+
 
         // promiseParallel(Array.prototype.forEach, requests, async (request) => {
         //   const resolvedRequest = await resolve(this.context, './' + request);

@@ -1,5 +1,3 @@
-import $ from 'lodash';
-
 type PromisifyFunc<T extends (...args: any) => any> = T extends (...args: any) => infer P ? (...args: Parameters<T>) => Promise<P> : any;
 type Promiseble = typeof Array.prototype.forEach | typeof Array.prototype.map;
 
@@ -21,7 +19,7 @@ export const promiseParallel = async <T extends any[]>(
     });
 
     function finish() {
-      if ($.isArray(result)) {
+      if (Array.isArray(result)) {
         resolve(Promise.all(result));
       }
       resolve(Promise.resolve(result));
