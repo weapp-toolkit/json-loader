@@ -11,7 +11,6 @@ export interface JsonLoaderOptions {
   esModule?: boolean;
   appPath?: string;
   outputPath?: string;
-  name?: string;
   context?: string;
   regExp?: string;
 }
@@ -32,6 +31,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     name: 'Cdn Loader',
     baseDataPath: 'optios',
   });
+
   const { CDN_URL: cdnUrl } = process.env;
   console.info('[cdn-loader], cdnUrl:', cdnUrl);
 
@@ -39,26 +39,25 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   if (!cdnUrl) {
     return callback(null, source);
   }
-  console.info('[cdn-loader], context1:', options.context, this.rootContext);
+  console.info('[cdn-loader], context:', options.context, this.rootContext);
 
   const { context, appPath, outputPath, } = options;
   const { rootContext } = this;
-  let name = '[name].[ext]';
-  if (options.name) {
-    name = options.name;
-  } else if (appPath) {
+
+  let name = '[name]-[hash].[ext]';
+  if (appPath) {
     /** 获取文件的base路径 */
-    name = getFileBasePath(appPath, this.resourcePath);
-    // const filePath = getFileBasePath(appPath, this.resourcePath);
-    // const pathList = filePath.split('/');
-    // pathList.pop();
-    // pathList.push(name);
-    // name = pathList.join('/');
+    const filePath = getFileBasePath(appPath, this.resourcePath);
+    const pathList = filePath.split('/');
+    pathList.pop();
+    pathList.push(name);
+    name = pathList.join('/');
   }
   console.log('[cdn-loader], name', name);
 
   const filename = interpolateName(this, name, {
-    context,
+    context: context,
+    content: source,
     regExp: options.regExp,
   });
   console.log('[cdn-loader], filename', filename);
@@ -84,31 +83,15 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   }${filename}`;
   console.log('[cdn-loader], fileCdnUrl', fileCdnUrl);
 
-
   /**
    * @description assetInfo
    */
-  const assetInfo: AssetInfo = {};
-  if (typeof name === 'string') {
-    let normalizedName = name;
-
-    const idx = normalizedName.indexOf('?');
-
-    if (idx >= 0) {
-      normalizedName = normalizedName.substr(0, idx);
-    }
-
-    const isImmutable = /\[([^:\]]+:)?(hash|contenthash)(:[^\]]+)?]/gi.test(
-      normalizedName
-    );
-
-    if (isImmutable === true) {
-      assetInfo.immutable = true;
-    }
-  }
-  assetInfo.sourceFilename = normalizePath(
-    path.relative(context || rootContext, this.resourcePath)
-  );
+  const assetInfo: AssetInfo = {
+    immutable: true,
+    sourceFilename: normalizePath(
+      path.relative(context || rootContext, this.resourcePath)
+    )
+  };
   /**
    * @description
    * webpack文件写入
