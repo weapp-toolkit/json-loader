@@ -1,9 +1,3 @@
-/**
- * @module my
- * @author charryhuang
- * @email charryhuang@tencent.com
- * @date 2021-06-10 21:27:13
- */
 import Log from '@/libs/log';
 
 Page({

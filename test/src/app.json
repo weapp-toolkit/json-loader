@@ -1,14 +1,14 @@
 {
-  "pages": [
-    "pages/index/index",
-    "pages/my/my"
-  ],
+  "pages": ["pages/my/my"],
   "subpackages": [
     {
       "root": "pages/index/",
-      "pages": [
-        "index"
-      ]
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/independent/",
+      "pages": ["independent"],
+      "independent": true
     }
   ],
   "window": {
