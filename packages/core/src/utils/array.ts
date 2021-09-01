@@ -1,13 +1,10 @@
-import $ from 'lodash';
-
+type PromisifyFunc<T extends (...args: any) => any> = T extends (...args: any) => infer P ? (...args: Parameters<T>) => Promise<P> : any;
 type Promiseble = typeof Array.prototype.forEach | typeof Array.prototype.map;
-type OriginCallback = Parameters<Promiseble>[0];
-type Callback = (...args: Parameters<OriginCallback>) => Promise<ReturnType<OriginCallback>>;
 
 export const promiseParallel = async <T extends any[]>(
   promiseble: Promiseble,
   array: T,
-  callback: Callback,
+  callback: PromisifyFunc<Parameters<Promiseble>[0]>,
 ): Promise<ReturnType<Promiseble>> => {
   return new Promise((resolve) => {
     let finishCount = 0;
@@ -22,7 +19,7 @@ export const promiseParallel = async <T extends any[]>(
     });
 
     function finish() {
-      if ($.isArray(result)) {
+      if (Array.isArray(result)) {
         resolve(Promise.all(result));
       }
       resolve(Promise.resolve(result));

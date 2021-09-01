@@ -34,8 +34,8 @@ export default class WeappPlugin {
 
   public apply(compiler: Compiler): void {
     const app = getAppEntry(compiler);
-
     this.context = path.dirname(app);
+
     const resolver = createResolver(compiler, this.context);
     const dependencyTree = new DependencyTree({
       context: this.context,

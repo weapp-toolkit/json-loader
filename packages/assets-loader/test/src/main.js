@@ -1,4 +1,5 @@
 import path from 'path';
+import './index.wxss';
 
 const imageMap = {
   LEVEL_1: './level1.png',
@@ -9,6 +10,7 @@ const imageMap = {
 path.join('./level', index, '.png');
 
 const IMG_LOGO = 'http://image.abcmouse.qq.com/parents-home/logo.png';
+const IMG_LOGO2 = `http://image.abcmouse.qq.com/parents-home/${a}.png`;
 
 export function getImage(index) {
   return `./level${index}.png`;

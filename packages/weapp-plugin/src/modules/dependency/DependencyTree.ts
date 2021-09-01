@@ -163,8 +163,8 @@ export class DependencyTree {
     const subPackages = appJson.subpackages || appJson.subPackages || [];
     subPackages.map((subPackage) => {
       const { root, pages, independent } = subPackage;
-      /** 获取分包根绝对路径 */
-      const context = path.dirname(this.resolve(root));
+      /** 获取分包根绝对路径，从小程序根路径开始查找 */
+      const context = this.resolver.resolveDir(this.context, root);
       /** 根据分包路径生成 chunk name */
       const chunkName = encodeChunkName(root);
       /** 以分包根路径作为 context 生成 resolve 函数 */

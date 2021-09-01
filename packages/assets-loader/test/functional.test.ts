@@ -15,7 +15,15 @@ runLoaders(
     ],
 
     // 基础上下文之外的额外 loader 上下文
-    context: {},
+    context: {
+      getResolve() {
+        return function (context: string, request: string) {
+          return path.resolve(context, request);
+        };
+      },
+      loadModule() {
+      }
+    },
 
     // 读取资源的函数
     readResource: fs.readFile.bind(fs),
@@ -24,6 +32,6 @@ runLoaders(
     // err: Error?
     // result.result: Buffer | String
     // The result
-    console.info('skr: loader result', result);
+    // console.info('skr: loader result', result);
   },
 );
