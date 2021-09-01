@@ -33,6 +33,7 @@
     "padded-blocks": ["error", "never"],
     "quotes": [2, "single"],
     "spaced-comment": 2,
+    "object-shorthand": 2,
     "semi": "error"
   }
 }

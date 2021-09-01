@@ -3,7 +3,7 @@ import globby from 'globby';
 import { LoaderContext } from 'webpack';
 import { promiseParallel } from '@weapp-toolkit/core';
 // import { getOptions } from 'loader-utils';
-import { getAssets } from './core';
+import { ASSETS_MARKER_PLACEHOLDER, handleSourceCode } from './core';
 import { AssetsType } from './types';
 
 /**
@@ -23,19 +23,26 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
   const sourceString = typeof source === 'string' ? source : source.toString();
   const resolve = this.getResolve();
 
-  console.info('skr: sourceString ', this.resourcePath, sourceString);
-  return callback?.(null, sourceString);
+  console.info('skr: sourceString', sourceString);
 
-  const assets = getAssets(sourceString);
-  for await (const asset of assets) {
+  const handleResult = handleSourceCode(sourceString);
+  const { assets } = handleResult;
+  let { code } = handleResult;
+
+  /** 处理所有识别的资源 */
+  for (let index = 0; index < assets.length; index++) {
+    const asset = assets[index];
     switch (asset.type) {
       case AssetsType.Http:
-        break;
       case AssetsType.Unknown:
+        code = replacePlaceholder(index, code, asset.code);
         break;
       case AssetsType.Normal: {
         const request = await resolve(this.context, asset.request);
         this.addDependency(request);
+
+        /** 替换为模块化引入方式 */
+        code = replacePlaceholder(index, code, `require('${asset.request}')`);
         break;
       }
       case AssetsType.Glob: {
@@ -46,13 +53,17 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
         await Promise.all(requests.map(async (request) => {
           const resolvedRequest = await resolve(this.context, './' + request);
           this.addDependency(resolvedRequest);
+          this.loadModule(resolvedRequest, () => {});
           // this.emitFile(path.relative(this.context), '');
         }));
+
         // promiseParallel(Array.prototype.forEach, requests, async (request) => {
         //   const resolvedRequest = await resolve(this.context, './' + request);
         //   this.addDependency(resolvedRequest);
         // });
 
+        /** 暂时没法处理 */
+        code = replacePlaceholder(index, code, asset.code);
         break;
       }
       default:
@@ -60,8 +71,17 @@ async function assetsLoader(this: LoaderContext<null>, source: string | Buffer):
     }
   }
 
-  /** 返回转为字符串后的 JSON */
-  return callback?.(null, sourceString);
+  console.info('skr: code', code);
+  /** 返回处理后的字符串 */
+  return callback?.(null, code);
+}
+
+/**
+ * 替换掉代码中的占位符
+ */
+function replacePlaceholder(index: number, code: string, replacer: string): string {
+  const regex = new RegExp(ASSETS_MARKER_PLACEHOLDER + index);
+  return code.replace(regex, replacer);
 }
 
 export default assetsLoader;

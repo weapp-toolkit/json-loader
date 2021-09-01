@@ -4,34 +4,7 @@ import { CachedInputFileSystem, ResolverFactory } from 'enhanced-resolve';
 import { Compiler } from 'webpack';
 import $ from 'lodash';
 
-export interface Resolver {
-  /**
-   * 模块路径解析异步方法
-   * @param context 文件夹
-   * @param request 文件路径
-   */
-  resolve: (context: string, request: string) => Promise<string>;
-  /**
-   * 模块路径解析同步方法
-   * @param context 文件夹
-   * @param request 文件路径
-   */
-  resolveSync: (context: string, request: string) => string;
-  /**
-   * 依赖路径解析
-   * @param context 文件夹
-   * @param pathname 文件路径
-   * @returns
-   */
-  resolveDependency: (context: string, pathname: string) => Promise<string>;
-  /**
-   * 依赖路径解析同步方法
-   * @param context 文件夹
-   * @param pathname 文件路径
-   * @returns
-   */
-  resolveDependencySync: (context: string, pathname: string) => string;
-}
+export type Resolver = ReturnType<typeof createResolver>;
 
 /**
  * 创建模块路径解析器
@@ -39,7 +12,7 @@ export interface Resolver {
  * @param appRoot 小程序 app 根绝对路径，app.json 所在路径
  * @returns {} { resolve, resolveSync, resolveDependency }
  */
-export const createResolver = (compiler: Compiler, appRoot: string): Resolver => {
+export const createResolver = (compiler: Compiler, appRoot: string) => {
   const webpackResolveOptions = $.omit(compiler.options.resolve, ['plugins', 'fileSystem']);
   const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
   const resolver = ResolverFactory.createResolver({
@@ -120,11 +93,35 @@ export const createResolver = (compiler: Compiler, appRoot: string): Resolver =>
     return resolveSync(appRoot, `.${pathname}`);
   };
 
+  /**
+   * 查找文件夹绝对路径同步方法
+   * @param context 文件夹
+   * @param pathname 子文件夹路径
+   * @returns
+   */
+  const resolveDir = (context: string, pathname: string) => {
+    let result = '';
+
+    if (isRelativePath(pathname)) {
+      result = path.resolve(context, pathname);
+    } else {
+      /** 如果是绝对路径从小程序根路径开始找 */
+      result = path.resolve(appRoot, `.${pathname}`);
+    }
+
+    if (!fs.existsSync(result)) {
+      throw new Error(`找不到该文件夹：${pathname}, 查找路径：${context}, ${appRoot}.`);
+    }
+
+    return result;
+  };
+
   return {
     resolve,
     resolveSync,
     resolveDependency,
     resolveDependencySync,
+    resolveDir,
   };
 };
 

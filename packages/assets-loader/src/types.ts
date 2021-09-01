@@ -5,24 +5,27 @@ export enum AssetsType {
   Unknown,
 }
 
-export interface NormalAssets {
+interface IBaseAssets {
+  code: string; /** 源码 */
+  request: string; /** 资源路径 */
+}
+
+export interface NormalAssets extends IBaseAssets {
   type: AssetsType.Normal;
-  request: string;
 }
 
-export interface GlobAssets {
+export interface GlobAssets extends IBaseAssets {
   type: AssetsType.Glob;
-  request: string /** glob */;
+  request: string /** glob 路径 */;
 }
 
-export interface HttpAssets {
+export interface HttpAssets extends IBaseAssets {
   type: AssetsType.Http;
-  request: string; /** http 资源 */
+  request: string; /** http 资源路径 */
 }
 
-export interface UnknownAssets {
+export interface UnknownAssets extends IBaseAssets {
   type: AssetsType.Unknown;
-  request: string; /** http 资源 */
 }
 
 export type Assets = NormalAssets | GlobAssets | HttpAssets | UnknownAssets;

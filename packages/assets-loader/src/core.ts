@@ -1,67 +1,90 @@
 import { Assets, AssetsType } from './types';
 
+interface IHandleSourceCodeResult {
+  assets: Assets[];
+  code: string;
+}
+
 const RegExps = {
-  RoughlyMatcher: /['"`][^=;]*?\.[a-zA-Z]+['"`]/g,
+  RoughlyMatcher: /((import|require)[^'"`]*?)?['"`][^=;]*?\.[a-zA-Z]+['"`]/gm,
+  ImportMatcher: /(import|require)[^'"`]*?(?=['"`])/gm,
   TemplateStringMatcher: /(?<=[^${}'"`]+)[${]\{(.*)?\}\}?/g,
   ExpressionMatcher: /(?<=[^${}'"`]+)['"`](.*?)['"`]/g,
 };
 
 const AssetsMatcher = {
-  HttpMatcher: /^https?|\/\/[^'"`]+\.\w+$/,
+  HttpMatcher: /^(https?|\/\/).+\.\w+$/,
   NormalMatcher: /^[^${}'"`]+\.\w+$/,
   GlobMatcher: /[${}+'"`]+(.*)?\.\w+$/,
 };
 
+export const ASSETS_MARKER_PLACEHOLDER = '__ASSETS_LOADER__PLACEHOLDER_';
+
 /**
  * 从字符串解析资源
- * @param request
+ * @param code
  */
-const handleAssets = (request: string): Assets => {
-  const plainRequest = request.replace(/\s\r\t\n/g, '').replace(/^['"`]/, '').replace(/['"`]$/, '');
-  console.info('skr: plainRequest', plainRequest);
+const handleAssets = (code: string): Assets => {
+  const request = code.replace(/\s\r\t\n/g, '').replace(/^['"`]/, '').replace(/['"`]$/, '');
 
-  if (AssetsMatcher.HttpMatcher.test(plainRequest)) {
+  if (AssetsMatcher.HttpMatcher.test(request)) {
     return {
       type: AssetsType.Http,
-      request: plainRequest,
+      request,
+      code,
     };
   }
 
-  if (AssetsMatcher.NormalMatcher.test(plainRequest)) {
+  if (AssetsMatcher.NormalMatcher.test(request)) {
     return {
       type: AssetsType.Normal,
-      request: plainRequest,
+      request,
+      code,
     };
   }
 
-  if (AssetsMatcher.GlobMatcher.test(plainRequest)) {
-    let handledRequest = plainRequest;
+  if (AssetsMatcher.GlobMatcher.test(request)) {
+    let handledRequest = request;
     handledRequest = handledRequest.replace(RegExps.TemplateStringMatcher, '*');
     handledRequest = handledRequest.replace(RegExps.ExpressionMatcher, '*');
 
     return {
       type: AssetsType.Glob,
       request: handledRequest,
+      code,
     };
   }
 
   return {
     type: AssetsType.Unknown,
-    request: plainRequest,
+    request,
+    code,
   };
 };
 
 /**
- * 获取源码中的资源
+ * 处理源码并获取资源
  * @param sourceCode 源码
  * @returns
  */
-export const getAssets = (sourceCode: string): Assets[] => {
-  const roughlyMatchResult = sourceCode.match(RegExps.RoughlyMatcher) || [];
+export const handleSourceCode = (sourceCode: string): IHandleSourceCodeResult => {
+  const roughlyMatchResult: string[] = [];
+  const code = sourceCode.replace(RegExps.RoughlyMatcher, (match) => {
+    /** 模块引入忽略处理 */
+    if (RegExps.ImportMatcher.test(match)) {
+      return match;
+    }
+
+    roughlyMatchResult.push(match);
+    /** 将资源缓存，并替换为占位字符串，后续替换代码使用 */
+    return ASSETS_MARKER_PLACEHOLDER + (roughlyMatchResult.length - 1);
+  });
+
+  // const roughlyMatchResult = sourceCode.match(RegExps.RoughlyMatcher) || [];
   console.info('skr: roughlyMatchResult', roughlyMatchResult);
 
   const assets = roughlyMatchResult.map((roughlyResult) => handleAssets(roughlyResult));
   console.info('skr: assets', assets);
 
-  return assets;
+  return { assets, code };
 };
