@@ -30,9 +30,8 @@ export interface JsonLoaderOptions {
  * @param source
  * @returns
  */
-function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer): void | string {
+function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer | string {
   const options = getOptions(this) as JsonLoaderOptions;
-  const callback = this.async();
 
   validate(schema as JSONSchema7, options, {
     name: 'Cdn Loader',
@@ -41,7 +40,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** cdn不存在则不处理 */
   if (!options.cdn) {
-    return callback(null, source);
+    return source;
   }
 
   const { context, cdn, publicPath } = options;
@@ -93,8 +92,8 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** 导出该文件路径 */
   const result = `${ esModule ? 'export default' : 'module.exports ='} "${fileCdnUrl}"`;
-  console.log('[cdn-loader], result:', result);
-  callback(null, result);
+  console.log('[cdn-loader], result', result);
+  return result;
 }
 
 export default loader;
