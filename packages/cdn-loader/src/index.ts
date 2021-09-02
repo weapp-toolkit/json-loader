@@ -54,7 +54,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   }
 
   const filename = interpolateName(this, name, {
-    context: context || this.rootContext,
+    context: context || rootContext,
     content: source,
     regExp: options.regExp,
   });
@@ -77,7 +77,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   const assetInfo: AssetInfo = {
     immutable: true,
     sourceFilename: normalizePath(
-      path.relative(context || rootContext, this.resourcePath)
+      path.relative(rootContext, this.resourcePath)
     )
   };
   /**
