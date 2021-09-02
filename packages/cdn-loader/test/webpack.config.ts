@@ -10,6 +10,7 @@ const webpackConfig: webpack.Configuration = {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].js',
   },
+  watch: true,
   target: 'node',
   mode: 'development',
   devtool: 'cheap-source-map',
@@ -27,7 +28,6 @@ const webpackConfig: webpack.Configuration = {
         exclude: /node_modules/,
         options: {
           cdn: 'https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/',
-          appPath: path.resolve(__dirname, '../../../test/src'),
           context: process.cwd(),
         },
       },

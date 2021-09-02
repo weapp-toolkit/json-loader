@@ -3,9 +3,8 @@ import { getOptions, interpolateName } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import path from 'path';
-import fs from 'fs';
 
-import { getFileBasePath, normalizePath } from './util';
+import { normalizePath } from './util';
 import schema from './options.json';
 
 export interface JsonLoaderOptions {
@@ -39,21 +38,13 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   }
   console.info('[cdn-loader], context:', options.context, this.rootContext);
 
-  const { context, appPath, cdn } = options;
+  const { context, cdn } = options;
   const { rootContext } = this;
 
-  let name = '[name]-[hash].[ext]';
-  if (appPath) {
-    /** 获取文件的base路径 */
-    const filePath = getFileBasePath(appPath, this.resourcePath);
-    const pathList = filePath.split('/');
-    pathList.pop();
-    pathList.push(name);
-    name = pathList.join('/');
-  }
+  const name = '[name]-[hash].[ext]';
 
   const filename = interpolateName(this, name, {
-    context: context,
+    context,
     content: source,
     regExp: options.regExp,
   });
@@ -83,8 +74,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
    * @description
    * webpack文件写入
    */
-  this.emitFile(fileOutputPath, fs.readFileSync(this.resourcePath), undefined, assetInfo);
-
+  this.emitFile(fileOutputPath, source, undefined, assetInfo);
   /**
    * @description
    * webpack模块导出
@@ -98,3 +88,5 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 }
 
 export default loader;
+
+export const raw = true;
