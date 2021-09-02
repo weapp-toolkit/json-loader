@@ -1,6 +1,7 @@
 {
   "watch": [
     "./test/functional.test.ts",
-    "./lib"
+    "./lib",
+    "../../test/src"
   ]
 }
