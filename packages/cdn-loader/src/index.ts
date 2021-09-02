@@ -41,7 +41,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   const { context, cdn } = options;
   const { rootContext } = this;
 
-  const name = '[name]-[hash].[ext]';
+  const name = '__assets/[name]-[hash].[ext]';
 
   const filename = interpolateName(this, name, {
     context,
