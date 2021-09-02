@@ -4,10 +4,10 @@
     "esModule": {
       "type": "boolean"
     },
-    "appPath": {
+    "name": {
       "type": "string"
     },
-    "outputPath": {
+    "publicPath": {
       "type": "string"
     },
     "context": {

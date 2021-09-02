@@ -8,10 +8,17 @@ import { normalizePath } from './util';
 import schema from './options.json';
 
 export interface JsonLoaderOptions {
+  /** cdn 路径 */
   cdn?: string;
+  /** 是否为esmodule */
   esModule?: boolean;
-  appPath?: string;
+  /** publicPath 输出路径 */
+  publicPath?: string;
+  /** 执行路径 */
   context?: string;
+  /** 文件名称 */
+  name?: string;
+  /** 正则 */
   regExp?: string;
 }
 
@@ -36,15 +43,18 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   if (!options.cdn) {
     return callback(null, source);
   }
-  console.info('[cdn-loader], context:', options.context, this.rootContext);
 
-  const { context, cdn } = options;
+  const { context, cdn, publicPath } = options;
   const { rootContext } = this;
 
-  const name = '__assets/[name]-[hash].[ext]';
+  /** 文件名称 */
+  let name = options.name || '[name]-[contenthash].[ext]';
+  if (publicPath) {
+    name = `${publicPath.endsWith('/') ? publicPath : `${publicPath}/`}${name}`;
+  }
 
   const filename = interpolateName(this, name, {
-    context,
+    context: context || this.rootContext,
     content: source,
     regExp: options.regExp,
   });
