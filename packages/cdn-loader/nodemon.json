@@ -1,6 +1,8 @@
 {
   "watch": [
     "./test/functional.test.ts",
-    "./lib"
+    "./test/webpack.config.js",
+    "./lib",
+    "../../test/src"
   ]
 }

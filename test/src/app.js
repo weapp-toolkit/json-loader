@@ -1,4 +1,7 @@
 import Log from './libs/log';
+// 测试文件依赖使用
+import filePng from './assets/img/file.png';
+import fileJpg from './assets/img/file.jpg';
 
 // 网络中断提醒
 wx.onNetworkStatusChange(({ isConnected }) => {

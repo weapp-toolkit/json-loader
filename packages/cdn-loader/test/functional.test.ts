@@ -12,9 +12,9 @@ runLoaders(
       {
         loader: path.resolve(__dirname, '../lib/index.js'),
         options: {
+          publicPath: '__assets',
+          cdn: 'https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/',
           context: process.cwd(),
-          appPath: path.resolve(__dirname, '../../../test/src'),
-          outputPath: path.resolve(__dirname, '../../../test/dist'),
         },
       },
     ],

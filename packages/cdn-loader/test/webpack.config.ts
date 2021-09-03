@@ -26,9 +26,9 @@ const webpackConfig: webpack.Configuration = {
         loader: path.resolve(__dirname, '../lib/index.js'),
         exclude: /node_modules/,
         options: {
-          appPath: path.resolve(__dirname, '../../../test/src'),
+          publicPath: '__assets',
+          cdn: 'https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/',
           context: process.cwd(),
-          outputPath: path.resolve(__dirname, '../../../test/dist'),
         },
       },
     ],

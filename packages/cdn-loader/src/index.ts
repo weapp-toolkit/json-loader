@@ -4,14 +4,21 @@ import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import path from 'path';
 
-import { getFileBasePath, normalizePath } from './util';
+import { normalizePath } from './util';
 import schema from './options.json';
 
 export interface JsonLoaderOptions {
+  /** cdn 路径 */
+  cdn?: string;
+  /** 是否为esmodule */
   esModule?: boolean;
-  appPath?: string;
-  outputPath?: string;
+  /** publicPath 输出路径 */
+  publicPath?: string;
+  /** 执行路径 */
   context?: string;
+  /** 文件名称 */
+  name?: string;
+  /** 正则 */
   regExp?: string;
 }
 
@@ -23,65 +30,45 @@ export interface JsonLoaderOptions {
  * @param source
  * @returns
  */
-function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer): void | string {
+function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer | string {
   const options = getOptions(this) as JsonLoaderOptions;
-  const callback = this.async();
 
   validate(schema as JSONSchema7, options, {
     name: 'Cdn Loader',
     baseDataPath: 'optios',
   });
 
-  const { CDN_URL: cdnUrl } = process.env;
-  console.info('[cdn-loader], cdnUrl:', cdnUrl);
-
   /** cdn不存在则不处理 */
-  if (!cdnUrl) {
-    return callback(null, source);
+  if (!options.cdn) {
+    return source;
   }
-  console.info('[cdn-loader], context:', options.context, this.rootContext);
 
-  const { context, appPath, outputPath, } = options;
+  const { context, cdn, publicPath } = options;
   const { rootContext } = this;
 
-  let name = '[name]-[hash].[ext]';
-  if (appPath) {
-    /** 获取文件的base路径 */
-    const filePath = getFileBasePath(appPath, this.resourcePath);
-    const pathList = filePath.split('/');
-    pathList.pop();
-    pathList.push(name);
-    name = pathList.join('/');
+  /** 文件名称 */
+  let name = options.name || '[name]-[contenthash].[ext]';
+  if (publicPath) {
+    name = `${publicPath.endsWith('/') ? publicPath : `${publicPath}/`}${name}`;
   }
-  console.log('[cdn-loader], name', name);
 
   const filename = interpolateName(this, name, {
-    context,
+    context: context || rootContext,
     content: source,
     regExp: options.regExp,
   });
-  console.log('[cdn-loader], filename', filename);
 
   /**
    * @description
    * 文件输出路径，实际的文件系统写入路径
    */
-  let fileOutputPath = filename;
-  if (outputPath) {
-    fileOutputPath = path.resolve(outputPath, filename);
-  }
-  console.log('[cdn-loader], fileOutputPath', fileOutputPath);
+  const fileOutputPath = filename;
 
   /**
    * @description
    * 文件的cdn访问路径拼接
    */
-  const fileCdnUrl = `${
-    cdnUrl.endsWith('/')
-      ? cdnUrl
-      : `${cdnUrl}/`
-  }${filename}`;
-  console.log('[cdn-loader], fileCdnUrl', fileCdnUrl);
+  const fileCdnUrl = `${cdn.endsWith('/')? cdn : `${cdn}/`}${filename}`;
 
   /**
    * @description assetInfo
@@ -89,7 +76,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   const assetInfo: AssetInfo = {
     immutable: true,
     sourceFilename: normalizePath(
-      path.relative(context || rootContext, this.resourcePath)
+      path.relative(rootContext, this.resourcePath)
     )
   };
   /**
@@ -97,7 +84,6 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
    * webpack文件写入
    */
   this.emitFile(fileOutputPath, source, undefined, assetInfo);
-
   /**
    * @description
    * webpack模块导出
@@ -106,8 +92,10 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** 导出该文件路径 */
   const result = `${ esModule ? 'export default' : 'module.exports ='} "${fileCdnUrl}"`;
-  console.log('[cdn-loader], result:', result);
+  console.log('[cdn-loader], result', result);
   return result;
 }
 
 export default loader;
+
+export const raw = true;

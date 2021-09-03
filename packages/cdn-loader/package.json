@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jest",
     "dev": "tsc -w",
-    "debug:dev": "nodemon --config ./nodemon.json --exec 'CDN_URL=https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/ TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
-    "dev:test": "nodemon --config ./nodemon.json --exec 'CDN_URL=https://abcmouse.cdn-go.cn/fex/abcmouse-h5-parents-home/-/c28cbc27/ ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/functional.test.ts",
+    "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
+    "debug:lite": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/functional.test.ts",
     "build": "rimraf lib && tsc"
   },
   "repository": {
