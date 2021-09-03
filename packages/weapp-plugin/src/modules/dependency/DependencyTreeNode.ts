@@ -1,13 +1,8 @@
 import path from 'path';
 import fsx from 'fs-extra';
 import globby from 'globby';
-import { replaceExt, Resolver } from '../../utils/resolver';
+import { replaceExt, Resolver, getAssetType, AssetType } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig } from '../../../../weapp-types';
-
-/**
- * 依赖树资源类型定义
- */
-export type DependencyTreeAssetsType = 'json' | 'js' | 'css' | 'wxml' | 'wxs' | 'other';
 
 export interface IDependencyTreeNode {
   pathname: string /** 依赖绝对路径 */;
@@ -24,7 +19,7 @@ type CachedFunction<T extends (...args: any[]) => any> = T & {
  */
 export class DependencyTreeNode {
   /** 依赖类型 */
-  private nodeType!: DependencyTreeAssetsType;
+  private nodeType!: AssetType;
 
   /** 依赖文件名 */
   private nodeBasename!: string;
@@ -47,9 +42,9 @@ export class DependencyTreeNode {
   /** 子依赖 */
   public children = new Set<DependencyTreeNode>();
 
-  public get type(): DependencyTreeAssetsType {
+  public get type(): AssetType {
     if (!this.nodeType) {
-      this.nodeType = this.getNodeType();
+      this.nodeType = getAssetType(this.pathname);
     }
     return this.nodeType;
   }
@@ -118,35 +113,6 @@ export class DependencyTreeNode {
     }, []);
 
     return selfDependency.concat(assetsDependencies, childrenAssetsDependencies);
-  }
-
-  /**
-   * 获取依赖类型
-   * @returns
-   */
-  private getNodeType(): DependencyTreeAssetsType {
-    const ext = path.extname(this.pathname);
-
-    switch (ext) {
-      case '.js':
-      case '.ts':
-        return 'js';
-      case '.json':
-        return 'json';
-      case '.wxml':
-        return 'wxml';
-      case '.wxs':
-        return 'wxs';
-      case '.css':
-      case '.less':
-      case '.scss':
-      case '.sass':
-      case '.styl':
-      case '.stylus':
-        return 'css';
-      default:
-        return 'other';
-    }
   }
 
   /**

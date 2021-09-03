@@ -1,0 +1,4 @@
+var foo = 'comp';
+module.exports = {
+  foo: foo,
+};

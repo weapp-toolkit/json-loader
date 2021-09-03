@@ -1,9 +1,10 @@
 {
   "watch": [
-    "./test",
-    "./lib"
+    "test/**/*",
+    "lib/**/*"
   ],
+  "ext": "js, ts, json",
   "ignore": [
-    "./test/dist"
+    "test/dist/*"
   ]
 }

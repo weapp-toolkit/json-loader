@@ -50,6 +50,7 @@
     }
   },
   "dependencies": {
+    "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "enhanced-resolve": "^5.8.2",
     "fs-extra": "^10.0.0",

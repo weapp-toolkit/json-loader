@@ -1,0 +1,8 @@
+var foo = "'hello world'";
+var bar = function(d) {
+  return require('./comp.wxs');
+}
+module.exports = {
+  foo: foo,
+  bar: bar
+};

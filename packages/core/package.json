@@ -25,5 +25,9 @@
   },
   "bugs": {
     "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/issues"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
   }
 }

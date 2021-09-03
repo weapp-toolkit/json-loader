@@ -1,11 +1,31 @@
-import path from 'path';
-import fs from 'fs';
-import globby from 'globby';
-import { LoaderContext } from 'webpack';
-import { promiseParallel } from '@weapp-toolkit/core';
-// import { getOptions } from 'loader-utils';
-import { ASSETS_MARKER_PLACEHOLDER, handleSourceCode } from './core';
-import { AssetsType } from './types';
+import { Compiler, LoaderContext } from 'webpack';
+import { validate } from 'schema-utils';
+import { JSONSchema7 } from 'json-schema';
+import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
+import { getOptions } from 'loader-utils';
+import { handlerRunner } from './handler-runner';
+import { DefaultHandler } from './handler/default';
+import { JavascriptHandler } from './handler/javascript';
+import { WxmlHandler } from './handler/wxml';
+
+export interface AssetsLoaderOptions {
+  esModule?: boolean;
+  filename?: string;
+}
+
+const schema: JSONSchema7 = {
+  type: 'object',
+  properties: {
+    esModule: {
+      type: 'boolean',
+      default: true,
+    },
+    filename: {
+      type: 'string',
+    },
+  },
+};
+
 
 /**
  * 微信小程序 js 解析器
@@ -14,77 +34,55 @@ import { AssetsType } from './types';
  * @param source
  * @returns
  */
-async function assetsLoader(this: LoaderContext<null>, source: string | Buffer): Promise<void> {
-  // const options = getOptions(this);
+async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: string | Buffer): Promise<void> {
+  const options = getOptions(this) as AssetsLoaderOptions;
   const callback = this.async();
 
-  // validate(schema, options);
+  validate(schema, options);
+
+  const { filename = '[name].[ext]', esModule } = options;
 
   /** 将 source 转为 string 类型 */
   const sourceString = typeof source === 'string' ? source : source.toString();
-  const resolve = this.getResolve();
+  /** loader 调用时 compiler 一定存在 */
+  const compiler = this._compiler as Compiler;
+  const resolve = createResolver(compiler, resolveAppEntryPath(compiler));
 
-  console.info('skr: sourceString', sourceString);
+  // console.info('skr: sourceString', sourceString);
+  console.info('skr: filename', this.resourcePath);
 
-  const handleResult = handleSourceCode(sourceString);
-  const { assets } = handleResult;
-  let { code } = handleResult;
-
-  /** 处理所有识别的资源 */
-  for (let index = 0; index < assets.length; index++) {
-    const asset = assets[index];
-    switch (asset.type) {
-      case AssetsType.Http:
-      case AssetsType.Unknown:
-        code = replacePlaceholder(index, code, asset.code);
-        break;
-      case AssetsType.Normal: {
-        const request = await resolve(this.context, asset.request);
-        this.addDependency(request);
-
-        /** 替换为模块化引入方式 */
-        code = replacePlaceholder(index, code, `require('${asset.request}')`);
-        break;
+  /**
+   * handler runner 主要为了解决不同类型文件对资源的处理不同的问题
+   * 如果扁平化处理，会出现很多 if else
+   */
+  const runner = handlerRunner({
+    loaderContext: this,
+    source: sourceString,
+    resolve,
+    handlers: [
+      {
+        test: /\.(j|t)s$/,
+        handler: new JavascriptHandler({
+          esModule,
+        })
+      },
+      {
+        test: /\.(wxml)$/,
+        handler: new WxmlHandler({
+          esModule,
+        })
+      },
+      {
+        test: /.*$/,
+        handler: new DefaultHandler(),
       }
-      case AssetsType.Glob: {
-        const requests = globby.sync(asset.request, {
-          cwd: this.context,
-        });
+    ],
+  });
+  const code = await runner.run();
 
-        await Promise.all(requests.map(async (request) => {
-          const resolvedRequest = await resolve(this.context, './' + request);
-          this.addDependency(resolvedRequest);
-          // this.loadModule(resolvedRequest, () => {});
-          /** 无法处理，直接按照相对路径生成 */
-          this.emitFile(path.relative(this.context, resolvedRequest), fs.readFileSync(resolvedRequest));
-        }));
-
-
-        // promiseParallel(Array.prototype.forEach, requests, async (request) => {
-        //   const resolvedRequest = await resolve(this.context, './' + request);
-        //   this.addDependency(resolvedRequest);
-        // });
-
-        /** 暂时没法处理 */
-        code = replacePlaceholder(index, code, asset.code);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  console.info('skr: code', code);
+  console.info('skr: end code', code);
   /** 返回处理后的字符串 */
   return callback?.(null, code);
-}
-
-/**
- * 替换掉代码中的占位符
- */
-function replacePlaceholder(index: number, code: string, replacer: string): string {
-  const regex = new RegExp(ASSETS_MARKER_PLACEHOLDER + index);
-  return code.replace(regex, replacer);
 }
 
 export default assetsLoader;

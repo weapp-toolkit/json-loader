@@ -1,8 +1,7 @@
-import path from 'path';
 import fsx from 'fs-extra';
 import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
 import { Compiler } from 'webpack';
-import { encodeChunkName, Resolver } from '../../utils/resolver';
+import { encodeChunkName, Resolver } from '@weapp-toolkit/core';
 import { APP_CHUNK_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { createDependencyTreeNode, DependencyTreeNode } from './DependencyTreeNode';
 

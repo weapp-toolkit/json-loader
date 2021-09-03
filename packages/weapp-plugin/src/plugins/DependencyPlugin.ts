@@ -1,8 +1,8 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { createResolver, removeExt, Resolver } from '../utils/resolver';
+import { createResolver, removeExt, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
 import { IDependencyPluginOptions } from '../types/DependencyPlugin';
-import { addEntryFactory, getAppEntry } from '../utils/dependency';
+import { addEntryFactory } from '../utils/dependency';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
 
 /**
@@ -31,7 +31,7 @@ export class DependencyPlugin {
   }
 
   apply(compiler: Compiler): void {
-    const app = getAppEntry(compiler);
+    const app = resolveAppEntryPath(compiler);
 
     this.context = path.dirname(app);
     this.resolver = createResolver(compiler, this.context);

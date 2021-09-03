@@ -54,16 +54,21 @@
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",
-    "loader-utils": "^2.0.0"
+    "loader-utils": "^2.0.0",
+    "shortid": "^2.2.16",
+    "tapable": "^2.2.0"
   },
   "devDependencies": {
     "@types/babel__core": "^7.1.15",
     "@types/loader-runner": "^2.2.4",
     "@types/loader-utils": "^2.0.3",
+    "@types/shortid": "^0.0.29",
+    "@types/tapable": "^2.2.2",
     "babel-loader": "^8.2.2",
     "css-loader": "5",
     "extract-loader": "^5.1.0",
     "file-loader": "^6.2.0",
+    "html-loader": "^2.1.2",
     "loader-runner": "^4.2.0",
     "webpack": "^5.51.1"
   }

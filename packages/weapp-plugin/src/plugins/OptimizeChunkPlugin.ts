@@ -1,5 +1,5 @@
 import { Compiler } from 'webpack';
-import { Resolver } from '../utils/resolver';
+import { Resolver } from '@weapp-toolkit/core';
 import { IDependencyPluginOptions } from '../types/DependencyPlugin';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
 

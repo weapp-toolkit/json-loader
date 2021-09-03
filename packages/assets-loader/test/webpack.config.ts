@@ -4,8 +4,8 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    main: path.resolve(__dirname, './src/main.js'),
-    // css: path.resolve(__dirname, './src/index.wxss'),
+    // app: path.resolve(__dirname, './src/main.js'),
+    app: path.resolve(__dirname, './src/index.wxml'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -16,6 +16,9 @@ const webpackConfig: webpack.Configuration = {
   devtool: 'cheap-source-map',
   resolve: {
     extensions: ['.ts', '.js'],
+    alias: {
+      '@': path.resolve(__dirname, './src/')
+    }
   },
   module: {
     rules: [
@@ -23,6 +26,24 @@ const webpackConfig: webpack.Configuration = {
         test: /\.(ts|js|wxs)$/,
         use: [
           path.resolve(__dirname, '../lib/index.js'),
+        ],
+      },
+      {
+        test: /\.(wxml)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+          'extract-loader',
+          {
+            loader: path.resolve(__dirname, '../lib/index.js'),
+            options: {
+              needOutput: true,
+            }
+          },
         ],
       },
       {

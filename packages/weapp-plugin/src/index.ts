@@ -4,7 +4,7 @@ import { DependencyTree } from './modules/dependency/DependencyTree';
 import { DependencyPlugin } from './plugins/DependencyPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 import { getAppEntry } from './utils/dependency';
-import { createResolver } from './utils/resolver';
+import { createResolver } from '@weapp-toolkit/core';
 
 export interface IWeappPluginOptions {
   ignore?: [];

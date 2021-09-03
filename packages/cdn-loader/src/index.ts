@@ -56,7 +56,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   console.log('[cdn-loader], name', name);
 
   const filename = interpolateName(this, name, {
-    context: context,
+    context,
     content: source,
     regExp: options.regExp,
   });

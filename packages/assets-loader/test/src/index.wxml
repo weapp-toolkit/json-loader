@@ -1,0 +1,7 @@
+<import src="@/comp.wxml"/>
+<wxs src="./index.wxs" module="tool"></wxs>
+<template is="comp"></template>
+<view>hello world</view>
+<image src="./level{{tools.getWordLevel(score)}}.png" />
+<image src="./level1.png" />
+<include src="./comp.wxml"/>

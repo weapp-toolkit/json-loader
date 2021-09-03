@@ -5,26 +5,6 @@ import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-ty
 import globby from 'globby';
 
 /**
- * 获取 app 入口文件路径
- * @param compiler
- * @returns {String} appPath
- */
-export const getAppEntry = (compiler: Compiler): string => {
-  const { entry } = compiler.options;
-  let app;
-
-  if ('app' in entry) {
-    app = entry.app?.import?.[0];
-  }
-
-  if (!app) {
-    throw new Error('找不到小程序入口文件 app.json');
-  }
-
-  return app;
-};
-
-/**
  * 添加模块依赖
  * @param compiler
  * @returns {Function}

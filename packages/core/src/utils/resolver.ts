@@ -62,10 +62,10 @@ export const createResolver = (compiler: Compiler, appRoot: string) => {
   const resolveDependency = async (context: string, pathname: string) => {
     if (isRelativePath(pathname)) {
       return (
-        resolve(context, './' + path.join(pathname))
-          .then((res) => res)
-          /** 相对路径找不到则可能是 npm 包 */
-          .catch(() => resolve(process.cwd(), pathname))
+        /** 别名路径或者 node_modules */
+        resolve(context, pathname)
+          /** 可能是没加 ./ 的相对路径 */
+          .catch(() => resolve(context, './' + path.join(pathname)))
       );
     }
 
@@ -82,14 +82,15 @@ export const createResolver = (compiler: Compiler, appRoot: string) => {
   const resolveDependencySync = (context: string, pathname: string) => {
     if (isRelativePath(pathname)) {
       try {
-        return resolveSync(context, './' + path.join(pathname));
+        /** 别名路径或者 node_modules */
+        return resolveSync(context, pathname);
       } catch (error) {
-        /** 相对路径找不到则可能是 npm 包 */
-        return resolveSync(process.cwd(), pathname);
+        /** 可能是没加 ./ 的相对路径 */
+        return resolveSync(context, './' + path.join(pathname));
       }
     }
 
-    /** 如果是绝对路径从小程序根路径开始找 */
+    /** 如果是绝对路径从小程序根路径开始找，并把路径转换为相对路径 */
     return resolveSync(appRoot, `.${pathname}`);
   };
 
@@ -125,6 +126,7 @@ export const createResolver = (compiler: Compiler, appRoot: string) => {
   };
 };
 
+
 /** 判断是否是相对路径 */
 export function isRelativePath(pathname: string): boolean {
   return !path.isAbsolute(pathname);
@@ -158,4 +160,24 @@ export const removeExt = (pathname: string): string => {
  */
 export const encodeChunkName = (chunkName: string): string => {
   return chunkName.replace(/~/g, '-').replace(/\//g, '~');
+};
+
+/**
+ * 获取 app 入口文件路径
+ * @param compiler
+ * @returns {String} appPath
+ */
+export const resolveAppEntryPath = (compiler: Compiler): string => {
+  const { entry } = compiler.options;
+  let app;
+
+  if ('app' in entry) {
+    app = entry.app?.import?.[0];
+  }
+
+  if (!app) {
+    throw new Error('找不到小程序入口文件 app.json');
+  }
+
+  return app;
 };
