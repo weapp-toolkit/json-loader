@@ -3,17 +3,13 @@
   "tasks": [
     {
       "label": "weapp-plugin: watch",
-      "dependsOn": [
-        "weapp-plugin: dev",
-        "weapp-plugin: debug"
-      ],
+      "dependsOn": ["weapp-plugin: dev", "weapp-plugin: debug"],
       "detail": "weapp-plugin 开发模式"
     },
     {
       "type": "npm",
       "script": "dev",
       "path": "packages/weapp-plugin/",
-      
       "problemMatcher": [],
       "label": "weapp-plugin: dev",
       "detail": "weapp-plugin - 源码编译"
@@ -28,11 +24,7 @@
     },
     {
       "label": "assets-loader: watch",
-      "dependsOn": [
-        "core: dev",
-        "assets-loader: dev",
-        "assets-loader: debug"
-      ],
+      "dependsOn": ["core: dev", "assets-loader: dev", "assets-loader: debug"],
       "detail": "assets-loader 开发模式"
     },
     {
@@ -53,11 +45,7 @@
     },
     {
       "label": "cdn-loader: watch",
-      "dependsOn": [
-        "core: dev",
-        "cdn-loader: dev",
-        "cdn-loader: debug"
-      ],
+      "dependsOn": ["core: dev", "cdn-loader: dev", "cdn-loader: debug"],
       "detail": "cdn-loader 开发模式"
     },
     {
@@ -78,11 +66,7 @@
     },
     {
       "label": "json-loader: watch",
-      "dependsOn": [
-        "core: dev",
-        "json-loader: dev",
-        "json-loader: debug"
-      ],
+      "dependsOn": ["core: dev", "json-loader: dev", "json-loader: debug"],
       "detail": "json-loader 开发模式"
     },
     {
