@@ -12,8 +12,8 @@ export interface JsonLoaderOptions {
   cdn?: string;
   /** 是否为esmodule */
   esModule?: boolean;
-  /** publicPath 输出路径 */
-  publicPath?: string;
+  /** output 输出路径 */
+  output?: string;
   /** 执行路径 */
   context?: string;
   /** 文件名称 */
@@ -43,13 +43,13 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
     return source;
   }
 
-  const { context, cdn, publicPath } = options;
+  const { context, cdn, output } = options;
   const { rootContext } = this;
 
   /** 文件名称 */
   let name = options.name || '[name]-[contenthash].[ext]';
-  if (publicPath) {
-    name = `${publicPath.endsWith('/') ? publicPath : `${publicPath}/`}${name}`;
+  if (output) {
+    name = `${output.endsWith('/') ? output : `${output}/`}${name}`;
   }
 
   const filename = interpolateName(this, name, {
