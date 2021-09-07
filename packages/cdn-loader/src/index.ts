@@ -35,7 +35,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
 
   validate(schema as JSONSchema7, options, {
     name: 'Cdn Loader',
-    baseDataPath: 'optios',
+    baseDataPath: 'options',
   });
 
   /** cdn不存在则不处理 */
