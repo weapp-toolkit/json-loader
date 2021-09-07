@@ -14,8 +14,8 @@ import globby from 'globby';
  */
 export const addEntryFactory =
   (compiler: Compiler) =>
-  (context: string, entryPath: string, chunkName: string): void => {
-    new EntryPlugin(context, entryPath, chunkName).apply(compiler);
+  (context: string, entry: string, options: EntryPlugin['options']): void => {
+    new EntryPlugin(context, entry, options).apply(compiler);
   };
 
 /**

@@ -1,7 +1,7 @@
 import fsx from 'fs-extra';
 import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
 import { Compiler } from 'webpack';
-import { encodeChunkName, Resolver } from '@weapp-toolkit/core';
+import { Resolver } from '@weapp-toolkit/core';
 import { APP_CHUNK_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { createDependencyTreeNode, DependencyTreeNode } from './DependencyTreeNode';
 
@@ -165,7 +165,7 @@ export class DependencyTree {
       /** 获取分包根绝对路径，从小程序根路径开始查找 */
       const context = this.resolver.resolveDir(this.context, root);
       /** 根据分包路径生成 chunk name */
-      const chunkName = encodeChunkName(root);
+      const chunkName = root;
       /** 以分包根路径作为 context 生成 resolve 函数 */
       const resolve = this.resolver.resolveDependencySync.bind(null, context);
 
