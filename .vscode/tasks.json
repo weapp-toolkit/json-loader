@@ -1,9 +1,13 @@
 {
   "version": "2.0.0",
-  "tasks": [
-    {
+  "tasks": [{
       "label": "weapp-plugin: watch",
-      "dependsOn": ["core: dev", "weapp-plugin: dev", "weapp-plugin: debug"],
+      "dependsOn": [
+        "core: dev",
+        "assets-loader: dev",
+        "weapp-plugin: dev",
+        "weapp-plugin: debug"
+      ],
       "detail": "weapp-plugin 开发模式"
     },
     {

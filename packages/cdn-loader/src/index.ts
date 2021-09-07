@@ -10,16 +10,12 @@ import schema from './options';
 export interface JsonLoaderOptions {
   /** cdn 路径 */
   cdn?: string;
-  /** 是否为esmodule */
+  /** 是否为 esModule */
   esModule?: boolean;
   /** output 输出路径 */
   output?: string;
-  /** 执行路径 */
-  context?: string;
   /** 文件名称 */
-  name?: string;
-  /** 正则 */
-  regExp?: string;
+  filename?: string;
 }
 
 /**
@@ -43,32 +39,24 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
     return source;
   }
 
-  const { context, cdn, output } = options;
+  const { cdn, output = '', filename = '[name]-[contenthash:8].[ext]', esModule } = options;
   const { rootContext } = this;
 
-  /** 文件名称 */
-  let name = options.name || '[name]-[contenthash].[ext]';
-  if (output) {
-    name = `${output.endsWith('/') ? output : `${output}/`}${name}`;
-  }
-
-  const filename = interpolateName(this, name, {
-    context: context || rootContext,
+  const name = interpolateName(this, filename, {
     content: source,
-    regExp: options.regExp,
   });
 
   /**
    * @description
    * 文件输出路径，实际的文件系统写入路径
    */
-  const fileOutputPath = filename;
+  const fileOutputPath = path.join(output, name);
 
   /**
    * @description
    * 文件的cdn访问路径拼接
    */
-  const fileCdnUrl = `${cdn.endsWith('/')? cdn : `${cdn}/`}${filename}`;
+  const fileCdnUrl = cdn.endsWith('/') ? `${cdn}${filename}` : `${cdn}/${filename}`;
 
   /**
    * @description assetInfo
@@ -84,14 +72,9 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
    * webpack文件写入
    */
   this.emitFile(fileOutputPath, source, undefined, assetInfo);
-  /**
-   * @description
-   * webpack模块导出
-   */
-  const { esModule } = options;
 
   /** 导出该文件路径 */
-  const result = `${ esModule ? 'export default' : 'module.exports ='} "${fileCdnUrl}"`;
+  const result = esModule ? `export default '${fileCdnUrl}'` : `module.exports = '${fileCdnUrl}'`;
   console.log('[cdn-loader], result', result);
   return result;
 }

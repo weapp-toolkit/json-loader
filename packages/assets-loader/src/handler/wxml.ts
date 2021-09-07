@@ -21,7 +21,7 @@ export class WxmlHandler<T> implements Handler<T> {
     const { context } = loaderContext;
 
     runner.hooks.before.tap(WxmlHandler.HANDLER_NAME, (code) => {
-      return esModule ? `export default \`${code}\`;` : `module.export = \`${code}\``;
+      return esModule ? `export default \`${code}\`;` : `module.exports = \`${code}\``;
     });
 
     runner.hooks.normalAsset.tapPromise(WxmlHandler.HANDLER_NAME, async ({ asset, end }) => {

@@ -18,7 +18,7 @@ export class WxsHandler<T> implements Handler<T> {
     const { esModule } = this;
 
     runner.hooks.before.tap(WxsHandler.HANDLER_NAME, (code) => {
-      return esModule ? `export default \`${code}\`;` : `module.export = \`${code}\``;
+      return esModule ? `export default \`${code}\`;` : `module.exports = \`${code}\``;
     });
 
     runner.hooks.moduleAsset.tapPromise(WxsHandler.HANDLER_NAME, this.handleAsset.bind(this, runner));
