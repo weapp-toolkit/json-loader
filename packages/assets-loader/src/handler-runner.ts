@@ -32,6 +32,7 @@ interface HooksTypes {
   before: AsyncSeriesBailHook<string, string>,
   httpAsset: AsyncSeriesBailHook<HooksParameter, string>,
   unknownAsset: AsyncSeriesBailHook<HooksParameter, string>,
+  moduleAsset: AsyncSeriesBailHook<HooksParameter, string>,
   normalAsset: AsyncSeriesBailHook<HooksParameter, string>,
   globAssets: AsyncSeriesBailHook<HooksParameter, string>,
   after: AsyncSeriesBailHook<string, string>,
@@ -55,6 +56,7 @@ export class HandlerRunner<T> {
       before: new AsyncSeriesBailHook<string, string>(['code']),
       httpAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
       unknownAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      moduleAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
       normalAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
       globAssets: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
       after: new AsyncSeriesBailHook<string, string>(['code']),
@@ -85,6 +87,10 @@ export class HandlerRunner<T> {
         case AssetImportType.Unknown:
           code = await hooks.unknownAsset.promise(context);
           break;
+        case AssetImportType.Module: {
+          code = await hooks.moduleAsset.promise(context);
+          break;
+        }
         case AssetImportType.Normal: {
           code = await hooks.normalAsset.promise(context);
           break;
@@ -104,7 +110,7 @@ export class HandlerRunner<T> {
 
 export const handlerRunner = <T>(options: HandlerRunnerOptions<T>) => {
   const { handlers, loaderContext } = options;
-  const runner = new HandlerRunner($.omit(options, 'handler'));
+  const runner = new HandlerRunner($.omit(options, 'handlers'));
 
   handlers.forEach(({ test, handler }) => {
     if (test.test(loaderContext.resourcePath)) {

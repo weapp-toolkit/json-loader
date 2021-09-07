@@ -12,7 +12,7 @@ export type Resolver = ReturnType<typeof createResolver>;
  * @param appRoot 小程序 app 根绝对路径，app.json 所在路径
  * @returns {} { resolve, resolveSync, resolveDependency }
  */
-export const createResolver = (compiler: Compiler, appRoot: string) => {
+export function createResolver(compiler: Compiler, appRoot: string) {
   const webpackResolveOptions = $.omit(compiler.options.resolve, ['plugins', 'fileSystem']);
   const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
   const resolver = ResolverFactory.createResolver({
@@ -138,7 +138,7 @@ export function isRelativePath(pathname: string): boolean {
  * @param ext 扩展名（以 `.` 开头）
  * @returns
  */
-export const replaceExt = (pathname: string, ext: string): string => {
+export function replaceExt(pathname: string, ext: string): string {
   if (!ext.startsWith('.')) {
     throw new Error(`非法的扩展名: ${ext}, 必须以 '.' 开头`);
   }
@@ -150,7 +150,7 @@ export const replaceExt = (pathname: string, ext: string): string => {
  * @param pathname 路径
  * @returns
  */
-export const removeExt = (pathname: string): string => {
+export function removeExt(pathname: string): string {
   return pathname.replace(path.extname(pathname), '');
 };
 
@@ -158,7 +158,7 @@ export const removeExt = (pathname: string): string => {
  * 处理 chunk name，将 / 转为 ~
  * @param chunkName
  */
-export const encodeChunkName = (chunkName: string): string => {
+export function encodeChunkName (chunkName: string): string {
   return chunkName.replace(/~/g, '-').replace(/\//g, '~');
 };
 
@@ -167,7 +167,7 @@ export const encodeChunkName = (chunkName: string): string => {
  * @param compiler
  * @returns {String} appPath
  */
-export const resolveAppEntryPath = (compiler: Compiler): string => {
+export function resolveAppEntryPath(compiler: Compiler): string {
   const { entry } = compiler.options;
   let app;
 

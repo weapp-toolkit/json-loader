@@ -1,3 +1,5 @@
+import { DependencyTree } from '../modules/dependency/DependencyTree';
+
 /**
  * DependencyPlugin 初始化选项
  */

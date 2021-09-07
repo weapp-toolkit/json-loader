@@ -22,8 +22,8 @@
   },
   "exclude": [
     "lib/*",
-    "dist/*",
     "es/*",
+    "dist/*",
     "node_modules/*"
   ]
 }

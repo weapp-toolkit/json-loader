@@ -3,8 +3,7 @@ import { Compiler } from 'webpack';
 import { DependencyTree } from './modules/dependency/DependencyTree';
 import { DependencyPlugin } from './plugins/DependencyPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
-import { getAppEntry } from './utils/dependency';
-import { createResolver } from '@weapp-toolkit/core';
+import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
 
 export interface IWeappPluginOptions {
   ignore?: [];
@@ -33,7 +32,7 @@ export default class WeappPlugin {
   }
 
   public apply(compiler: Compiler): void {
-    const app = getAppEntry(compiler);
+    const app = resolveAppEntryPath(compiler);
     this.context = path.dirname(app);
 
     const resolver = createResolver(compiler, this.context);

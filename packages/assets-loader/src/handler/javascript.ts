@@ -1,4 +1,3 @@
-import path from 'path';
 import { Handler, HandlerRunner } from '../handler-runner';
 
 interface JavascriptHandlerOption {

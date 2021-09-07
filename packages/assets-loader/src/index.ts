@@ -7,6 +7,7 @@ import { handlerRunner } from './handler-runner';
 import { DefaultHandler } from './handler/default';
 import { JavascriptHandler } from './handler/javascript';
 import { WxmlHandler } from './handler/wxml';
+import { WxsHandler } from './handler/wxs';
 
 export interface AssetsLoaderOptions {
   esModule?: boolean;
@@ -49,7 +50,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   const resolve = createResolver(compiler, resolveAppEntryPath(compiler));
 
   // console.info('skr: sourceString', sourceString);
-  console.info('skr: filename', this.resourcePath);
+  // console.info('skr: filename', this.resourcePath);
 
   /**
    * handler runner 主要为了解决不同类型文件对资源的处理不同的问题
@@ -61,7 +62,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
     resolve,
     handlers: [
       {
-        test: /\.(j|t)s$/,
+        test: /\.(js|ts)$/,
         handler: new JavascriptHandler({
           esModule,
         })
@@ -73,6 +74,12 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
         })
       },
       {
+        test: /\.(wxs)$/,
+        handler: new WxsHandler({
+          esModule,
+        })
+      },
+      {
         test: /.*$/,
         handler: new DefaultHandler(),
       }
@@ -80,7 +87,6 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   });
   const code = await runner.run();
 
-  console.info('skr: end code', code);
   /** 返回处理后的字符串 */
   return callback?.(null, code);
 }
