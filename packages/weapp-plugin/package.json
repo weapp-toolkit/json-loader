@@ -4,6 +4,7 @@
   "description": "miniprogram webpack json loader",
   "main": "lib/index.js",
   "module": "es/index.js",
+  "sideEffects": false,
   "scripts": {
     "test": "jest",
     "dev": "nodemon --config ./nodemon.dev.json --exec 'rollup -c'",

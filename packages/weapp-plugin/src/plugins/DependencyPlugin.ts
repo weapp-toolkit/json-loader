@@ -65,10 +65,10 @@ export class DependencyPlugin {
       const assets = this.dependencyTree.getChunkAssets(chunkName);
 
       entries.forEach((entry) => {
-        this.addEntry(entry, removeExt(path.basename(entry)));
+        this.addEntry(entry, chunkName);
       });
 
-      // assets.forEach((asset) => this.addEntry(asset, chunkName));
+      assets.forEach((asset) => this.addEntry(asset, chunkName));
     });
   }
 }
