@@ -159,7 +159,7 @@ export function removeExt(pathname: string): string {
  * @param chunkName
  */
 export function encodeChunkName (chunkName: string): string {
-  return chunkName.replace(/~/g, '-').replace(/\//g, '~');
+  return chunkName.replace(/~/g, '-').replace(/\/$/, '').replace(/\//g, '~');
 };
 
 /**

@@ -52,8 +52,6 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   const sourceString = typeof source === 'string' ? source : source.toString();
   let json: Partial<IWeappConfigJSON>;
 
-  console.info('skr: loader options', options, this.resourcePath);
-
   try {
     json = JSON.parse(sourceString);
   } catch (e) {
@@ -68,7 +66,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   const { preprocessor = {} } = options;
 
-  /** 通过入口文件，找出app.json路径 */
+  /** 通过入口文件，找出 app.json 路径 */
   const entry = (this._compiler?.options.entry) as Entry;
   let appJsonPath = '';
   if (entry) {
@@ -82,7 +80,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   /** 获取 JSON 的类型 */
   const configJsonType = getConfigJsonType(appJsonPath, this.resourcePath);
 
-  console.info('[json-loader], json所属类型:', configJsonType);
+  // console.info('[json-loader], json所属类型:', configJsonType);
 
   /** JSON 文件不是 app、分包、页面、组件类型，不处理 */
   if (!configJsonType) {

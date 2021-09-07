@@ -5,6 +5,7 @@
       "dependsOn": [
         "core: dev",
         "assets-loader: dev",
+        "json-loader: dev",
         "weapp-plugin: dev",
         "weapp-plugin: debug"
       ],

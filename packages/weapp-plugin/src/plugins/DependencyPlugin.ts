@@ -44,7 +44,7 @@ export class DependencyPlugin {
     });
 
     compiler.hooks.entryOption.tap(DependencyPlugin.PLUGIN_NAME, () => {
-      this.setAllEntries(compiler);
+      this.setAllEntries();
       return true;
     });
 
@@ -56,7 +56,7 @@ export class DependencyPlugin {
   /**
    * 添加项目所有依赖
    */
-  setAllEntries(compiler: Compiler): void {
+  setAllEntries(): void {
     this.dependencyTree.build();
     const chunks = this.dependencyTree.chunks;
 
