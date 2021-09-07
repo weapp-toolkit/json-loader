@@ -12,7 +12,7 @@ const webpackConfig: webpack.Configuration = {
     filename: '[name].js',
   },
   target: 'node',
-  mode: 'development',
+  mode: 'production',
   devtool: 'cheap-source-map',
   resolve: {
     extensions: ['.ts', '.js'],
