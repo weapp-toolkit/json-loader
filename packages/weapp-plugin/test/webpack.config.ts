@@ -12,7 +12,10 @@ const webpackConfig: webpack.Configuration = {
     filename: '[name].js',
   },
   target: 'node',
-  mode: 'production',
+  mode: 'development',
+  optimization: {
+    usedExports: true,
+  },
   devtool: 'cheap-source-map',
   resolve: {
     extensions: ['.ts', '.js'],
@@ -35,6 +38,25 @@ const webpackConfig: webpack.Configuration = {
           }
         ],
         exclude: /node_modules/,
+      },
+      {
+        test: /\.(json)$/,
+        use: [
+          '@weapp-toolkit/json-loader',
+        ],
+      },
+      {
+        test: /\.(wxss|css)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+          'extract-loader',
+          'css-loader',
+        ],
       },
       {
         test: /\.(wxml|wxs)$/,

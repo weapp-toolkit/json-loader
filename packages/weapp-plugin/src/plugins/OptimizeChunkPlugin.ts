@@ -25,8 +25,6 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
-    // debug console zhuojun
-    console.log('>>>>>>>>>>>> debug console zhuojun 1', this.dependencyTree.assets);
     // new optimize.SplitChunksPlugin({
 
     // }).apply(compiler);

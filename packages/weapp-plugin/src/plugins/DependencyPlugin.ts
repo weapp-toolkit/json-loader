@@ -61,9 +61,6 @@ export class DependencyPlugin {
     const chunks = this.dependencyTree.chunks;
 
     Object.keys(chunks).map((chunkName) => {
-      // debug console zhuojun
-      console.log('>>>>>>>>>>>> debug console zhuojun', chunkName);
-
       const entries = this.dependencyTree.getChunkEntries(chunkName);
       const assets = this.dependencyTree.getChunkAssets(chunkName);
 
@@ -73,6 +70,8 @@ export class DependencyPlugin {
           runtime: `${chunkName}runtime`,
         });
       });
+
+      assets.forEach((asset) => this.addEntry(asset, chunkName));
     });
   }
 }
