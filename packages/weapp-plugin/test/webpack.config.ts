@@ -24,12 +24,30 @@ const webpackConfig: webpack.Configuration = {
     rules: [
       {
         test: /\.(ts|js)$/,
-        loader: 'babel-loader',
+        use: [
+          '@weapp-toolkit/assets-loader',
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [],
+              plugins: [],
+            },
+          }
+        ],
         exclude: /node_modules/,
-        options: {
-          presets: [],
-          plugins: [],
-        },
+      },
+      {
+        test: /\.(wxml|wxs)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+          'extract-loader',
+          '@weapp-toolkit/assets-loader',
+        ],
       },
       {
         test: /\.(jpg|png)$/,

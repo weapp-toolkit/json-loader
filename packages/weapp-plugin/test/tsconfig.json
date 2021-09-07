@@ -6,4 +6,5 @@
     "outDir": ".",
   },
   "include": ["./test"],
+  "exclude": ["./dist"]
 }
