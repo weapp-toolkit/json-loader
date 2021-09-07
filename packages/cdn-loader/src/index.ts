@@ -5,7 +5,7 @@ import { JSONSchema7 } from 'json-schema';
 import path from 'path';
 
 import { normalizePath } from './util';
-import schema from './options.json';
+import schema from './options';
 
 export interface JsonLoaderOptions {
   /** cdn 路径 */
