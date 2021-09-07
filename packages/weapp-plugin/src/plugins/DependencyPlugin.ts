@@ -1,5 +1,5 @@
 import path from 'path';
-import { Compiler } from 'webpack';
+import { Compiler, EntryPlugin } from 'webpack';
 import { createResolver, removeExt, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
 import { IDependencyPluginOptions } from '../types/DependencyPlugin';
 import { addEntryFactory } from '../utils/dependency';
@@ -23,7 +23,7 @@ export class DependencyPlugin {
   dependencyTree: DependencyTree;
 
   /** 添加 entry 函数 */
-  addEntry!: (entryPath: string, chunkName: string) => void;
+  addEntry!: (entry: string, options: EntryPlugin['options']) => void;
 
   constructor(options: IDependencyPluginOptions) {
     this.ignore = options.ignore || [];
@@ -61,14 +61,18 @@ export class DependencyPlugin {
     const chunks = this.dependencyTree.chunks;
 
     Object.keys(chunks).map((chunkName) => {
+      // debug console zhuojun
+      console.log('>>>>>>>>>>>> debug console zhuojun', chunkName);
+
       const entries = this.dependencyTree.getChunkEntries(chunkName);
       const assets = this.dependencyTree.getChunkAssets(chunkName);
 
       entries.forEach((entry) => {
-        this.addEntry(entry, removeExt(path.basename(entry)));
+        this.addEntry(entry, {
+          name: removeExt(path.relative(this.context, entry)),
+          runtime: `${chunkName}runtime`,
+        });
       });
-
-      // assets.forEach((asset) => this.addEntry(asset, chunkName));
     });
   }
 }
