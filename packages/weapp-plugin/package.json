@@ -6,7 +6,7 @@
   "module": "es/index.js",
   "scripts": {
     "test": "jest",
-    "dev": "rollup -c -w",
+    "dev": "nodemon --config ./nodemon.dev.json --exec 'rollup -c'",
     "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
     "build": "rimraf lib es && rollup -c"
   },

@@ -3,7 +3,7 @@
   "tasks": [
     {
       "label": "weapp-plugin: watch",
-      "dependsOn": ["weapp-plugin: dev", "weapp-plugin: debug"],
+      "dependsOn": ["core: dev", "weapp-plugin: dev", "weapp-plugin: debug"],
       "detail": "weapp-plugin 开发模式"
     },
     {

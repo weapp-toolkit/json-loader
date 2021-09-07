@@ -31,6 +31,15 @@ const webpackConfig: webpack.Configuration = {
           plugins: [],
         },
       },
+      {
+        test: /\.(jpg|png)$/,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name]-[contenthash:8].[ext]',
+          },
+        },],
+      },
     ],
   },
   plugins: [

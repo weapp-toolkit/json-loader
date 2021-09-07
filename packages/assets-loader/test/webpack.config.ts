@@ -4,8 +4,8 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    // app: path.resolve(__dirname, './src/main.js'),
-    app: path.resolve(__dirname, './src/index.wxml'),
+    app: path.resolve(__dirname, './src/main.js'),
+    // app: path.resolve(__dirname, './src/index.wxs'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -23,13 +23,13 @@ const webpackConfig: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.(ts|js|wxs)$/,
+        test: /\.(ts|js)$/,
         use: [
           path.resolve(__dirname, '../lib/index.js'),
         ],
       },
       {
-        test: /\.(wxml)$/,
+        test: /\.(wxml|wxs)$/,
         use: [
           {
             loader: 'file-loader',
@@ -61,7 +61,12 @@ const webpackConfig: webpack.Configuration = {
       },
       {
         test: /\.(jpg|png)$/,
-        use: ['file-loader'],
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name]-[contenthash:8].[ext]',
+          },
+        },],
       },
     ],
   },

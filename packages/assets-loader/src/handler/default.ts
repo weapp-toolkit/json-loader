@@ -19,6 +19,8 @@ export class DefaultHandler<T> implements Handler<T> {
 
     runner.hooks.unknownAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
+    runner.hooks.moduleAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+
     runner.hooks.normalAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
     runner.hooks.globAssets.tapPromise(DefaultHandler.HANDLER_NAME, async ({ asset, end }) => {
