@@ -1,6 +1,6 @@
 import { Compiler, optimize } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
-import { IDependencyPluginOptions } from '../types/DependencyPlugin';
+import { ISplitChunkPluginOptions } from '../types/OptimizeChunkPlugin';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
 
 /**
@@ -20,7 +20,7 @@ export class OptimizeChunkPlugin {
 
   splitChunksPlugin!: optimize.SplitChunksPlugin;
 
-  constructor(options: IDependencyPluginOptions) {
+  constructor(options: ISplitChunkPluginOptions) {
     this.dependencyTree = options.dependencyTree;
   }
 

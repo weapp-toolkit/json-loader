@@ -71,7 +71,12 @@ export class DependencyPlugin {
         });
       });
 
-      assets.forEach((asset) => this.addEntry(asset, chunkName));
+      assets.forEach((asset) => {
+        this.addEntry(asset, {
+          name: removeExt(path.relative(this.context, asset)),
+          runtime: `${chunkName}runtime`,
+        });
+      });
     });
   }
 }

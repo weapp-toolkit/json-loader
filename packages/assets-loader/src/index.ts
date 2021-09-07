@@ -11,7 +11,6 @@ import { WxsHandler } from './handler/wxs';
 
 export interface AssetsLoaderOptions {
   esModule?: boolean;
-  filename?: string;
 }
 
 const schema: JSONSchema7 = {
@@ -20,9 +19,6 @@ const schema: JSONSchema7 = {
     esModule: {
       type: 'boolean',
       default: true,
-    },
-    filename: {
-      type: 'string',
     },
   },
 };
@@ -41,7 +37,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
 
   validate(schema, options);
 
-  const { filename = '[name].[ext]', esModule } = options;
+  const { esModule } = options;
 
   /** 将 source 转为 string 类型 */
   const sourceString = typeof source === 'string' ? source : source.toString();
@@ -50,7 +46,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   const resolve = createResolver(compiler, resolveAppEntryPath(compiler));
 
   // console.info('skr: sourceString', sourceString);
-  // console.info('skr: filename', this.resourcePath);
+  // console.info('skr: filename', this.context, this.resourcePath);
 
   /**
    * handler runner 主要为了解决不同类型文件对资源的处理不同的问题
@@ -58,6 +54,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
    */
   const runner = handlerRunner({
     loaderContext: this,
+    loaderOptions: options,
     source: sourceString,
     resolve,
     handlers: [

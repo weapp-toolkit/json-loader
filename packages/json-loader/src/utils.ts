@@ -13,12 +13,11 @@ let appCacheJson: IWeappAppConfig;
  * @returns `undefined` | `'page'` | `'component'` | `'app'`
  */
 export const getConfigJsonType = (appPath: string, sourcePath: string): WeappConfigType | void => {
-  console.log('[getConfigJsonType], appPath', appPath, sourcePath);
   /**
-   * 传入的可能是app.js，我们需要找到对应的app.json
+   * 传入的可能是 app.js，我们需要找到对应的 app.json
    */
   const appJsonPath = path.join(path.dirname(appPath), 'app.json');
-  /** 当前文件和app.json文件路径一致 */
+  /** 当前文件和 app.json 文件路径一致 */
   if (appJsonPath === sourcePath) {
     return 'app';
   }
