@@ -10,12 +10,9 @@ import { ImpCliOptions, ImpConfig, ImpContext } from './@types/config';
 import { CommandConfig, OptionConfig } from './@types/common';
 import { Require } from './@types/tools';
 import checkLatest from './checkLatest';
-import { reportPv } from './utils/aegis';
 import initNpm from './utils/init-npm';
 
 const { version } = require('../package.json');
-
-reportPv('all');
 
 program.version(version);
 
@@ -133,7 +130,6 @@ export default class ImwebMpCli {
     cmd.action(async (...args: string[]) => {
       // 去掉最后一个 cmd 对象
       const _args = args.slice(0, -1);
-      reportPv(`cmd:${name}`);
       await action(_args, cmd.opts(), this.context);
       await this.checkUpdate();
     });
@@ -158,7 +154,6 @@ export default class ImwebMpCli {
 
       optionActions.some(({ name, action }) => {
         if (program[name]) {
-          reportPv(`opt:${name}`);
           triggeredAction = action.bind(this, program[name], this.context);
           return true;
         }

@@ -1,5 +1,4 @@
 import { CommandConfig } from '../@types/common';
-import aegis from '../utils/aegis';
 import spawn from '../utils/spawn';
 import spinner from '../utils/spinner';
 
@@ -12,11 +11,9 @@ const BuildCmd: CommandConfig = {
 
     spinner.info('开始构建');
 
-    aegis.time('build');
     /** 清除构建目录（白名单除外：如 miniprogram_dist） */
     await spawn('npx', ['imp', '--clear']);
     await spawn('npx', ['gulp', 'build']);
-    aegis.timeEnd('build');
 
     spinner.succeed('构建成功');
   },

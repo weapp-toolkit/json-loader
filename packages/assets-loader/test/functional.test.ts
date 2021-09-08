@@ -21,8 +21,7 @@ runLoaders(
           return path.resolve(context, request);
         };
       },
-      loadModule() {
-      }
+      loadModule() {},
     },
 
     // 读取资源的函数

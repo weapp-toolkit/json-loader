@@ -1,6 +1,5 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import dotenv from 'dotenv';
 import { deepAssign } from './common';
 import { ImpConfig } from '../@types/config';
 import { getPrivateKeyPath } from './helper';
@@ -27,7 +26,6 @@ const defaultConfig: ImpConfig = {
 };
 
 export default (workspaceRoot: string): ImpConfig => {
-  dotenv.config();
   const filePath = path.resolve(workspaceRoot, 'imp.config.js');
   if (fsx.existsSync(filePath)) {
     const config: Partial<ImpConfig> = require(filePath);
