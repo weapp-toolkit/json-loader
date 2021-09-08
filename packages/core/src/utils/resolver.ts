@@ -34,8 +34,8 @@ export function createResolver(compiler: Compiler, appRoot: string) {
    * @returns
    */
   const resolve = (context: string, request: string) => {
-    return new Promise<string>((resolve, reject) => {
-      resolver.resolve({}, context, request, {}, (err, res) => (err || !res ? reject(err) : resolve(res)));
+    return new Promise<string>((res, rej) => {
+      resolver.resolve({}, context, request, {}, (err, result) => (err || !result ? rej(err) : res(result)));
     });
   };
 
@@ -65,7 +65,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         /** 别名路径或者 node_modules */
         resolve(context, pathname)
           /** 可能是没加 ./ 的相对路径 */
-          .catch(() => resolve(context, './' + path.join(pathname)))
+          .catch(() => resolve(context, `./${  path.join(pathname)}`))
       );
     }
 
@@ -86,7 +86,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         return resolveSync(context, pathname);
       } catch (error) {
         /** 可能是没加 ./ 的相对路径 */
-        return resolveSync(context, './' + path.join(pathname));
+        return resolveSync(context, `./${  path.join(pathname)}`);
       }
     }
 

@@ -58,7 +58,7 @@ export class DependencyPlugin {
    */
   setAllEntries(): void {
     this.dependencyTree.build();
-    const chunks = this.dependencyTree.chunks;
+    const { chunks } = this.dependencyTree;
 
     Object.keys(chunks).map((chunkName) => {
       const entries = this.dependencyTree.getChunkEntries(chunkName);
