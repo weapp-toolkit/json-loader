@@ -20,8 +20,8 @@ const webpackConfig: webpack.Configuration = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@': path.resolve(__dirname, '../../../test/src')
-    }
+      '@': path.resolve(__dirname, '../../../test/src'),
+    },
   },
   module: {
     rules: [
@@ -35,15 +35,13 @@ const webpackConfig: webpack.Configuration = {
               presets: [],
               plugins: [],
             },
-          }
+          },
         ],
         exclude: /node_modules/,
       },
       {
         test: /\.(json)$/,
-        use: [
-          '@weapp-toolkit/json-loader',
-        ],
+        use: ['@weapp-toolkit/json-loader'],
       },
       {
         test: /\.(wxss|css)$/,
@@ -73,19 +71,18 @@ const webpackConfig: webpack.Configuration = {
       },
       {
         test: /\.(jpg|png)$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name]-[contenthash:8].[ext]',
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name]-[contenthash:8].[ext]',
+            },
           },
-        },],
+        ],
       },
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-    new WeappPlugin(),
-  ],
+  plugins: [new CleanWebpackPlugin(), new WeappPlugin()],
 };
 
 export default webpackConfig;

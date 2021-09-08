@@ -1,15 +1,16 @@
 import webpack from 'webpack';
 import webpackConfig from './webpack.config';
 
-const main = () => {
-  const compiler = webpack(webpackConfig);
+webpack(webpackConfig, (err, stats) => {
+  if (err || stats?.hasErrors()) {
+    // 在这里处理错误
+    console.error(err || stats);
+  }
 
-  /** 不输出日志，不知道为什么 */
-  compiler.run((e) => {
-    if (e) {
-      console.error(e);
-    }
-  });
-};
-
-main();
+  console.log(
+    stats?.toString({
+      colors: true,
+    }),
+  );
+  // 处理完成
+});

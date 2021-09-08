@@ -1,9 +1,16 @@
 import path from 'path';
 import { Compiler, EntryPlugin } from 'webpack';
 import { createResolver, removeExt, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
-import { IDependencyPluginOptions } from '../types/DependencyPlugin';
 import { addEntryFactory } from '../utils/dependency';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
+
+/**
+ * DependencyPlugin 初始化选项
+ */
+export interface IDependencyPluginOptions {
+  ignore?: Array<string | RegExp> /** 忽略的文件（夹） */;
+  dependencyTree: DependencyTree /** 依赖树实例 */;
+}
 
 /**
  * 处理小程序依赖以及依赖分析
