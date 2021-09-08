@@ -1,5 +1,4 @@
 import shortid from 'shortid';
-import { getAssetType } from '@weapp-toolkit/core';
 import { Handler, HandlerRunner } from '../handler-runner';
 
 interface WxmlHandlerOption {

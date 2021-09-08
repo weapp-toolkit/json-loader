@@ -9,6 +9,7 @@
     "test": "jest",
     "dev": "nodemon --config ./nodemon.dev.json --exec 'rollup -c'",
     "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
+    "debug:lite": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
     "build": "rimraf lib es && rollup -c"
   },
   "repository": {
@@ -55,7 +56,6 @@
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "enhanced-resolve": "^5.8.2",
     "fs-extra": "^10.0.0",
-    "glob-to-regexp": "^0.4.1",
     "globby": "11",
     "lodash": "^4.17.21"
   },

@@ -1,5 +1,6 @@
 {
   "extends": [
+    "eslint-config-imweb",
     "plugin:@typescript-eslint/recommended",
     "prettier",
     "plugin:prettier/recommended"
@@ -8,6 +9,17 @@
   "plugins": ["@typescript-eslint"],
   "env": {
     "node": true
+  },
+  "globals": {
+    "wx": false,
+    "App": false,
+    "Page": false,
+    "getApp": false,
+    "Component": false,
+    "Behavior": false,
+    "requirePlugin": false,
+    "getCurrentPages": false,
+    "__wxConfig": false
   },
   "rules": {
     "@typescript-eslint/no-var-requires": 0,
@@ -18,7 +30,7 @@
     "import/prefer-default-export": 0,
     "import/extensions": 0,
     "import/no-dynamic-require": 0,
-    "prettier/prettier": 0,
+    "prettier/prettier": 2,
     "camelcase": 0,
     "operator-linebreak": 0,
     "prefer-promise-reject-errors": 0,

@@ -6,7 +6,7 @@ interface IHandleSourceCodeResult {
 }
 
 /** 粗略匹配资源 */
-const RoughlyMatcher = /((import|require)[^'"`=]*?)?['"`][^;<>]*?\.[a-zA-Z]+['"`]/gm;
+const RoughlyMatcher = /((import|require)([^\w]*?)[^'"`=]*?)?['"`][^;<>]*?\.[a-zA-Z]+['"`]/gm;
 /** 匹配模板字符串拼接资源 */
 const TemplateStringMatcher = /(?<=[^${}'"`]+)[${]\{(.*)?\}\}?/g;
 /** 匹配表达式拼接资源 */
@@ -19,7 +19,6 @@ const HttpMatcher = /^(https?|\/\/).+\.\w+$/;
 const NormalMatcher = /^[^{}'"`]+\.\w+$/;
 /** 匹配非纯文本资源 */
 const GlobMatcher = /[${}+'"`]+(.*)?\.\w+$/;
-
 
 export const getAssetsLoaderPlaceholder = (index: number): string => `___ASSETS_LOADER_PLACEHOLDER_${index}___`;
 

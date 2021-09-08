@@ -28,15 +28,17 @@ export class DefaultHandler<T> implements Handler<T> {
         cwd: context,
       });
 
-      await Promise.all(requests.map(async (request) => {
-        const resolvedRequest = await resolve.resolveDependency(context, './' + request);
-        const relativePath = path.relative(context, resolvedRequest);
+      await Promise.all(
+        requests.map(async (request) => {
+          const resolvedRequest = await resolve.resolveDependency(context, `./${request}`);
+          const relativePath = path.relative(context, resolvedRequest);
 
-        /** 没处理，webpack 不会管，所以也不用手动加依赖 */
-        // loaderContext.addDependency(resolvedRequest);
-        /** 无法处理，直接按照相对路径生成 */
-        loaderContext.emitFile(relativePath, fs.readFileSync(resolvedRequest));
-      }));
+          /** 没处理，webpack 不会管，所以也不用手动加依赖 */
+          // loaderContext.addDependency(resolvedRequest);
+          /** 无法处理，直接按照相对路径生成 */
+          loaderContext.emitFile(relativePath, fs.readFileSync(resolvedRequest));
+        }),
+      );
 
       /** 还原 */
       return end(asset.code);

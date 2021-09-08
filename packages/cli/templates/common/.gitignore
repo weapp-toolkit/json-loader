@@ -1,0 +1,8 @@
+*swp
+.idea
+.DS_Store
+package-lock.json
+
+node_modules
+miniprogram_npm
+dist

@@ -1,8 +1,15 @@
 import { Compiler, Module, optimize } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
-import { ISplitChunkPluginOptions } from '../types/OptimizeChunkPlugin';
 import { DependencyTree } from '../modules/dependency/DependencyTree';
 // import { SplitChunksPlugin } from 'webpack';
+
+/**
+ * DependencyPlugin 初始化选项
+ */
+export interface IOptimizeChunkPluginOptions {
+  ignore?: Array<string | RegExp> /** 忽略的文件（夹） */;
+  dependencyTree: DependencyTree /** 依赖树实例 */;
+}
 
 /**
  * 处理小程序依赖以及依赖分析
@@ -21,7 +28,7 @@ export class OptimizeChunkPlugin {
 
   splitChunksPlugin!: optimize.SplitChunksPlugin;
 
-  constructor(options: ISplitChunkPluginOptions) {
+  constructor(options: IOptimizeChunkPluginOptions) {
     this.dependencyTree = options.dependencyTree;
   }
 
