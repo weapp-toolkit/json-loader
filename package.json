@@ -50,7 +50,7 @@
     "eslint-config-imweb": "0.2.19",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "husky": "5",
+    "husky": "4",
     "lerna": "^4.0.0",
     "lint-staged": "^11.1.2",
     "prettier": "^2.3.2",
