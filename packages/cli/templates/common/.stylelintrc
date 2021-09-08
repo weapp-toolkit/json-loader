@@ -1,0 +1,11 @@
+{
+  "extends": ["stylelint-config-imweb", "stylelint-config-prettier"],
+  "plugins": ["stylelint-prettier"],
+  "rules": {
+    "prettier/prettier": null,
+    "declaration-colon-newline-after": null,
+    "comment-empty-line-before": null,
+    "length-zero-no-unit": null,
+    "color-hex-length": null,
+  },
+} 

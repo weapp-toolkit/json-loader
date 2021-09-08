@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "rootDir": "src",
+    "outDir": "./",
+    "typeRoots": ["templates/native-ts/src/typings", "node_modules/@types"]
+  },
+  "include": ["./src/**/*"]
+}

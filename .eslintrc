@@ -10,6 +10,17 @@
   "env": {
     "node": true
   },
+  "globals": {
+    "wx": false,
+    "App": false,
+    "Page": false,
+    "getApp": false,
+    "Component": false,
+    "Behavior": false,
+    "requirePlugin": false,
+    "getCurrentPages": false,
+    "__wxConfig": false
+  },
   "rules": {
     "@typescript-eslint/no-var-requires": 0,
     "@typescript-eslint/no-empty-function": 0,

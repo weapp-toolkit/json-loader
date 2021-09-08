@@ -1,0 +1,74 @@
+{
+  "name": "@weapp-toolkit/cli",
+  "version": "1.0.0",
+  "description": "微信小程序初始化模板和自动编译",
+  "main": "lib/exports.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "bin": {
+    "imp": "./lib/bin/cli.js"
+  },
+  "files": [
+    "lib",
+    "templates",
+    "CHANGELOG.md",
+    "README.md",
+    "package-lock.json",
+    "!**/*.map"
+  ],
+  "scripts": {
+    "clean": "rimraf lib",
+    "dev": "npm run clean && tsc -w -sourceMap",
+    "build": "npm run clean && tsc && npm run chmod",
+    "chmod": "chmod +x lib/bin/cli.js",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "release": "node ./publish.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weapp-toolkit/weapp-webpack-toolkit.git"
+  },
+  "keywords": [
+    "weapp",
+    "wxapp",
+    "miniprogram",
+    "flow",
+    "template",
+    "cli",
+    "小程序"
+  ],
+  "author": {
+    "name": "CryUshio",
+    "email": "1151291182@qq.com",
+    "url": "https://github.com/CryUshio"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit.git/issues"
+  },
+  "homepage": "https://github.com/weapp-toolkit/weapp-webpack-toolkit.git#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^8.1.0",
+    "del": "^6.0.0",
+    "fs-extra": "^10.0.0",
+    "globby": "11",
+    "miniprogram-ci": "^1.6.1",
+    "ora": "^6.0.0",
+    "semver": "^7.3.5",
+    "webpack": "^5.52.0",
+    "webpackbar": "^5.0.0-3",
+    "yeoman-generator": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.2",
+    "@types/fs-extra": "^9.0.2",
+    "@types/glob-to-regexp": "^0.4.0",
+    "@types/semver": "^7.3.4",
+    "@types/yeoman-generator": "^4.11.3",
+    "cross-spawn": "^6.0.5",
+    "inquirer": "^7.3.3"
+  }
+}

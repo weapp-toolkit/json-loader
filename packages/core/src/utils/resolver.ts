@@ -65,7 +65,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         /** 别名路径或者 node_modules */
         resolve(context, pathname)
           /** 可能是没加 ./ 的相对路径 */
-          .catch(() => resolve(context, `./${  path.join(pathname)}`))
+          .catch(() => resolve(context, `./${path.join(pathname)}`))
       );
     }
 
@@ -86,7 +86,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         return resolveSync(context, pathname);
       } catch (error) {
         /** 可能是没加 ./ 的相对路径 */
-        return resolveSync(context, `./${  path.join(pathname)}`);
+        return resolveSync(context, `./${path.join(pathname)}`);
       }
     }
 
@@ -124,8 +124,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
     resolveDependencySync,
     resolveDir,
   };
-};
-
+}
 
 /** 判断是否是相对路径 */
 export function isRelativePath(pathname: string): boolean {
@@ -143,7 +142,7 @@ export function replaceExt(pathname: string, ext: string): string {
     throw new Error(`非法的扩展名: ${ext}, 必须以 '.' 开头`);
   }
   return pathname.replace(path.extname(pathname), ext);
-};
+}
 
 /**
  * 移除扩展名
@@ -152,15 +151,15 @@ export function replaceExt(pathname: string, ext: string): string {
  */
 export function removeExt(pathname: string): string {
   return pathname.replace(path.extname(pathname), '');
-};
+}
 
 /**
  * 处理 chunk name，将 / 转为 ~
  * @param chunkName
  */
-export function encodeChunkName (chunkName: string): string {
+export function encodeChunkName(chunkName: string): string {
   return chunkName.replace(/~/g, '-').replace(/\/$/, '').replace(/\//g, '~');
-};
+}
 
 /**
  * 获取 app 入口文件路径
@@ -180,4 +179,4 @@ export function resolveAppEntryPath(compiler: Compiler): string {
   }
 
   return app;
-};
+}
