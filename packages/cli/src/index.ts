@@ -21,10 +21,8 @@ program.on('command:*', () => {
   process.exit(1);
 });
 
-export default class ImwebMpCli {
+export default class WeappCli {
   public options: ImpCliOptions;
-
-  public config: ImpConfig;
 
   public context: ImpContext;
 
@@ -38,12 +36,11 @@ export default class ImwebMpCli {
     };
 
     const config = configLoader(workspaceRoot);
-    this.config = config;
 
     const mpRoot = path.resolve(workspaceRoot, config.baseDir);
     const USER_HOME = process.env.HOME || process.env.USERPROFILE || '/';
-    const customConfigPath = path.resolve(USER_HOME, '.imp/custom-config.json');
-    const customConfig = getJsonFile(customConfigPath);
+    const cliConfigPath = path.resolve(USER_HOME, '.imp/custom-config.json');
+    const cliConfig = getJsonFile(cliConfigPath);
 
     this.context = {
       cliPath: __dirname,
@@ -51,8 +48,8 @@ export default class ImwebMpCli {
       srcRoot: getSrcRoot(mpRoot, config.srcRoot, { fallback: true }),
       distRoot: path.resolve(mpRoot, config.output),
       config,
-      customConfigPath,
-      customConfig,
+      cliConfigPath,
+      cliConfig,
       /** @TODO deprecated */
       npm: initNpm(config.npmRegistry /* customConfig */),
     };
@@ -153,7 +150,8 @@ export default class ImwebMpCli {
       let triggeredAction: (() => Promise<void>) | undefined;
 
       optionActions.some(({ name, action }) => {
-        if (program[name]) {
+        if (name in program) {
+          // @ts-ignore
           triggeredAction = action.bind(this, program[name], this.context);
           return true;
         }
@@ -186,10 +184,7 @@ export default class ImwebMpCli {
 
     if (!process.argv.slice(2).length) {
       // 没有输入参数的时候输出帮助信息；为什么这里是 2，具体可以自己打印一下 process.argv 看看
-      program.outputHelp((str) => {
-        return `${str}\nHelps:\n  imp -h\n  imp <command> -h\n\n`;
-      });
-      return;
+      return program.help();
     }
 
     // 解析命令行参数

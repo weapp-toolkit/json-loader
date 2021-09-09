@@ -32,12 +32,9 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
-    // new optimize.SplitChunksPlugin({
-
-    // }).apply(compiler);
-
-    compiler.hooks.entryOption.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-      return true;
-    });
+    new optimize.SplitChunksPlugin({
+      chunks: 'all',
+      minChunks: 1,
+    }).apply(compiler);
   }
 }

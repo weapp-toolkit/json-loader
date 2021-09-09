@@ -79,10 +79,14 @@ class InitGenerator extends BaseGenerator<Partial<StateType>> {
           name: 'native',
           value: 'native',
         },
-        // {
-        //   name: 'kbone',
-        //   value: 'kbone',
-        // },
+        {
+          name: 'kbone',
+          value: 'kbone',
+        },
+        {
+          name: 'native + kbone',
+          value: 'native_kbone',
+        },
       ],
       validate(input: string) {
         if (input === 'kbone') {

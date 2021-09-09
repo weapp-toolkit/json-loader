@@ -64,6 +64,7 @@
     "yeoman-generator": "^5.4.2"
   },
   "devDependencies": {
+    "@types/configstore": "^5.0.1",
     "@types/cross-spawn": "^6.0.2",
     "@types/fs-extra": "^9.0.2",
     "@types/glob-to-regexp": "^0.4.0",

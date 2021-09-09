@@ -7,7 +7,7 @@ export interface CustomConfig {
 }
 
 export interface ImpConfig {
-  type: 'native' | 'kbone';
+  type: 'native' | 'kbone' | 'native_kbone';
   componentLib?: boolean; // 是否组件库开发模式
   language: 'js' | 'ts';
   appId: string; // 小程序 app id
@@ -43,7 +43,7 @@ export interface ImpContext {
   srcRoot: string; // 开发根目录，绝对路径，如 /User/xxx/miniprogram
   distRoot: string; // 输出根目录，绝对路径，如 /User/xxx/dist
   config: ImpConfig; // imp.config.js 的内容
-  customConfigPath: string; // 用户配置文件地址
-  customConfig: Partial<CustomConfig>; // 用户配置文件
+  cliConfigPath: string; // 用户配置文件地址
+  cliConfig: Partial<CustomConfig>; // 用户配置文件
   npm: (args: string[], options?: cp.SpawnOptionsWithoutStdio) => Promise<any>; // 封装了 registry 的 npm 指令
 }
