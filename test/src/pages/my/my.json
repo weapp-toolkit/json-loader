@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "my",
-  "usingComponents": {},
+  "usingComponents": {
+    "abc-button": "/components/abc-button/abc-button"
+  },
   "backgroundColor": "#F2F2F2"
 }

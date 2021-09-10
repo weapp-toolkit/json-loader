@@ -24,11 +24,14 @@ export class OutputPathPlugin {
 
   apply(compiler: Compiler): void {
     compiler.hooks.thisCompilation.tap(OutputPathPlugin.PLUGIN_NAME, (compilation) => {
-      compilation.hooks.assetPath.tap(OutputPathPlugin.PLUGIN_NAME, (filepath, fileInfo: IFileInfo) => {
-        if (fileInfo.module instanceof NormalModule) {
-          return path.relative(this.context, fileInfo.module.resource);
-        }
-        return filepath;
+      // compilation.hooks.assetPath.tap(OutputPathPlugin.PLUGIN_NAME, (filepath, fileInfo: IFileInfo) => {
+      //   if (fileInfo.module instanceof NormalModule) {
+      //     return path.relative(this.context, fileInfo.module.resource);
+      //   }
+      //   return filepath;
+      // });
+      compilation.hooks.chunkAsset.tap(OutputPathPlugin.PLUGIN_NAME, (chunk, filename) => {
+        // console.info('skr: chunkAsset', filename, chunk);
       });
     });
   }

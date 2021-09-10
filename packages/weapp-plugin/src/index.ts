@@ -1,9 +1,9 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { DependencyTree } from './modules/dependency/DependencyTree';
-import { DependencyPlugin } from './plugins/DependencyPlugin';
-import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
+import { DependencyTree } from './modules/dependencyTree';
+import { AddEntryPlugin } from './plugins/AddEntryPlugin';
+import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 import { OutputPathPlugin } from './plugins/OutputPathPlugin';
 
 export interface IWeappPluginOptions {
@@ -23,7 +23,7 @@ export default class WeappPlugin {
   dependencyTree!: DependencyTree;
 
   /** 处理依赖的插件 */
-  dependencyPlugin!: DependencyPlugin;
+  addEntryPlugin!: AddEntryPlugin;
 
   /** 处理 chunk 划分的插件 */
   optimizeChunkPlugin!: OptimizeChunkPlugin;
@@ -46,13 +46,14 @@ export default class WeappPlugin {
       resolver,
       compiler,
     });
+    dependencyTree.build();
     this.dependencyTree = dependencyTree;
 
-    this.dependencyPlugin = new DependencyPlugin({
+    this.addEntryPlugin = new AddEntryPlugin({
       ignore: this.options.ignore,
       dependencyTree,
     });
-    this.dependencyPlugin.apply(compiler);
+    this.addEntryPlugin.apply(compiler);
 
     this.optimizeChunkPlugin = new OptimizeChunkPlugin({
       dependencyTree,

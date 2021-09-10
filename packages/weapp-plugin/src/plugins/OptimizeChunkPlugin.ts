@@ -1,6 +1,6 @@
 import { Compiler, optimize } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
-import { DependencyTree } from '../modules/dependency/DependencyTree';
+import { DependencyTree } from '../modules/dependencyTree';
 // import { SplitChunksPlugin } from 'webpack';
 
 /**
@@ -33,12 +33,11 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
-    // new optimize.SplitChunksPlugin({
-    //   chunks(chunk) {
-    //     // exclude `my-excluded-chunk`
-    //     return chunk.name !== 'my-excluded-chunk';
-    //   },
-    // }).apply(compiler);
+    compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
+      compilation.hooks.afterOptimizeDependencies.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
+        // console.info('skr: compilation modules', Array.from(modules)[0]);
+      });
+    });
 
     compiler.hooks.environment.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
       const splitChunksConfig = compiler.options.optimization.splitChunks;

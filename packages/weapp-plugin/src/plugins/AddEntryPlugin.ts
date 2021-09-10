@@ -2,21 +2,21 @@ import path from 'path';
 import { Compiler, EntryPlugin } from 'webpack';
 import { createResolver, removeExt, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
 import { addEntryFactory } from '../utils/dependency';
-import { DependencyTree } from '../modules/dependency/DependencyTree';
+import { DependencyTree } from '../modules/dependencyTree';
 
 /**
- * DependencyPlugin 初始化选项
+ * AddEntryPlugin 初始化选项
  */
-export interface IDependencyPluginOptions {
+export interface IAddEntryPluginOptions {
   ignore?: Array<string | RegExp> /** 忽略的文件（夹） */;
   dependencyTree: DependencyTree /** 依赖树实例 */;
 }
 
 /**
- * 处理小程序依赖以及依赖分析
+ * 冬天添加小程序 entry
  */
-export class DependencyPlugin {
-  static PLUGIN_NAME = 'DependencyPlugin';
+export class AddEntryPlugin {
+  static PLUGIN_NAME = 'AddEntryPlugin';
 
   ignore: Array<string | RegExp>;
 
@@ -32,7 +32,7 @@ export class DependencyPlugin {
   /** 添加 entry 函数 */
   addEntry!: (entry: string, options: EntryPlugin['options']) => void;
 
-  constructor(options: IDependencyPluginOptions) {
+  constructor(options: IAddEntryPluginOptions) {
     this.ignore = options.ignore || [];
     this.dependencyTree = options.dependencyTree;
   }
@@ -43,19 +43,13 @@ export class DependencyPlugin {
     this.context = path.dirname(app);
     this.resolver = createResolver(compiler, this.context);
     this.addEntry = addEntryFactory(compiler).bind(this, this.context);
-    this.dependencyTree = new DependencyTree({
-      context: this.context,
-      app,
-      resolver: this.resolver,
-      compiler,
-    });
 
-    compiler.hooks.entryOption.tap(DependencyPlugin.PLUGIN_NAME, () => {
+    compiler.hooks.entryOption.tap(AddEntryPlugin.PLUGIN_NAME, () => {
       this.setAllEntries();
       return true;
     });
 
-    // compiler.hooks.afterCompile.tap(DependencyPlugin.PLUGIN_NAME, (compilation) => {
+    // compiler.hooks.afterCompile.tap(AddEntryPlugin.PLUGIN_NAME, (compilation) => {
     //   console.info('skr: compilation', compilation.chunks);
     // });
   }
@@ -64,26 +58,22 @@ export class DependencyPlugin {
    * 添加项目所有依赖
    */
   setAllEntries(): void {
-    this.dependencyTree.build();
-    const { chunks } = this.dependencyTree;
+    const modules = this.dependencyTree.getModules();
 
-    Object.keys(chunks).map((chunkName) => {
-      const entries = this.dependencyTree.getChunkEntries(chunkName);
-      const assets = this.dependencyTree.getChunkAssets(chunkName);
+    modules.forEach((module) => {
+      const { pathname, moduleName, chunkName } = module;
 
-      entries.forEach((entry) => {
-        this.addEntry(entry, {
-          name: removeExt(path.relative(this.context, entry)),
-          runtime: `${chunkName}runtime`,
+      const option = { name: moduleName };
+
+      if (!module.isAssets()) {
+        Object.assign(option, {
+          runtime: `${chunkName}.runtime`,
         });
-      });
+      }
 
-      assets.forEach((asset) => {
-        this.addEntry(asset, {
-          name: removeExt(path.relative(this.context, asset)),
-          runtime: `${chunkName}runtime`,
-        });
-      });
+      console.info('skr: entry', { moduleName, chunkName, pathname });
+
+      this.addEntry(pathname, option);
     });
   }
 }
