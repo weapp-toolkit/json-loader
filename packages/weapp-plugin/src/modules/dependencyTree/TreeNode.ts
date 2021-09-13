@@ -97,7 +97,6 @@ export class DependencyTreeNode {
       } else {
         /** 如果不是主包分组的依赖，调整其模块到独立分包下 */
         this._chunkName = relativePath.startsWith(packageGroup) ? relativePath : path.join(packageGroup, relativePath);
-        console.info('skr: _chunkName', { relativePath, packageGroup, pathname, chunk: this._chunkName });
       }
     }
 
