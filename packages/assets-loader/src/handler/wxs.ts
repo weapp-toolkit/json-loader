@@ -1,4 +1,4 @@
-import shortid from 'shortid';
+import { shortid } from '@weapp-toolkit/core';
 import { Handler, HandlerRunner, HooksParameter } from '../handler-runner';
 
 interface WxsHandlerOption {
@@ -33,7 +33,7 @@ export class WxsHandler<T> implements Handler<T> {
 
     const request = await resolve.resolveDependency(context, asset.request);
 
-    const placeholder = `___WXS_DEPENDENCY_${shortid().replace('-', '_')}___`;
+    const placeholder = `___WXS_DEPENDENCY_${shortid()}___`;
     const dependency = `
       var ${placeholder} = require('${request}');
     `;

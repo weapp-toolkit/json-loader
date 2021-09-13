@@ -34,20 +34,24 @@ export class OptimizeChunkPlugin {
 
   apply(compiler: Compiler): void {
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
-      compilation.hooks.afterOptimizeDependencies.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
-        // console.info('skr: compilation modules', Array.from(modules)[0]);
+      compilation.hooks.optimizeModules.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
+        console.info('skr: compilation modules', compilation.chunkGraph.getModuleChunks(Array.from(modules)[1]));
       });
+
+      // compilation.hooks.optimizeModules.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
+      //   console.info('skr: compilation modules', Array.from(modules)[0]);
+      // });
     });
 
-    compiler.hooks.environment.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-      const splitChunksConfig = compiler.options.optimization.splitChunks;
-      const processedConfig: typeof splitChunksConfig = {
-        ...splitChunksConfig,
-        minChunks: 1,
-        minSize: 1,
-        chunks: 'all',
-      };
-      compiler.options.optimization.splitChunks = processedConfig;
-    });
+    // compiler.hooks.environment.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
+    //   const splitChunksConfig = compiler.options.optimization.splitChunks;
+    //   const processedConfig: typeof splitChunksConfig = {
+    //     ...splitChunksConfig,
+    //     minChunks: 1,
+    //     minSize: 1,
+    //     chunks: 'all',
+    //   };
+    //   compiler.options.optimization.splitChunks = processedConfig;
+    // });
   }
 }

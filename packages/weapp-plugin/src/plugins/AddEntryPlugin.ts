@@ -1,6 +1,7 @@
 import path from 'path';
 import { Compiler, EntryPlugin } from 'webpack';
-import { createResolver, removeExt, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
+import { createResolver, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
+import { APP_GROUP_NAME } from 'src/utils/constant';
 import { addEntryFactory } from '../utils/dependency';
 import { DependencyTree } from '../modules/dependencyTree';
 
@@ -48,10 +49,6 @@ export class AddEntryPlugin {
       this.setAllEntries();
       return true;
     });
-
-    // compiler.hooks.afterCompile.tap(AddEntryPlugin.PLUGIN_NAME, (compilation) => {
-    //   console.info('skr: compilation', compilation.chunks);
-    // });
   }
 
   /**
@@ -61,17 +58,19 @@ export class AddEntryPlugin {
     const modules = this.dependencyTree.getModules();
 
     modules.forEach((module) => {
-      const { pathname, moduleName, chunkName } = module;
+      const { pathname, packageGroup, chunkName } = module;
 
-      const option = { name: moduleName };
+      const option = { name: chunkName };
 
       if (!module.isAssets()) {
         Object.assign(option, {
-          runtime: `${chunkName}.runtime`,
+          runtime:
+            /** 和 runtime 生成位置有关，并让目录结构更好看 */
+            packageGroup === APP_GROUP_NAME
+              ? `${path.basename(packageGroup)}.runtime`
+              : path.join(packageGroup, `${path.basename(packageGroup)}.runtime`),
         });
       }
-
-      console.info('skr: entry', { moduleName, chunkName, pathname });
 
       this.addEntry(pathname, option);
     });

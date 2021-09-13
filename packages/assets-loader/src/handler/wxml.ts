@@ -1,4 +1,4 @@
-import shortid from 'shortid';
+import { shortid } from '@weapp-toolkit/core';
 import { Handler, HandlerRunner } from '../handler-runner';
 
 interface WxmlHandlerOption {
@@ -26,7 +26,7 @@ export class WxmlHandler<T> implements Handler<T> {
     runner.hooks.normalAsset.tapPromise(WxmlHandler.HANDLER_NAME, async ({ asset, end }) => {
       const request = await resolve.resolveDependency(context, asset.request);
 
-      const placeholder = `___WXML_DEPENDENCY_${shortid().replace('-', '_')}___`;
+      const placeholder = `___WXML_DEPENDENCY_${shortid()}___`;
       const dependency = `
         var ${placeholder} = require('${request}');
       `;

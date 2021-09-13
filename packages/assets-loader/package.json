@@ -44,17 +44,11 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test"
-    }
-  },
   "dependencies": {
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",
     "loader-utils": "^2.0.0",
-    "shortid": "^2.2.16",
     "tapable": "^2.2.0"
   },
   "devDependencies": {
