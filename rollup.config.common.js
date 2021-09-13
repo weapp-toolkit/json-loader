@@ -17,12 +17,12 @@ export default {
   plugins: [
     typescript({
       // tsconfig: 'tsconfig.json',
-      exclude: ['**/node_modules/**']
+      exclude: ['**/node_modules/**'],
     }),
     nodeResolve(),
     commonjs(),
     babel({
-      exclude: '**/node_modules/**'
+      exclude: '**/node_modules/**',
     }),
 
     // json()
@@ -30,5 +30,5 @@ export default {
   ],
   external(id) {
     return id.indexOf('node_modules') >= 0;
-  }
+  },
 };

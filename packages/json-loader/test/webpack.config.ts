@@ -5,7 +5,7 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 const webpackConfig: webpack.Configuration = {
   entry: {
     app: path.resolve(__dirname, '../../../test/src/app.js'),
-    appJson: path.resolve(__dirname, '../../../test/src/app.json')
+    appJson: path.resolve(__dirname, '../../../test/src/app.json'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -17,8 +17,8 @@ const webpackConfig: webpack.Configuration = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@': path.resolve(__dirname, '../../../test/src')
-    }
+      '@': path.resolve(__dirname, '../../../test/src'),
+    },
   },
   module: {
     rules: [
@@ -32,16 +32,14 @@ const webpackConfig: webpack.Configuration = {
               resizable: true,
             },
             page: {
-              backgroundColor: '#ccc'
-            }
-          }
+              backgroundColor: '#ccc',
+            },
+          },
         },
       },
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-  ],
+  plugins: [new CleanWebpackPlugin()],
 };
 
 export default webpackConfig;

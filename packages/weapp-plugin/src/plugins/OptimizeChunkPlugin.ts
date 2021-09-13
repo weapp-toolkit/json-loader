@@ -1,4 +1,4 @@
-import { Compiler, optimize } from 'webpack';
+import { Compiler, NormalModule, optimize } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
 import { DependencyTree } from '../modules/dependencyTree';
 // import { SplitChunksPlugin } from 'webpack';
@@ -33,13 +33,46 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
+    // compiler.hooks.thisCompilation.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
+    //   compilation.hooks.buildModule.tap(OptimizeChunkPlugin.PLUGIN_NAME, (module) => {
+    //     if (module instanceof NormalModule) {
+    //       console.info('skr: module', module);
+    //     }
+    //   });
+    // });
+
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
       compilation.hooks.optimizeModules.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
-        console.info('skr: compilation modules', compilation.chunkGraph.getModuleChunks(Array.from(modules)[1]));
+        Array.from(modules).forEach((module) => {
+          if (module instanceof NormalModule && module.resource.includes('png')) {
+            console.info('skr: compilation modules', { module, chunk: compilation.chunkGraph.getModuleChunks(module) });
+          }
+        });
       });
 
-      // compilation.hooks.optimizeModules.tap(OptimizeChunkPlugin.PLUGIN_NAME, (modules) => {
-      //   console.info('skr: compilation modules', Array.from(modules)[0]);
+      compilation.hooks.moduleAsset.tap(OptimizeChunkPlugin.PLUGIN_NAME, (module, filename) => {
+        console.info('skr: compilation modules', {
+          filename,
+          // module,
+          // chunk: compilation.chunkGraph.getModuleChunks(module),
+        });
+        // if (module instanceof NormalModule) {
+        // }
+      });
+
+      compilation.hooks.chunkAsset.tap(OptimizeChunkPlugin.PLUGIN_NAME, (module, filename) => {
+        console.info('skr: compilation modules', {
+          filename,
+          // module,
+          // chunk: compilation.chunkGraph.getModuleChunks(module),
+        });
+        // if (module instanceof NormalModule) {
+        // }
+      });
+      // compilation.hooks.optimizeChunkAssets.tap(OptimizeChunkPlugin.PLUGIN_NAME, (chunks) => {
+      //   chunks.forEach((chunk) => {
+      //     console.info('skr: chunk', chunk);
+      //   });
       // });
     });
 

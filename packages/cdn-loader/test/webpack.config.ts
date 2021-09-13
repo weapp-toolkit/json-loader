@@ -16,8 +16,8 @@ const webpackConfig: webpack.Configuration = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@': path.resolve(__dirname, '../../../test/src')
-    }
+      '@': path.resolve(__dirname, '../../../test/src'),
+    },
   },
   module: {
     rules: [
@@ -32,9 +32,7 @@ const webpackConfig: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-  ],
+  plugins: [new CleanWebpackPlugin()],
 };
 
 export default webpackConfig;

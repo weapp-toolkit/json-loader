@@ -44,16 +44,6 @@ export class DependencyTree extends DependencyTreeNode {
   }
 
   /**
-   * 获取 module 数组
-   * @returns
-   */
-  public getModules(): DependencyTreeNode[] {
-    return Array.from(this.modules).reduce((modules: DependencyTreeNode[], treeNode) => {
-      return modules.concat(treeNode.getChildrenRecursive());
-    }, []);
-  }
-
-  /**
    * 添加 app chunk
    */
   private addAppChunk(appJson: IWeappAppConfig) {

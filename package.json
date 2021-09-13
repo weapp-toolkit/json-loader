@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "husky install",
     "pre-commit": "lint-staged",
-    "lint": "eslint --fix packages/**/src/**/*.ts"
+    "lint": "eslint --fix packages --ext .ts"
   },
   "lint-staged": {
     "*.{json,md}": [

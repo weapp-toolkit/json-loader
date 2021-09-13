@@ -12,7 +12,7 @@ const webpackConfig: webpack.Configuration = {
     filename: '[name].js',
   },
   target: 'node',
-  mode: 'production',
+  mode: 'development',
   optimization: {
     usedExports: true,
   },

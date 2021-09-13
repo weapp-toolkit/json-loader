@@ -6,7 +6,7 @@
  * 获取文件路径，除根路径外.
  *
  */
-export const getFileBasePath = (rootPath: string, filePath:string):string => {
+export const getFileBasePath = (rootPath: string, filePath: string): string => {
   return filePath.replace(rootPath, '').replace(/^\//, '');
 };
 

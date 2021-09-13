@@ -7,14 +7,15 @@ import commonConfig from '../../rollup.config.common';
 
 export default $.merge(commonConfig, {
   input: './src/index.ts',
-  output: [{
-    file: packageJson.main,
-    format: 'cjs',
-    exports: 'auto',
-  },
-  {
-    file: packageJson.module,
-    format: 'es'
-  }
+  output: [
+    {
+      file: packageJson.main,
+      format: 'cjs',
+      exports: 'auto',
+    },
+    {
+      file: packageJson.module,
+      format: 'es',
+    },
   ],
 });

@@ -1,21 +1,28 @@
 {
-  // 使用 IntelliSense 了解相关属性。 
+  // 使用 IntelliSense 了解相关属性。
   // 悬停以查看现有属性的描述。
   // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": [{
-    "name": "weapp-plugin",
-    "request": "launch",
-    "runtimeArgs": [
-      "run-script",
-      "debug"
-    ],
-    "runtimeExecutable": "npm",
-    "skipFiles": [
-      "<node_internals>/**"
-    ],
-    "cwd": "${workspaceFolder}/packages/weapp-plugin",
-    "console": "integratedTerminal",
-    "type": "pwa-node"
-  }]
+  "configurations": [
+    {
+      "name": "weapp-plugin",
+      "request": "launch",
+      "runtimeArgs": ["run-script", "debug"],
+      "runtimeExecutable": "npm",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/weapp-plugin",
+      "console": "integratedTerminal",
+      "type": "pwa-node"
+    },
+    {
+      "name": "assets-loader",
+      "request": "launch",
+      "runtimeArgs": ["run-script", "debug"],
+      "runtimeExecutable": "npm",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/assets-loader",
+      "console": "integratedTerminal",
+      "type": "pwa-node"
+    }
+  ]
 }
