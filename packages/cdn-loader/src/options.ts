@@ -2,16 +2,16 @@ export default {
   type: 'object',
   properties: {
     cdn: {
-      type: 'string'
+      type: 'string',
     },
     esModule: {
-      type: 'boolean'
+      type: 'boolean',
     },
     filename: {
-      type: 'string'
+      type: 'string',
     },
     output: {
-      type: 'string'
-    }
-  }
+      type: 'string',
+    },
+  },
 };

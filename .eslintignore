@@ -1,4 +1,5 @@
-lib/
-es/
-dist/
-**/wx/*
+**/lib
+**/es
+**/dist
+**/wx
+**/test/src

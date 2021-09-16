@@ -11,9 +11,8 @@ export interface JsonLoaderOptions {
   preprocessor?: {
     app?: Partial<IWeappAppConfig>;
     page?: Partial<IWeappPageConfig>;
-  }
+  };
 }
-
 
 const schema: JSONSchema7 = {
   type: 'object',
@@ -27,7 +26,7 @@ const schema: JSONSchema7 = {
         page: {
           type: 'object',
         },
-      }
+      },
     },
   },
 };
@@ -67,12 +66,12 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
   const { preprocessor = {} } = options;
 
   /** 通过入口文件，找出 app.json 路径 */
-  const entry = (this._compiler?.options.entry) as Entry;
+  const entry = this._compiler?.options.entry as Entry;
   let appJsonPath = '';
   if (entry) {
     const entryFile = getAppEntryPath(entry);
     /** app.json路径 */
-    appJsonPath = entryFile.replace(/\.(\w+)/, '.json');;
+    appJsonPath = entryFile.replace(/\.(\w+)/, '.json');
   } else {
     return callback?.(null, source);
   }

@@ -19,7 +19,7 @@ export interface Handler<T> {
 export interface HandlerRunnerOptions<T> extends HandlerRunnerClassOptions<T> {
   handlers: {
     test: RegExp;
-    handler: Handler<T>
+    handler: Handler<T>;
   }[];
 }
 
@@ -30,13 +30,13 @@ export interface HooksParameter {
 }
 
 interface HooksTypes {
-  before: AsyncSeriesBailHook<string, string>,
-  httpAsset: AsyncSeriesBailHook<HooksParameter, string>,
-  unknownAsset: AsyncSeriesBailHook<HooksParameter, string>,
-  moduleAsset: AsyncSeriesBailHook<HooksParameter, string>,
-  normalAsset: AsyncSeriesBailHook<HooksParameter, string>,
-  globAssets: AsyncSeriesBailHook<HooksParameter, string>,
-  after: AsyncSeriesBailHook<string, string>,
+  before: AsyncSeriesBailHook<string, string>;
+  httpAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  unknownAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  moduleAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  normalAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  globAssets: AsyncSeriesBailHook<HooksParameter, string>;
+  after: AsyncSeriesBailHook<string, string>;
 }
 
 export class HandlerRunner<T> {

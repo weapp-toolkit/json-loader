@@ -1,8 +1,8 @@
 import path from 'path';
-import { WeappConfigType } from './types';
 import { IWeappAppConfig, IWeappSubPackage } from '@weapp-toolkit/weapp-types';
 
 import fs from 'fs';
+import { WeappConfigType } from './types';
 
 let appCacheJson: IWeappAppConfig;
 
@@ -29,8 +29,8 @@ export const getConfigJsonType = (appPath: string, sourcePath: string): WeappCon
   const { pages, subpackages = [] } = getAppJson(appJsonPath);
   const subPages = getSubpackagesPathList(subpackages);
   const allPages = pages.concat(subPages);
-  const page = allPages.find((page) => {
-    return sourcePath.indexOf(page) !== -1;
+  const page = allPages.find((pageName) => {
+    return sourcePath.indexOf(pageName) !== -1;
   });
   if (page) {
     return 'page';
@@ -47,7 +47,7 @@ export const getAppJson = (appJsonPath: string): IWeappAppConfig => {
     return appCacheJson;
   }
   const appJsonStr = fs.readFileSync(appJsonPath, 'utf-8');
-  appCacheJson = (JSON.parse(appJsonStr)) as IWeappAppConfig;
+  appCacheJson = JSON.parse(appJsonStr) as IWeappAppConfig;
   return appCacheJson;
 };
 
@@ -55,11 +55,11 @@ export const getAppJson = (appJsonPath: string): IWeappAppConfig => {
  * @description
  * 获取分包页面路径列表
  */
-export const getSubpackagesPathList = (subpackages: IWeappSubPackage[] ): string[] => {
+export const getSubpackagesPathList = (subpackages: IWeappSubPackage[]): string[] => {
   return subpackages.reduce((acc: string[], subpackage) => {
     const subpackagePathList = subpackage.pages.map((page) => {
-        return path.join(subpackage.root, page);
-      });
+      return path.join(subpackage.root, page);
+    });
     acc = [...acc, ...subpackagePathList];
     return acc;
   }, []);
@@ -67,8 +67,8 @@ export const getSubpackagesPathList = (subpackages: IWeappSubPackage[] ): string
 
 export interface Entry {
   [key: string]: {
-    import: string[]
-  }
+    import: string[];
+  };
 }
 /**
  * getAppEntryPath
@@ -81,9 +81,8 @@ export const getAppEntryPath = (entry: Entry): string => {
   const main = entry.main || entry.app;
   if (main) {
     return main.import[0];
-  } else {
-    /** 取第一个 */
-    const appKey = Object.keys(entry)[0];
-    return entry[appKey].import[0];
-  };
+  }
+  /** 取第一个 */
+  const appKey = Object.keys(entry)[0];
+  return entry[appKey].import[0];
 };

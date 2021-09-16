@@ -17,16 +17,14 @@ const webpackConfig: webpack.Configuration = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@': path.resolve(__dirname, './src/')
-    }
+      '@': path.resolve(__dirname, './src/'),
+    },
   },
   module: {
     rules: [
       {
         test: /\.(ts|js)$/,
-        use: [
-          path.resolve(__dirname, '../lib/index.js'),
-        ],
+        use: [path.resolve(__dirname, '../lib/index.js')],
       },
       {
         test: /\.(wxml|wxs)$/,
@@ -42,7 +40,7 @@ const webpackConfig: webpack.Configuration = {
             loader: path.resolve(__dirname, '../lib/index.js'),
             options: {
               needOutput: true,
-            }
+            },
           },
         ],
       },
@@ -61,12 +59,14 @@ const webpackConfig: webpack.Configuration = {
       },
       {
         test: /\.(jpg|png)$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name]-[contenthash:8].[ext]',
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name]-[contenthash:8].[ext]',
+            },
           },
-        },],
+        ],
       },
     ],
   },

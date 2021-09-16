@@ -23,7 +23,6 @@ const schema: JSONSchema7 = {
   },
 };
 
-
 /**
  * 微信小程序 js 解析器
  * 解析 js 内部引用的图片等资源
@@ -62,24 +61,24 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
         test: /\.(js|ts)$/,
         handler: new JavascriptHandler({
           esModule,
-        })
+        }),
       },
       {
         test: /\.(wxml)$/,
         handler: new WxmlHandler({
           esModule,
-        })
+        }),
       },
       {
         test: /\.(wxs)$/,
         handler: new WxsHandler({
           esModule,
-        })
+        }),
       },
       {
         test: /.*$/,
         handler: new DefaultHandler(),
-      }
+      },
     ],
   });
   const code = await runner.run();

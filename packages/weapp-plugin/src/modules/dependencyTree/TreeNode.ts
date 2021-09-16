@@ -120,12 +120,12 @@ export class DependencyTreeNode {
   }
 
   /** 递归所有的子依赖 */
-  public getChildrenRecursive(): DependencyTreeNode[] {
+  public getModules(): DependencyTreeNode[] {
     const { modules } = this;
 
     /** 获取 children js */
     const childrenDependencies = Array.from(modules).reduce((deps: DependencyTreeNode[], child) => {
-      return deps.concat(child.getChildrenRecursive());
+      return deps.concat(child.getModules());
     }, []);
 
     return [this as DependencyTreeNode].concat(childrenDependencies);
@@ -173,7 +173,7 @@ export class DependencyTreeNode {
   }
 
   /**
-   * 添加所有同名资源文件，如 wxml、wxs
+   * 添加所有同名资源文件，如 wxml
    */
   public addAllAssets(): void {
     const { packageGroup, basename, context, resolve } = this;

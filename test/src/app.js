@@ -18,7 +18,7 @@ wx.onNetworkStatusChange(({ isConnected }) => {
 
 App({
   globalData: {
-
+    filePng,
   },
   onLaunch() {
     new Log().log(String(new Date().getHours()).padStart(2, '0'));

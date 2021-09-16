@@ -63,9 +63,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
    */
   const assetInfo: AssetInfo = {
     immutable: true,
-    sourceFilename: normalizePath(
-      path.relative(rootContext, this.resourcePath)
-    )
+    sourceFilename: normalizePath(path.relative(rootContext, this.resourcePath)),
   };
   /**
    * @description
