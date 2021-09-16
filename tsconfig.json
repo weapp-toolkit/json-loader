@@ -15,15 +15,11 @@
     "incremental": true, // incremental 打开后编译后会生成 tsconfig.tsbuildinfo，下次编译会去做比对，有不同的地方再进行编译，之前编译过的内容不在编译，只编译新增的内容
     "skipLibCheck": true,
     "declaration": true,
-    "composite": true
+    "composite": true,
+    "downlevelIteration": true
   },
   "typeAcquisition": {
     "enable": true
   },
-  "exclude": [
-    "**/lib/*",
-    "**/es/*",
-    "**/dist/*",
-    "**/node_modules/*"
-  ]
+  "exclude": ["**/lib/*", "**/es/*", "**/dist/*", "**/node_modules/*"]
 }
