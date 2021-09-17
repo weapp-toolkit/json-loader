@@ -87,7 +87,6 @@ export class OptimizeChunkPlugin {
                 for (const [module, chunkGroup] of Array.from(
                   chunkGraph.getChunkEntryModulesWithChunkGroupIterable(entryPoint.getEntrypointChunk()),
                 )) {
-                  debugger;
                   if (chunkGroup === entryPoint) {
                     chunkGraph.disconnectChunkAndEntryModule(c, module);
                     chunkGraph.connectChunkAndEntryModule(clonedChunk, module, entryPoint);
