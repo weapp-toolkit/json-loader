@@ -56,6 +56,7 @@ export default class WeappPlugin {
     this.addEntryPlugin.apply(compiler);
 
     this.optimizeChunkPlugin = new OptimizeChunkPlugin({
+      context: this.context,
       dependencyTree,
     });
     this.optimizeChunkPlugin.apply(compiler);

@@ -2,7 +2,7 @@ import fsx from 'fs-extra';
 import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
 import { Compiler } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
-import { APP_GROUP_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
+import { APP_GROUP_NAME, APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { DependencyTreeNode } from './TreeNode';
 
 /**
@@ -17,6 +17,9 @@ export interface IDependencyTreeOptions {
 
 /** 依赖树 */
 export class DependencyTree extends DependencyTreeNode {
+  /** 缓存的模块映射 */
+  private _modulesMap: Map<string, DependencyTreeNode> | undefined;
+
   public compiler: Compiler;
 
   constructor(options: IDependencyTreeOptions) {
@@ -24,6 +27,7 @@ export class DependencyTree extends DependencyTreeNode {
 
     super({
       appRoot: context,
+      packageName: APP_PACKAGE_NAME,
       packageGroup: APP_GROUP_NAME,
       resolver,
       pathname: app,
@@ -44,6 +48,21 @@ export class DependencyTree extends DependencyTreeNode {
   }
 
   /**
+   * 获取模块映射
+   */
+  public getModuleMaps(): Map<string, DependencyTreeNode> {
+    if (!this._modulesMap) {
+      this._modulesMap = super.getModuleMaps();
+    }
+
+    return this._modulesMap;
+  }
+
+  public resetModuleMaps() {
+    this._modulesMap = undefined;
+  }
+
+  /**
    * 添加 app chunk
    */
   private addAppChunk(appJson: IWeappAppConfig) {
@@ -52,9 +71,9 @@ export class DependencyTree extends DependencyTreeNode {
     /** 添加同名资源文件 */
     this.addAllAssets();
     /** 添加主包里的 pages */
-    this.addAllToModule(APP_GROUP_NAME, pages);
+    this.addAllToModule(APP_PACKAGE_NAME, APP_GROUP_NAME, pages);
     /** 添加主包使用的 components */
-    this.addAllToModule(APP_GROUP_NAME, Object.values(usingComponents));
+    this.addAllToModule(APP_PACKAGE_NAME, APP_GROUP_NAME, Object.values(usingComponents));
     /** 添加 TabBar */
     this.addTabBar(tabBar);
     /** 添加分包 chunk */
@@ -74,7 +93,7 @@ export class DependencyTree extends DependencyTreeNode {
     /** 如果是自定义 TabBar，解析自定义 TabBar 文件夹依赖 */
     if (custom) {
       const tabBarEntryPath = this.resolve(CUSTOM_TAB_BAR_CONTEXT);
-      this.addModule(APP_GROUP_NAME, tabBarEntryPath);
+      this.addModule(APP_PACKAGE_NAME, APP_GROUP_NAME, tabBarEntryPath);
     }
 
     /** 获取 TabBar 列表配置里的图标资源 */
@@ -94,7 +113,7 @@ export class DependencyTree extends DependencyTreeNode {
       return resources;
     }, []);
 
-    this.addAllToModule(APP_GROUP_NAME, assets);
+    this.addAllToModule(APP_PACKAGE_NAME, APP_GROUP_NAME, assets);
   }
 
   /**
@@ -113,7 +132,7 @@ export class DependencyTree extends DependencyTreeNode {
       const resolve = this.resolver.resolveDependencySync.bind(null, context);
 
       /** 如果是独立分包，单独为一个 chunk，否则加入 app chunk */
-      return this.addAllToModule(independent ? packageGroup : APP_GROUP_NAME, pages, resolve);
+      return this.addAllToModule(packageGroup, independent ? packageGroup : APP_GROUP_NAME, pages, resolve);
     });
   }
 
@@ -123,12 +142,12 @@ export class DependencyTree extends DependencyTreeNode {
    * @param resources
    * @param resolve
    */
-  private addAllToModule(packageGroup: string, resources: string[], resolve = this.resolve) {
+  private addAllToModule(packageName: string, packageGroup: string, resources: string[], resolve = this.resolve) {
     resources.map((resource) => {
       /** 获取 js 路径 */
       const resourcePath = resolve(resource);
       /** 添加到 chunk */
-      this.addModule(packageGroup, resourcePath);
+      this.addModule(packageName, packageGroup, resourcePath);
     });
   }
 }

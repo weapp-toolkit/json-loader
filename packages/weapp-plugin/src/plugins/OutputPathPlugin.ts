@@ -30,9 +30,6 @@ export class OutputPathPlugin {
       //   }
       //   return filepath;
       // });
-      compilation.hooks.chunkAsset.tap(OutputPathPlugin.PLUGIN_NAME, (chunk, filename) => {
-        // console.info('skr: chunkAsset', filename, chunk);
-      });
     });
   }
 }

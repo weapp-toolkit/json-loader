@@ -2,12 +2,13 @@ import { LoaderContext } from 'webpack';
 import { getOptions, interpolateName } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
-import { merge } from '@weapp-toolkit/core';
+import { merge, replaceExt, resolveAppEntryPath } from '@weapp-toolkit/core';
 import { IWeappAppConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import { IWeappConfigJSON } from './types';
-import { getConfigJsonType, getAppEntryPath, Entry } from './utils';
+import { getConfigJsonType } from './utils';
 
 export interface JsonLoaderOptions {
+  emit?: boolean;
   preprocessor?: {
     app?: Partial<IWeappAppConfig>;
     page?: Partial<IWeappPageConfig>;
@@ -17,6 +18,10 @@ export interface JsonLoaderOptions {
 const schema: JSONSchema7 = {
   type: 'object',
   properties: {
+    emit: {
+      type: 'boolean',
+      default: false,
+    },
     preprocessor: {
       type: 'object',
       properties: {
@@ -47,15 +52,32 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   validate(schema, options);
 
+  const { emit = false, preprocessor = {} } = options;
+
+  /** 处理结束时调用 */
+  const end = (name: string, sourceObject: Record<any, any>) => {
+    /** 输出到文件系统 */
+    const value = JSON.stringify(sourceObject)
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
+
+    if (emit) {
+      this.emitFile(name, value);
+    }
+
+    callback(null, value);
+  };
+
   /** 将 source 转为 string 类型 */
   const sourceString = typeof source === 'string' ? source : source.toString();
   let json: Partial<IWeappConfigJSON>;
 
   try {
     json = JSON.parse(sourceString);
-  } catch (e) {
+  } catch (e: any) {
     /** 打印错误，但不会中断编译 */
-    console.error(new Error(`${this.resourcePath /** 资源绝对路径 */} is not a valid JSON.`));
+    console.error(new Error(`${this.resourcePath /** 资源绝对路径 */} 不是合法的 JSON 文件.`));
+    callback(e);
     return;
   }
 
@@ -63,18 +85,10 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     sourceString,
   });
 
-  const { preprocessor = {} } = options;
-
   /** 通过入口文件，找出 app.json 路径 */
-  const entry = this._compiler?.options.entry as Entry;
-  let appJsonPath = '';
-  if (entry) {
-    const entryFile = getAppEntryPath(entry);
-    /** app.json路径 */
-    appJsonPath = entryFile.replace(/\.(\w+)/, '.json');
-  } else {
-    return callback?.(null, source);
-  }
+  const appPath = resolveAppEntryPath(this._compiler!);
+  /** app.json路径 */
+  const appJsonPath = replaceExt(appPath, '.json');
 
   /** 获取 JSON 的类型 */
   const configJsonType = getConfigJsonType(appJsonPath, this.resourcePath);
@@ -83,7 +97,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
 
   /** JSON 文件不是 app、分包、页面、组件类型，不处理 */
   if (!configJsonType) {
-    return callback?.(null, source);
+    return end(outputPath, json);
   }
 
   /** 将源文件和 loader 配置项配置进行混合 */
@@ -99,9 +113,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
       break;
   }
 
-  /** 输出到文件系统 */
-  this.emitFile(outputPath, JSON.stringify(mixinJson));
-  return callback?.(null, source);
+  end(outputPath, mixinJson);
 }
 
 export default loader;

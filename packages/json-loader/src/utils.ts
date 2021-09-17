@@ -1,7 +1,6 @@
-import path from 'path';
-import { IWeappAppConfig, IWeappSubPackage } from '@weapp-toolkit/weapp-types';
-
 import fs from 'fs';
+import path from 'path';
+import { CachedFunction, IWeappAppConfig, IWeappSubPackage } from '@weapp-toolkit/weapp-types';
 import { WeappConfigType } from './types';
 
 let appCacheJson: IWeappAppConfig;
@@ -26,8 +25,8 @@ export const getConfigJsonType = (appPath: string, sourcePath: string): WeappCon
    * 判断是否为page类型
    * 需要判断app.json中的pages、subpackages，如果匹配当前的文件路径，则类型为page
    */
-  const { pages, subpackages = [] } = getAppJson(appJsonPath);
-  const subPages = getSubpackagesPathList(subpackages);
+  const { pages, subpackages, subPackages } = getAppJson(appJsonPath);
+  const subPages = getSubpackagesPathList(subpackages || subPackages || []);
   const allPages = pages.concat(subPages);
   const page = allPages.find((pageName) => {
     return sourcePath.indexOf(pageName) !== -1;
@@ -63,26 +62,4 @@ export const getSubpackagesPathList = (subpackages: IWeappSubPackage[]): string[
     acc = [...acc, ...subpackagePathList];
     return acc;
   }, []);
-};
-
-export interface Entry {
-  [key: string]: {
-    import: string[];
-  };
-}
-/**
- * getAppEntryPath
- * @param entry webpack entry
- * @description
- * 获取entry主入口文件路径
- */
-export const getAppEntryPath = (entry: Entry): string => {
-  /** 优先或取main,获取app */
-  const main = entry.main || entry.app;
-  if (main) {
-    return main.import[0];
-  }
-  /** 取第一个 */
-  const appKey = Object.keys(entry)[0];
-  return entry[appKey].import[0];
 };

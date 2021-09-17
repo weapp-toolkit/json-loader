@@ -3,6 +3,13 @@ import webpack from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import WeappPlugin from '../es';
 
+const fileLoader = {
+  loader: 'file-loader',
+  options: {
+    name: '[name].[ext]',
+  },
+};
+
 const webpackConfig: webpack.Configuration = {
   entry: {
     app: path.resolve(__dirname, '../../../test/src/app.js'),
@@ -11,8 +18,9 @@ const webpackConfig: webpack.Configuration = {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].js',
   },
+  watch: true,
   target: 'node',
-  mode: 'development',
+  mode: 'production',
   optimization: {
     usedExports: true,
   },
@@ -27,47 +35,37 @@ const webpackConfig: webpack.Configuration = {
     rules: [
       {
         test: /\.(ts|js)$/,
-        use: [
-          '@weapp-toolkit/assets-loader',
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: [],
-              plugins: [],
-            },
-          },
-        ],
+        use: ['babel-loader', '@weapp-toolkit/assets-loader'],
         exclude: /node_modules/,
       },
       {
         test: /\.(json)$/,
-        use: ['@weapp-toolkit/json-loader'],
+        use: [
+          '@weapp-toolkit/assets-loader',
+          {
+            loader: '@weapp-toolkit/json-loader',
+            options: {
+              emit: false,
+              preprocessor: {
+                page: {
+                  backgroundColor: '#f2f2f2',
+                },
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.(wxss|css)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: '[name].[ext]',
-            },
-          },
-          'extract-loader',
-          'css-loader',
-        ],
+        use: ['@weapp-toolkit/assets-loader', 'extract-loader', 'css-loader'],
+      },
+      {
+        test: /\.(less)$/,
+        use: ['@weapp-toolkit/assets-loader', 'extract-loader', 'css-loader', 'less-loader'],
       },
       {
         test: /\.(wxml|wxs)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: '[name].[ext]',
-            },
-          },
-          'extract-loader',
-          '@weapp-toolkit/assets-loader',
-        ],
+        use: ['@weapp-toolkit/assets-loader'],
       },
       {
         test: /\.(jpg|png)$/,
