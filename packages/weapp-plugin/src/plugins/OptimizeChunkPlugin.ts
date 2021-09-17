@@ -58,14 +58,13 @@ export class OptimizeChunkPlugin {
         const dependencyTree = this.dependencyTree;
 
         compilation.entrypoints.forEach((entryPoint) => {
-          // debug console zhuojun
-          console.log('>>>>>>>>>>>> debug console zhuojun', compilation);
           const packageGroup = dependencyTree.modulesMap.get(entryPoint.name || '')?.packageGroup;
           if (packageGroup && packageGroup !== 'app') {
-            // 独立分包！
+            // 如果是独立分包！
             debugger;
             const chunkGraph = compilation.chunkGraph;
             entryPoint.chunks.forEach((c) => {
+              // TODO: 更合理的方式判断splitChunk
               if (c.chunkReason && c.chunkReason.indexOf('split chunk') > -1) {
                 const clonedChunkName = `${packageGroup}/_move/${c.name}`;
                 let clonedChunk = cloneChunkCache.get(clonedChunkName);
@@ -74,9 +73,11 @@ export class OptimizeChunkPlugin {
                   chunkGraph.getChunkModules(c).forEach((m) => {
                     chunkGraph.connectChunkAndModule(clonedChunk, m);
                   });
-                  clonedChunk.runtime = (entryPoint.options as any).runtime;
+                  clonedChunk.runtime = c.runtime;
+                  clonedChunk.chunkReason = c.chunkReason;
 
                   cloneChunkCache.set(clonedChunkName, clonedChunk);
+                  compilation.chunks.add(clonedChunk);
                 }
 
                 // Merge id name hints
@@ -93,8 +94,6 @@ export class OptimizeChunkPlugin {
                   }
                 }
 
-                // debug console zhuojun
-                console.log('>>>>>>>>>>>> debug console zhuojun', clonedChunk);
                 entryPoint.replaceChunk(c, clonedChunk);
                 clonedChunk.addGroup(entryPoint);
                 c.removeGroup(entryPoint);
@@ -102,8 +101,6 @@ export class OptimizeChunkPlugin {
             });
           }
         });
-
-        // console.info('skr: chunkAsset', filename, chunk);
       });
 
       compilation.hooks.moduleAsset.tap(OptimizeChunkPlugin.PLUGIN_NAME, (module, filename) => {
