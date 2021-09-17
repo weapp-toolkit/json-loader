@@ -3,6 +3,7 @@ import { removeExt, Resolver } from '@weapp-toolkit/core';
 import path from 'path';
 import { DependencyTree } from '../modules/dependencyTree';
 import webpack from 'webpack';
+import { INDEPENDENT_PKG_OUTSIDE_DEP_DIR } from 'src/utils/constant';
 // import { SplitChunksPlugin } from 'webpack';
 
 /**
@@ -61,12 +62,11 @@ export class OptimizeChunkPlugin {
           const packageGroup = dependencyTree.modulesMap.get(entryPoint.name || '')?.packageGroup;
           if (packageGroup && packageGroup !== 'app') {
             // 如果是独立分包！
-            debugger;
             const chunkGraph = compilation.chunkGraph;
             entryPoint.chunks.forEach((c) => {
               // TODO: 更合理的方式判断splitChunk
               if (c.chunkReason && c.chunkReason.indexOf('split chunk') > -1) {
-                const clonedChunkName = `${packageGroup}/_move/${c.name}`;
+                const clonedChunkName = `${packageGroup}/${INDEPENDENT_PKG_OUTSIDE_DEP_DIR}/${c.name}`;
                 let clonedChunk = cloneChunkCache.get(clonedChunkName);
                 if (!clonedChunk) {
                   clonedChunk = new Chunk(clonedChunkName);
