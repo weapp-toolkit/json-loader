@@ -1,3 +1,5 @@
+<wxs src="/components/abc-button/index.wxs" module="cpt"></wxs>
 <view class="my">
-  新建页面：
+  新建页面：my2
 </view>
+<include src="./template.wxml"/>

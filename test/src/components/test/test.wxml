@@ -1,3 +1,4 @@
 <view class="test">
   新建组件：
+  <image src="@/assets/img/file.png"></image>
 </view>

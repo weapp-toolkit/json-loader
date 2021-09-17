@@ -1,17 +1,7 @@
 import { Handler, HandlerRunner } from '../handler-runner';
 
-interface JavascriptHandlerOption {
-  esModule?: boolean;
-}
-
 export class JavascriptHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'JavascriptHandler';
-
-  private esModule: boolean;
-
-  constructor(options: JavascriptHandlerOption) {
-    this.esModule = options.esModule || true;
-  }
 
   apply(runner: HandlerRunner<T>): void {
     const { loaderContext, resolve } = runner;
@@ -23,5 +13,8 @@ export class JavascriptHandler<T> implements Handler<T> {
       /** 将原来的引入替换成模块化引入 */
       return end(`require('${request}')`);
     });
+
+    /** 默认是输出文件，这里漏给 webpack 处理 */
+    runner.hooks.after.tap(JavascriptHandler.HANDLER_NAME, (code) => code);
   }
 }

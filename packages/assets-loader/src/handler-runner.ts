@@ -8,6 +8,7 @@ import { AssetImportType, Assets } from './types';
 export interface HandlerRunnerClassOptions<T> {
   loaderContext: LoaderContext<T>;
   loaderOptions: T;
+  appRoot: string;
   source: string;
   resolve: Resolver;
 }
@@ -46,13 +47,18 @@ export class HandlerRunner<T> {
 
   public loaderOptions: T;
 
+  public appRoot: string;
+
   public source: string;
 
   public resolve: Resolver;
 
+  public placeholderMap = new Map<string, string>();
+
   constructor(options: HandlerRunnerClassOptions<T>) {
     this.loaderContext = options.loaderContext;
     this.loaderOptions = options.loaderOptions;
+    this.appRoot = options.appRoot;
     this.source = options.source;
     this.resolve = options.resolve;
 

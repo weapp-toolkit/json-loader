@@ -2,8 +2,8 @@
   "pages": ["pages/my/my"],
   "subpackages": [
     {
-      "root": "pages/index/",
-      "pages": ["index"]
+      "root": "pages/my/",
+      "pages": ["my"]
     },
     {
       "root": "pages/independent/",

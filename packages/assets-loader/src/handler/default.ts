@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import globby from 'globby';
 import { Handler, HandlerRunner, HooksParameter } from '../handler-runner';
+import { handleEmit } from '../common';
 
 /**
  * 当资源没有被任何其他 handler 处理时，会走到 default handler
@@ -10,8 +11,8 @@ export class DefaultHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'DefaultHandler';
 
   apply(runner: HandlerRunner<T>): void {
-    const { loaderContext, resolve } = runner;
-    const { context } = loaderContext;
+    const { loaderContext, resolve, appRoot } = runner;
+    const { context, resourcePath } = loaderContext;
 
     runner.hooks.before.tap(DefaultHandler.HANDLER_NAME, (code) => code);
 
@@ -44,7 +45,7 @@ export class DefaultHandler<T> implements Handler<T> {
       return end(asset.code);
     });
 
-    runner.hooks.after.tap(DefaultHandler.HANDLER_NAME, (code) => code);
+    runner.hooks.after.tap(DefaultHandler.HANDLER_NAME, handleEmit.bind(this, runner));
   }
 
   /**
