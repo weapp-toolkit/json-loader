@@ -2,6 +2,7 @@ import $ from 'lodash';
 import { LoaderContext } from 'webpack';
 import { AsyncSeriesBailHook } from 'tapable';
 import { Resolver } from '@weapp-toolkit/core';
+import { IPlaceholderMapValue, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { handleSourceCode, replacePlaceholder } from './core';
 import { AssetImportType, Assets } from './types';
 
@@ -10,7 +11,7 @@ export interface HandlerRunnerClassOptions<T> {
   loaderOptions: T;
   appRoot: string;
   source: string;
-  resolve: Resolver;
+  resolver: Resolver;
 }
 
 export interface Handler<T> {
@@ -51,16 +52,16 @@ export class HandlerRunner<T> {
 
   public source: string;
 
-  public resolve: Resolver;
+  public resolver: Resolver;
 
-  public placeholderMap = new Map<string, string>();
+  public placeholderMap: PlaceholderMap = new Map<string, IPlaceholderMapValue>();
 
   constructor(options: HandlerRunnerClassOptions<T>) {
     this.loaderContext = options.loaderContext;
     this.loaderOptions = options.loaderOptions;
     this.appRoot = options.appRoot;
     this.source = options.source;
-    this.resolve = options.resolve;
+    this.resolver = options.resolver;
 
     this.hooks = {
       before: new AsyncSeriesBailHook<string, string>(['code']),

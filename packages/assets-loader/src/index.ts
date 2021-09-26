@@ -47,7 +47,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   const compiler = this._compiler as Compiler;
   const app = resolveAppEntryPath(compiler);
   const appRoot = path.dirname(app);
-  const resolve = createResolver(compiler, appRoot);
+  const resolver = createResolver(compiler, appRoot);
 
   // console.info('skr: sourceString', sourceString);
 
@@ -60,7 +60,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
     loaderOptions: options,
     source: sourceString,
     appRoot,
-    resolve,
+    resolver,
     handlers: [
       {
         test: /\.(js|ts)$/,

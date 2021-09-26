@@ -45,6 +45,8 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",
@@ -52,6 +54,7 @@
     "tapable": "^2.2.0"
   },
   "devDependencies": {
+    "@types/babel__core": "^7.1.16",
     "@types/loader-runner": "^2.2.4",
     "@types/loader-utils": "^2.0.3",
     "@types/shortid": "^0.0.29",

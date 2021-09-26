@@ -34,9 +34,11 @@ const webpackConfig: webpack.Configuration = {
         test: /\.(jpg|png)$/,
         use: [
           {
-            loader: 'file-loader',
+            // loader: 'file-loader',
+            loader: path.resolve(__dirname, '../../cdn-loader'),
             options: {
-              name: '[name]-[contenthash:8].[ext]',
+              cdn: 'https://raw.abcmouse.com',
+              name: 'cdn/[name]-[contenthash:8].[ext]',
             },
           },
         ],

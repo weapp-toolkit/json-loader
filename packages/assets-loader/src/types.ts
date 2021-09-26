@@ -22,7 +22,8 @@ export interface NormalAssets extends IBaseAssets {
 
 export interface GlobAssets extends IBaseAssets {
   type: AssetImportType.Glob;
-  request: string /** glob 路径 */;
+  glob: string /** glob 路径 */;
+  request: string;
 }
 
 export interface HttpAssets extends IBaseAssets {

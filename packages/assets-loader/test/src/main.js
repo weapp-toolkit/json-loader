@@ -18,7 +18,7 @@ export function getImage(index) {
 }
 
 export function getImageByTemplateString(index) {
-  return `./level${index || '1'}.png`;
+  return `level${index || '1'}.png`;
 }
 
 export function getImageByTemplateStringNest(index) {
