@@ -6,12 +6,18 @@ import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-
 import { APP_GROUP_NAME, INDEPENDENT_PKG_OUTSIDE_DEP_DIR } from '../../utils/constant';
 
 export interface IDependencyTreeNode {
-  appRoot: string /** app 根绝对路径 */;
-  packageName: string /** 分包名 */;
-  packageGroup: string /** 分包分组名 */;
-  pathname: string /** 依赖绝对路径 */;
-  resolver: Resolver /** 模块路径解析工具 */;
-  parentPathname?: string /** 父节点依赖绝对路径 */;
+  /** app 根绝对路径 */
+  appRoot: string;
+  /** 分包名 */
+  packageName: string;
+  /** 分包分组名 */
+  packageGroup: string;
+  /** 依赖绝对路径 */
+  pathname: string;
+  /** 模块路径解析工具 */
+  resolver: Resolver;
+  /** 父节点依赖绝对路径 */
+  parentPathname?: string;
 }
 
 /**

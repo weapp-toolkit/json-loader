@@ -1,15 +1,22 @@
 /** 资源引入类型 */
 export enum AssetImportType {
-  Normal /** 普通引入 */,
-  Module /** 模块化引入 */,
-  Glob /** 带变量的引入 */,
-  Http /** 网络资源引入 */,
-  Unknown /** 未知 */,
+  /** 普通引入 */
+  Normal,
+  /** 模块化引入 */
+  Module,
+  /** 带变量的引入 */
+  Glob,
+  /** 网络资源引入 */
+  Http,
+  /** 未知 */
+  Unknown,
 }
 
 interface IBaseAssets {
-  code: string /** 源码 */;
-  request: string /** 资源路径 */;
+  /** 源码 */
+  code: string;
+  /** 资源路径 */
+  request: string;
 }
 
 export interface ModuleAssets extends IBaseAssets {
@@ -22,13 +29,15 @@ export interface NormalAssets extends IBaseAssets {
 
 export interface GlobAssets extends IBaseAssets {
   type: AssetImportType.Glob;
-  glob: string /** glob 路径 */;
+  /** glob 路径 */
+  glob: string;
   request: string;
 }
 
 export interface HttpAssets extends IBaseAssets {
   type: AssetImportType.Http;
-  request: string /** http 资源路径 */;
+  /** http 资源路径 */
+  request: string;
 }
 
 export interface UnknownAssets extends IBaseAssets {

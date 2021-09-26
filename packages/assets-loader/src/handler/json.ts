@@ -9,7 +9,7 @@ export class JsonHandler<T> implements Handler<T> {
 
   apply(runner: HandlerRunner<T>): void {
     const { loaderContext, appRoot, resolver, placeholderMap } = runner;
-    const { resourcePath } = loaderContext;
+    const { resourcePath, context } = loaderContext;
 
     runner.hooks.normalAsset.tapPromise(JsonHandler.HANDLER_NAME, handleAsset.bind(this, 'JSON_DEPENDENCY', runner));
 
@@ -21,7 +21,7 @@ export class JsonHandler<T> implements Handler<T> {
       if (usingComponents) {
         Object.keys(usingComponents).forEach((identify) => {
           const referencePath = usingComponents[identify];
-          const resolvedReference = replaceExt(resolver.resolveDependencySync(appRoot, referencePath), '.json');
+          const resolvedReference = replaceExt(resolver.resolveDependencySync(context, referencePath), '.json');
 
           const placeholder = `___JSON_DEPENDENCY_${shortid()}___`;
           /** 记录占位符和资源的映射，在还原的时候需要**特别兼容** json 类型文件 */
