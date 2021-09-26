@@ -1,0 +1,4 @@
+<view class="loaded-empty cnt-cls">
+  <view class="icon-empty"></view>
+  <view class="empty-msg">{{msg}}</view>
+</view>

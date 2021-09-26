@@ -5,6 +5,7 @@
  * @date 2021-06-10 21:27:13
  */
 import Log from '@/libs/log';
+import MyLog from './libs/log';
 
 Page({
   /**
@@ -16,7 +17,8 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    new Log().log(10);
+    new Log().log('app log');
+    new MyLog().log('my log');
   },
 
   /**

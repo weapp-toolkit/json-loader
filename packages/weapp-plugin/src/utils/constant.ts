@@ -7,7 +7,7 @@ export const APP_PACKAGE_NAME = 'app';
 export const CUSTOM_TAB_BAR_CONTEXT = 'custom-tab-bar';
 
 /** 独立分包外部依赖拷贝目录 */
-export const INDEPENDENT_PKG_OUTSIDE_DEP_DIR = '__reference__';
+export const INDEPENDENT_PKG_OUTSIDE_DEP_DIR = '_reference_';
 
 /** AssetsMap 默认的 ignore 配置 */
 export const DEFAULT_ASSETS_MAP_IGNORES = [/.(js|ts)x?$/];
