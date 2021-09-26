@@ -20,7 +20,7 @@ export interface IDependencyTreeNode {
  * 可获取依赖的所有依赖
  * 粒度分析：分包分组 > 分包 > chunk:
  *  - 非独立分包均属于 app 分组，只有独立分包属于独立分组
- *  - 每个分包均为独立的分包粒度
+ *  - 每个分包均属于分包粒度
  *  - 每个页面或组件均为独立的 chunk 粒度
  */
 export class DependencyTreeNode {

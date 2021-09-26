@@ -4,7 +4,6 @@ import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
 import { DependencyTree } from './modules/dependencyTree';
 import { AddEntryPlugin } from './plugins/AddEntryPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
-import { OutputPathPlugin } from './plugins/OutputPathPlugin';
 
 export interface IWeappPluginOptions {
   ignore?: RegExp[];
@@ -27,9 +26,6 @@ export default class WeappPlugin {
 
   /** 处理 chunk 划分的插件 */
   optimizeChunkPlugin!: OptimizeChunkPlugin;
-
-  /** 处理输出路径的插件 */
-  outputPathPlugin!: OutputPathPlugin;
 
   constructor(options: IWeappPluginOptions = {}) {
     this.options = options;
@@ -61,10 +57,5 @@ export default class WeappPlugin {
       dependencyTree,
     });
     this.optimizeChunkPlugin.apply(compiler);
-
-    this.outputPathPlugin = new OutputPathPlugin({
-      context: this.context,
-    });
-    this.outputPathPlugin.apply(compiler);
   }
 }
