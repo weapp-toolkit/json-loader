@@ -77,6 +77,7 @@ export class OptimizeChunkPlugin {
 
                 if (!clonedChunk) {
                   clonedChunk = this.cloneChunk(clonedChunkName, chunk, compilation);
+                  clonedChunk.runtime = entryPoint.getRuntimeChunk()?.name;
                   cloneChunkCache.set(clonedChunkName, clonedChunk);
                 }
 
@@ -85,15 +86,15 @@ export class OptimizeChunkPlugin {
                   clonedChunk.idNameHints.add(hint);
                 });
 
-                const chunkEntryModules = Array.from(
-                  chunkGraph.getChunkEntryModulesWithChunkGroupIterable(entryPoint.getEntrypointChunk()),
-                );
-                for (const [module, chunkGroup] of chunkEntryModules) {
-                  if (chunkGroup === entryPoint) {
-                    chunkGraph.disconnectChunkAndEntryModule(chunk, module);
-                    chunkGraph.connectChunkAndEntryModule(clonedChunk, module, entryPoint);
-                  }
-                }
+                // const chunkEntryModules = Array.from(
+                //   chunkGraph.getChunkEntryModulesWithChunkGroupIterable(entryPoint.getEntrypointChunk()),
+                // );
+                // for (const [module, chunkGroup] of chunkEntryModules) {
+                //   if (chunkGroup === entryPoint) {
+                //     chunkGraph.disconnectChunkAndEntryModule(chunk, module);
+                //     chunkGraph.connectChunkAndEntryModule(clonedChunk, module, entryPoint);
+                //   }
+                // }
 
                 entryPoint.replaceChunk(chunk, clonedChunk);
                 clonedChunk.addGroup(entryPoint);
@@ -165,7 +166,6 @@ export class OptimizeChunkPlugin {
       chunkGraph.connectChunkAndModule(clonedChunk, m);
     });
 
-    clonedChunk.runtime = srcChunk.runtime;
     clonedChunk.chunkReason = srcChunk.chunkReason;
 
     compilation.chunks.add(clonedChunk);
