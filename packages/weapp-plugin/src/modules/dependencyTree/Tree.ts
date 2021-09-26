@@ -124,10 +124,10 @@ export class DependencyTree extends DependencyTreeNode {
     const subPackages = appJson.subpackages || appJson.subPackages || [];
     subPackages.map((subPackage) => {
       const { root, pages, independent } = subPackage;
-      /** 获取分包根绝对路径，从小程序根路径开始查找 */
-      const context = this.resolver.resolveDir(this.context, root);
       /** 根据分包路径生成 packageGroup */
       const packageGroup = root.replace(/\/$/, '');
+      /** 获取分包根绝对路径，从小程序根路径开始查找 */
+      const context = this.resolver.resolveDir(this.context, packageGroup);
       /** 以分包根路径作为 context 生成 resolve 函数 */
       const resolve = this.resolver.resolveDependencySync.bind(null, context);
 

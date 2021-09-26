@@ -59,6 +59,8 @@
     "@types/glob-to-regexp": "^0.4.1",
     "@types/lodash": "^4.14.171",
     "@weapp-toolkit/assets-loader": "1.0.0",
+    "@weapp-toolkit/cdn-loader": "1.0.0",
+    "babel-loader": "^8.2.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.56.2",
     "webpack": "^5.51.1",

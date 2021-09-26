@@ -1,5 +1,6 @@
 <wxs src="/components/abc-button/index.wxs" module="cpt"></wxs>
 <view class="my">
   新建页面：my2
+  <image src="/assets/img/level1.png"></image>
 </view>
 <include src="./template.wxml"/>

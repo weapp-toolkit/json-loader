@@ -2,4 +2,5 @@
 <view class="abc-button {{type}}-{{color}} {{disabled ? 'disabled' : ''}} ext-class" bind:tap="onClick" style="{{cpt.getWidth(width)}}">
   <slot></slot>
   <image src="@/assets/img/file.png"></image>
+  <image src="@/assets/img/level{{num}}.png"></image>
 </view>

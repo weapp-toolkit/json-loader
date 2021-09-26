@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { CachedInputFileSystem, ResolverFactory } from 'enhanced-resolve';
-import { Compiler } from 'webpack';
+import type { Compiler } from 'webpack';
 import $ from 'lodash';
 
 export type Resolver = ReturnType<typeof createResolver>;
@@ -23,6 +23,12 @@ export function createResolver(compiler: Compiler, appRoot: string) {
   const syncResolver = ResolverFactory.createResolver({
     extensions: ['.js', '.json'],
     useSyncFileSystemCalls: true,
+    fileSystem: nodeFileSystem,
+    ...webpackResolveOptions,
+  });
+  const syncContextResolver = ResolverFactory.createResolver({
+    useSyncFileSystemCalls: true,
+    resolveToContext: true,
     fileSystem: nodeFileSystem,
     ...webpackResolveOptions,
   });
@@ -100,21 +106,25 @@ export function createResolver(compiler: Compiler, appRoot: string) {
    * @param pathname 子文件夹路径
    * @returns
    */
-  const resolveDir = (context: string, pathname: string) => {
-    let result = '';
-
-    if (isRelativePath(pathname)) {
-      result = path.resolve(context, pathname);
+  const resolveDir = (context: string, dirname: string) => {
+    let res;
+    if (isRelativePath(dirname)) {
+      try {
+        /** 别名路径或者 node_modules */
+        res = syncContextResolver.resolveSync({}, context, dirname);
+      } catch (error) {
+        /** 可能是没加 ./ 的相对路径 */
+        res = syncContextResolver.resolveSync({}, context, `./${dirname}`);
+      }
     } else {
       /** 如果是绝对路径从小程序根路径开始找 */
-      result = path.resolve(appRoot, `.${pathname}`);
+      res = syncContextResolver.resolveSync({}, appRoot, `.${dirname}`);
     }
 
-    if (!fs.existsSync(result)) {
-      throw new Error(`找不到该文件夹：${pathname}, 查找路径：${context}, ${appRoot}.`);
+    if (!res) {
+      throw new Error(`找不到该文件夹：${dirname}, 查找路径：${context}，${appRoot}.`);
     }
-
-    return result;
+    return res;
   };
 
   return {

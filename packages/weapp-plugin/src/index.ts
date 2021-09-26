@@ -7,7 +7,7 @@ import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 import { OutputPathPlugin } from './plugins/OutputPathPlugin';
 
 export interface IWeappPluginOptions {
-  ignore?: [];
+  ignore?: RegExp[];
 }
 
 export default class WeappPlugin {
@@ -57,6 +57,7 @@ export default class WeappPlugin {
 
     this.optimizeChunkPlugin = new OptimizeChunkPlugin({
       context: this.context,
+      ignore: this.options.ignore,
       dependencyTree,
     });
     this.optimizeChunkPlugin.apply(compiler);

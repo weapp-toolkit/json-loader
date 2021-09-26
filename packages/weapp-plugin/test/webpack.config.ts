@@ -3,13 +3,6 @@ import webpack from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import WeappPlugin from '../es';
 
-const fileLoader = {
-  loader: 'file-loader',
-  options: {
-    name: '[name].[ext]',
-  },
-};
-
 const webpackConfig: webpack.Configuration = {
   entry: {
     app: path.resolve(__dirname, '../../../test/src/app.js'),
@@ -20,7 +13,7 @@ const webpackConfig: webpack.Configuration = {
   },
   watch: true,
   target: 'node',
-  mode: 'production',
+  mode: 'development',
   optimization: {
     usedExports: true,
   },
@@ -68,19 +61,25 @@ const webpackConfig: webpack.Configuration = {
         use: ['@weapp-toolkit/assets-loader'],
       },
       {
-        test: /\.(jpg|png)$/,
+        test: /\.(png|jpe?g|svg|gif|webp)$/,
         use: [
           {
-            loader: 'file-loader',
+            loader: '@weapp-toolkit/cdn-loader',
             options: {
-              name: '[name]-[contenthash:8].[ext]',
+              cdn: 'https://raw.abcmouse.qq.com/',
+              name: 'cdn/[name]-[contenthash:8].[ext]',
             },
           },
         ],
       },
     ],
   },
-  plugins: [new CleanWebpackPlugin(), new WeappPlugin()],
+  plugins: [
+    new CleanWebpackPlugin(),
+    new WeappPlugin({
+      ignore: [],
+    }),
+  ],
 };
 
 export default webpackConfig;

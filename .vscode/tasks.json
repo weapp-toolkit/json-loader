@@ -1,11 +1,13 @@
 {
   "version": "2.0.0",
-  "tasks": [{
+  "tasks": [
+    {
       "label": "weapp-plugin: watch",
       "dependsOn": [
         "core: dev",
         "assets-loader: dev",
         "json-loader: dev",
+        "cdn-loader: dev",
         "weapp-plugin: dev",
         "weapp-plugin: debug"
       ],
