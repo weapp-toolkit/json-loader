@@ -191,6 +191,11 @@ export class OptimizeChunkPlugin {
         const optimizedAssets: Record<string, any> = {};
         const chunkNames = assetsMap.getChunkNames(absolutePath);
 
+        // if (absolutePath.endsWith('abc-button.json')) {
+        //   console.info('skr: optimizeAssetModules', { absolutePath, chunkNames });
+        //   debugger;
+        // }
+
         for (const chunkName of chunkNames) {
           const newFileDirname = path.dirname(assetsMap.getOutputPath(absolutePath, chunkName));
 
@@ -236,9 +241,19 @@ export class OptimizeChunkPlugin {
   ): string {
     let code = sourceCode.toString();
 
-    placeholderMap.forEach(({ reference, shouldRemoveExt }, placeholder) => {
+    placeholderMap.forEach(({ reference, referenceDir, referenceType, shouldRemoveExt }, placeholder) => {
       const referenceRelativePath = this.assetsMap.getReferencePath(source, reference, chunkName);
-      code = code.replace(placeholder, shouldRemoveExt ? removeExt(referenceRelativePath) : referenceRelativePath);
+      let relativePath = referenceRelativePath;
+
+      if (referenceType === 'dir' && referenceDir) {
+        const filename = path.relative(referenceDir, reference);
+        /** 获取文件夹的相对路径 */
+        relativePath = path.join(referenceRelativePath.replace(filename, ''));
+        /** 去掉尾部的斜线 */
+        relativePath = relativePath.replace(/\/$/, '');
+      }
+
+      code = code.replace(placeholder, shouldRemoveExt ? removeExt(relativePath) : relativePath);
     });
 
     return code;

@@ -39,6 +39,8 @@ export class DefaultHandler<T> implements Handler<T> {
       const globPiece = pathPieces.join('/');
       /** 文件夹绝对路径 */
       const resolvedDirname = resolver.resolveDir(context, baseDirname);
+      /** 文件夹下的一个文件的路径，用于修改文件夹路径 */
+      let resolvedFilenameOfFiles = '';
 
       const requests = globby.sync(globPiece, {
         cwd: resolvedDirname,
@@ -48,6 +50,7 @@ export class DefaultHandler<T> implements Handler<T> {
         requests.map(async (request) => {
           const resolvedRequest = await resolver.resolveDependency(resolvedDirname, `./${request}`);
           const relativePath = path.relative(appRoot, resolvedRequest);
+          resolvedFilenameOfFiles = resolvedRequest;
 
           /**
            * @thinking
@@ -71,14 +74,19 @@ export class DefaultHandler<T> implements Handler<T> {
        * 如何更改？
        * 1. 解析前缀路径：../../assets/{{folder}}/{{star}}.png => ../../assets
        * 2. 用占位符替换：__placeholder__/{{folder}}/{{star}}.png
-       * 3. 计算挪动后的位置
+       * 3. 计算挪动后的位置：
+       *    a. 获取文件夹下某个文件的相对路径 fileRelativePath
+       *    b. 获取文件夹下某个文件的移动后位置 fileMovedPath
+       *    c. 获取文件的移动后位置减去其相对文件夹的相对路径 fileMovedPath.replace(fileRelativePath, '')
        * 4. 获取相对路径并替换：./__reference__/assets/{{folder}}/{{star}}.png
        */
 
       /** 记录占位符和资源的映射 */
       const placeholder = `___DEFAULT_DEPENDENCY_${shortid()}___`;
       placeholderMap.set(placeholder, {
-        reference: resolvedDirname,
+        reference: resolvedFilenameOfFiles,
+        referenceDir: resolvedDirname,
+        referenceType: 'dir',
       });
 
       const dynamicReferenceCode = asset.request.replace(baseDirname, '').replace(/^\//, '');

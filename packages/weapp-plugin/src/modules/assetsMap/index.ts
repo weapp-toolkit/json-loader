@@ -220,39 +220,51 @@ export class AssetsMap {
   /**
    * 通过 chunkName 获取优化后的 {chunkName => 资源路径} 映射
    * @param treeNodes
-   * @param filename
+   * @param filename 相对于 appRoot 的路径
    * @returns
    */
   private getOptimizedAssetPathMap(chunkNames: string[], filename: string): Map<string, string> {
     const moduleMaps = this.dependencyTree.getModuleMaps();
+
+    // if (filename.endsWith('.wxs')) {
+    //   console.info('skr: optimizeAssetModules', { filename, chunkNames });
+    //   // debugger;
+    // }
 
     /** chunkName 对应的 dependencyTreeNode 实例列表 */
     const treeNodes = chunkNames
       .map((chunkName) => moduleMaps.get(chunkName))
       .filter((node) => typeof node !== 'undefined') as DependencyTreeNode[];
 
-    /** 依赖引用次数 */
-    let useCount = 0;
+    /** 依赖引用者 */
+    const dependencyUsers = new Set<string>();
     /** 未在主包使用 */
     const notUsedInAppPackage = treeNodes.every(({ packageName, independent }) => {
       /** 独立分包不计算使用次数 */
       if (!independent) {
-        useCount++;
+        dependencyUsers.add(packageName);
       }
 
       return packageName !== APP_PACKAGE_NAME;
     });
 
     /** 只在一个分包使用 */
-    const onlyUsedInOneSubPackage = useCount < 2 && notUsedInAppPackage;
+    const onlyUsedInOneSubPackage = dependencyUsers.size < 2 && notUsedInAppPackage;
+    /** @TODO js 必须同步优化，现在先不优化 */
+    // const onlyUsedInOneSubPackage = false;
     /** chunkName 和资源路径前缀的映射 */
     const optimizedAssetPathMap = new Map<string, string>();
 
     treeNodes.forEach((treeNode) => {
       const { packageName, packageGroup } = treeNode;
 
-      /** 当只在一个分包中使用了，将其移动到该分包下 */
-      if (onlyUsedInOneSubPackage && packageGroup === APP_GROUP_NAME) {
+      /**
+       * @thinking
+       * 分包本身的文件，只在分包内使用了，需要做区分
+       */
+
+      /** 当只在一个分包中使用了，并且不属于当前分包，将其移动到该分包下 */
+      if (onlyUsedInOneSubPackage && !filename.startsWith(packageName)) {
         optimizedAssetPathMap.set(packageGroup, path.join(packageName, this.publicPath, filename));
         return;
       }
