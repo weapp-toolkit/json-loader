@@ -3,4 +3,5 @@
   新建页面：my2
   <image src="/assets/img/level1.png"></image>
 </view>
+<no-data></no-data>
 <include src="./template.wxml"/>
