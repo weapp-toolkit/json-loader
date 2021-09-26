@@ -7,10 +7,10 @@ export default {
     esModule: {
       type: 'boolean',
     },
-    filename: {
-      type: 'string',
+    ignore: {
+      type: 'boolean',
     },
-    output: {
+    name: {
       type: 'string',
     },
   },

@@ -1,5 +1,5 @@
 import { LoaderContext, AssetInfo } from 'webpack';
-import { getOptions, interpolateName } from 'loader-utils';
+import { getOptions, interpolateName, parseQuery } from 'loader-utils';
 import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import path from 'path';
@@ -12,10 +12,10 @@ export interface JsonLoaderOptions {
   cdn?: string;
   /** 是否为 esModule */
   esModule?: boolean;
-  /** output 输出路径 */
-  output?: string;
   /** 文件名称 */
-  filename?: string;
+  name?: string;
+  /** 忽略处理此文件 */
+  ignore?: boolean;
 }
 
 /**
@@ -27,53 +27,61 @@ export interface JsonLoaderOptions {
  * @returns
  */
 function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer | string {
-  const options = getOptions(this) as JsonLoaderOptions;
+  const options = Object.assign({}, getOptions(this), parseQuery(this.resourceQuery || '?')) as JsonLoaderOptions;
 
   validate(schema as JSONSchema7, options, {
     name: 'Cdn Loader',
     baseDataPath: 'options',
   });
 
-  /** cdn不存在则不处理 */
-  if (!options.cdn) {
-    return source;
-  }
-
-  const { cdn, output = '', filename = '[name]-[contenthash:8].[ext]', esModule } = options;
+  const { cdn, name = '[name]-[contenthash:8].[ext]', ignore = false, esModule } = options;
   const { rootContext } = this;
 
-  const name = interpolateName(this, filename, {
-    content: source,
-  });
+  // console.info('skr: cdn-loader', this.resourcePath, options);
 
   /**
    * @description
    * 文件输出路径，实际的文件系统写入路径
    */
-  const fileOutputPath = path.join(output, name);
+  const fileOutputPath = interpolateName(this, name, {
+    content: source,
+  });
+
+  const assetInfo: AssetInfo = {
+    immutable: true,
+    sourceFilename: normalizePath(path.relative(rootContext, this.resourcePath)),
+  };
+
+  /** cdn不存在则不处理 */
+  if (!cdn) {
+    this.emitFile(name, source, undefined, assetInfo);
+    return '';
+  }
 
   /**
    * @description
    * 文件的cdn访问路径拼接
    */
-  const fileCdnUrl = cdn.endsWith('/') ? `${cdn}${filename}` : `${cdn}/${filename}`;
+  const fileCdnUrl = cdn.endsWith('/') ? `${cdn}${fileOutputPath}` : `${cdn}/${fileOutputPath}`;
 
-  /**
-   * @description assetInfo
-   */
-  const assetInfo: AssetInfo = {
-    immutable: true,
-    sourceFilename: normalizePath(path.relative(rootContext, this.resourcePath)),
-  };
-  /**
-   * @description
-   * webpack文件写入
-   */
-  this.emitFile(fileOutputPath, source, undefined, assetInfo);
+  /** 忽略此文件时输出到本地目录 */
+  if (ignore) {
+    this.emitFile(name, source, undefined, assetInfo);
+    return '';
+  }
+
+  this.emitFile(
+    fileOutputPath,
+    source,
+    undefined,
+    Object.assign(assetInfo, {
+      keepName: true /** 保持文件名，不允许修改 */,
+    }),
+  );
 
   /** 导出该文件路径 */
   const result = esModule ? `export default '${fileCdnUrl}'` : `module.exports = '${fileCdnUrl}'`;
-  console.log('[cdn-loader], result', result);
+
   return result;
 }
 
