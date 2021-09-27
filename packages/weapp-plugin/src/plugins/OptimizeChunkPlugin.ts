@@ -7,7 +7,6 @@ import { PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
 import { DependencyTree } from '../modules/dependencyTree';
-// import { SplitChunksPlugin } from 'webpack';
 
 /**
  * DependencyPlugin 初始化选项
@@ -59,6 +58,10 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
+    compiler.hooks.watchRun.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
+      console.info('skr: watch', { modified: compiler.modifiedFiles, removed: compiler.removedFiles });
+    });
+
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
       compilation.hooks.afterOptimizeChunks.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
         const cloneChunkCache = new Map();
@@ -182,6 +185,11 @@ export class OptimizeChunkPlugin {
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { assets, assetsInfo } = module.buildInfo;
 
+        // if (absolutePath.includes('level')) {
+        //   console.info('skr: optimizeAssetModules', { absolutePath });
+        //   // debugger;
+        // }
+
         /** 没有资源实体 */
         if (!assets) {
           return;
@@ -190,11 +198,6 @@ export class OptimizeChunkPlugin {
         const clonedAssets = $.cloneDeep(assets);
         const optimizedAssets: Record<string, any> = {};
         const chunkNames = assetsMap.getChunkNames(absolutePath);
-
-        // if (absolutePath.endsWith('abc-button.json')) {
-        //   console.info('skr: optimizeAssetModules', { absolutePath, chunkNames });
-        //   debugger;
-        // }
 
         for (const chunkName of chunkNames) {
           const newFileDirname = path.dirname(assetsMap.getOutputPath(absolutePath, chunkName));

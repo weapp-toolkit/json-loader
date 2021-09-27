@@ -3,6 +3,7 @@ import globby from 'globby';
 import { shortid } from '@weapp-toolkit/core';
 import { Handler, HandlerRunner, HooksParameter } from '../handler-runner';
 import { handleEmit, loadModule } from '../common';
+import { handleSourceCode } from '../core';
 
 /**
  * 当资源没有被任何其他 handler 处理时，会走到 default handler
@@ -14,17 +15,19 @@ export class DefaultHandler<T> implements Handler<T> {
     const { loaderContext, resolver, placeholderMap, appRoot } = runner;
     const { context } = loaderContext;
 
-    runner.hooks.before.tap(DefaultHandler.HANDLER_NAME, (code) => code);
+    runner.hooks.analysisCode.tap(DefaultHandler.HANDLER_NAME, (code) => handleSourceCode(code));
 
-    runner.hooks.httpAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+    runner.hooks.beforeHandleAssets.tap(DefaultHandler.HANDLER_NAME, (code) => code);
 
-    runner.hooks.unknownAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+    runner.hooks.handleHttpAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
-    runner.hooks.moduleAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+    runner.hooks.handleUnknownAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
-    runner.hooks.normalAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+    runner.hooks.handleModuleAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
-    runner.hooks.globAssets.tapPromise(DefaultHandler.HANDLER_NAME, async ({ asset, end }) => {
+    runner.hooks.handleNormalAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+
+    runner.hooks.handleGlobAssets.tapPromise(DefaultHandler.HANDLER_NAME, async ({ asset, end }) => {
       /** ts 类型安全 */
       if (!('glob' in asset)) {
         return end(asset.code);
@@ -98,7 +101,7 @@ export class DefaultHandler<T> implements Handler<T> {
       // return end(asset.code);
     });
 
-    runner.hooks.after.tap(DefaultHandler.HANDLER_NAME, handleEmit.bind(this, runner));
+    runner.hooks.afterHandleAssets.tap(DefaultHandler.HANDLER_NAME, handleEmit.bind(this, runner));
   }
 
   /**

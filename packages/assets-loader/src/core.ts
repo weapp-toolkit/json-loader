@@ -7,7 +7,7 @@ interface IHandleSourceCodeResult {
 
 /** 粗略匹配资源 */
 export const ROUGHLY_MATCHER = /((import|require)([^\w]*?)[^'"`=:]*?)?['"`][^:;<>]*?\.[a-zA-Z]+['"`]/gm;
-// export const COMMENT_MATCHER = /\/\//gm;
+// export const COMMENT_MATCHER = /(\/\*[\w'\s\r\n*]*\*\/)|(\/\/[\w\s']*)|(<!--[\s\w>/]*-->)/gm;
 /** 匹配模板字符串拼接资源 */
 export const TEMPLATE_STRING_MATCHER = /(?<=[^${}'"`]+)[${]\{(.*)?\}\}?/g;
 /** 匹配表达式拼接资源 */

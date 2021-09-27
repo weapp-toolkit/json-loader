@@ -3,8 +3,8 @@ import { LoaderContext } from 'webpack';
 import { AsyncSeriesBailHook } from 'tapable';
 import { Resolver } from '@weapp-toolkit/core';
 import { IPlaceholderMapValue, PlaceholderMap } from '@weapp-toolkit/weapp-types';
-import { handleSourceCode, replacePlaceholder } from './core';
-import { AssetImportType, Assets } from './types';
+import { replacePlaceholder } from './core';
+import { AssetImportType, Assets, IHandleSourceCodeResult } from './types';
 
 export interface HandlerRunnerClassOptions<T> {
   loaderContext: LoaderContext<T>;
@@ -32,13 +32,14 @@ export interface HooksParameter {
 }
 
 interface HooksTypes {
-  before: AsyncSeriesBailHook<string, string>;
-  httpAsset: AsyncSeriesBailHook<HooksParameter, string>;
-  unknownAsset: AsyncSeriesBailHook<HooksParameter, string>;
-  moduleAsset: AsyncSeriesBailHook<HooksParameter, string>;
-  normalAsset: AsyncSeriesBailHook<HooksParameter, string>;
-  globAssets: AsyncSeriesBailHook<HooksParameter, string>;
-  after: AsyncSeriesBailHook<string, string>;
+  analysisCode: AsyncSeriesBailHook<string, IHandleSourceCodeResult>;
+  beforeHandleAssets: AsyncSeriesBailHook<string, string>;
+  handleHttpAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  handleUnknownAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  handleModuleAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  handleNormalAsset: AsyncSeriesBailHook<HooksParameter, string>;
+  handleGlobAssets: AsyncSeriesBailHook<HooksParameter, string>;
+  afterHandleAssets: AsyncSeriesBailHook<string, string>;
 }
 
 export class HandlerRunner<T> {
@@ -64,26 +65,26 @@ export class HandlerRunner<T> {
     this.resolver = options.resolver;
 
     this.hooks = {
-      before: new AsyncSeriesBailHook<string, string>(['code']),
-      httpAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
-      unknownAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
-      moduleAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
-      normalAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
-      globAssets: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
-      after: new AsyncSeriesBailHook<string, string>(['code']),
+      analysisCode: new AsyncSeriesBailHook<string, IHandleSourceCodeResult>(['code']),
+      beforeHandleAssets: new AsyncSeriesBailHook<string, string>(['code']),
+      handleHttpAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      handleUnknownAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      handleModuleAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      handleNormalAsset: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      handleGlobAssets: new AsyncSeriesBailHook<HooksParameter, string>(['context']),
+      afterHandleAssets: new AsyncSeriesBailHook<string, string>(['code']),
     };
   }
 
   async run(): Promise<string> {
-    const handleResult = handleSourceCode(this.source);
-    const { assets, code } = handleResult;
+    const { assets, code } = await this.hooks.analysisCode.promise(this.source);
     return this.handle(assets, code);
   }
 
   private async handle(assets: Assets[], code: string): Promise<string> {
     const { hooks } = this;
 
-    code = await hooks.before.promise(code);
+    code = await hooks.beforeHandleAssets.promise(code);
 
     /** 处理所有识别的资源 */
     for (let index = 0; index < assets.length; index++) {
@@ -93,21 +94,21 @@ export class HandlerRunner<T> {
 
       switch (asset.type) {
         case AssetImportType.Http:
-          code = await hooks.httpAsset.promise(context);
+          code = await hooks.handleHttpAsset.promise(context);
           break;
         case AssetImportType.Unknown:
-          code = await hooks.unknownAsset.promise(context);
+          code = await hooks.handleUnknownAsset.promise(context);
           break;
         case AssetImportType.Module: {
-          code = await hooks.moduleAsset.promise(context);
+          code = await hooks.handleModuleAsset.promise(context);
           break;
         }
         case AssetImportType.Normal: {
-          code = await hooks.normalAsset.promise(context);
+          code = await hooks.handleNormalAsset.promise(context);
           break;
         }
         case AssetImportType.Glob: {
-          code = await hooks.globAssets.promise(context);
+          code = await hooks.handleGlobAssets.promise(context);
           break;
         }
         default:
@@ -115,7 +116,7 @@ export class HandlerRunner<T> {
       }
     }
 
-    return hooks.after.promise(code);
+    return hooks.afterHandleAssets.promise(code);
   }
 }
 

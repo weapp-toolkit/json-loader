@@ -7,7 +7,7 @@ export class JavascriptHandler<T> implements Handler<T> {
     const { loaderContext, resolver } = runner;
     const { context } = loaderContext;
 
-    runner.hooks.normalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async ({ asset, end }) => {
+    runner.hooks.handleNormalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async ({ asset, end }) => {
       const request = await resolver.resolveDependency(context, asset.request);
 
       /** 将原来的引入替换成模块化引入 */
@@ -15,6 +15,6 @@ export class JavascriptHandler<T> implements Handler<T> {
     });
 
     /** 默认是输出文件，这里漏给 webpack 处理 */
-    runner.hooks.after.tap(JavascriptHandler.HANDLER_NAME, (code) => code);
+    runner.hooks.afterHandleAssets.tap(JavascriptHandler.HANDLER_NAME, (code) => code);
   }
 }

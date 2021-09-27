@@ -29,8 +29,8 @@ export function getImageById(id) {
   return `./level${id}.png`;
 }
 
-export function getImageHasDirectory(id) {
-  return `./${folder}/${id}.png`;
-}
+// export function getImageHasDirectory(id) {
+//   return `./${folder}/${id}.png`;
+// }
 
 export default imageMap;

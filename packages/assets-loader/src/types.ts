@@ -45,3 +45,8 @@ export interface UnknownAssets extends IBaseAssets {
 }
 
 export type Assets = ModuleAssets | NormalAssets | GlobAssets | HttpAssets | UnknownAssets;
+
+export interface IHandleSourceCodeResult {
+  assets: Assets[];
+  code: string;
+}

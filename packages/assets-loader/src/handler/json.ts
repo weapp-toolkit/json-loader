@@ -11,9 +11,12 @@ export class JsonHandler<T> implements Handler<T> {
     const { loaderContext, appRoot, resolver, placeholderMap } = runner;
     const { resourcePath, context } = loaderContext;
 
-    runner.hooks.normalAsset.tapPromise(JsonHandler.HANDLER_NAME, handleAsset.bind(this, 'JSON_DEPENDENCY', runner));
+    runner.hooks.handleNormalAsset.tapPromise(
+      JsonHandler.HANDLER_NAME,
+      handleAsset.bind(this, 'JSON_DEPENDENCY', runner),
+    );
 
-    runner.hooks.after.tap(JsonHandler.HANDLER_NAME, (code) => {
+    runner.hooks.afterHandleAssets.tap(JsonHandler.HANDLER_NAME, (code) => {
       const filename = path.relative(appRoot, resourcePath);
       const json: IWeappComponentConfig | IWeappPageConfig = JSON.parse(code);
       const { usingComponents } = json;

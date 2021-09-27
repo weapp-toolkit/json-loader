@@ -66,6 +66,8 @@ export async function loadModule<T>(loaderContext: LoaderContext<T>, request: st
         reject(e);
       }
 
+      loaderContext.addDependency(request);
+
       if (!module) {
         console.info('[assets-loader] module is undefined');
         resolve();

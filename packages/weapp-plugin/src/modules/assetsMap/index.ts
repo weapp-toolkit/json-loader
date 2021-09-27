@@ -69,6 +69,10 @@ export class AssetsMap {
         const chunkNames = new Set(chunks.map((chunk) => chunk.name));
         const basename = path.basename(extname ? replaceExt(absolutePath, extname) : absolutePath);
 
+        // if (absolutePath.includes('level')) {
+        //   console.info('skr: glob asset', { absolutePath });
+        // }
+
         this.assetsRelationship.set(absolutePath, {
           chunkNames,
           parents: parentsPath,
