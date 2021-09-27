@@ -1,6 +1,5 @@
 import { LoaderContext, AssetInfo } from 'webpack';
-import { getOptions, interpolateName, parseQuery } from 'loader-utils';
-import { validate } from 'schema-utils';
+import { interpolateName, parseQuery } from 'loader-utils';
 import { JSONSchema7 } from 'json-schema';
 import path from 'path';
 
@@ -27,23 +26,22 @@ export interface JsonLoaderOptions {
  * @returns
  */
 function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer | string {
-  const options = Object.assign({}, getOptions(this), parseQuery(this.resourceQuery || '?')) as JsonLoaderOptions;
-
-  validate(schema as JSONSchema7, options, {
-    name: 'Cdn Loader',
-    baseDataPath: 'options',
-  });
+  const options = Object.assign(
+    {},
+    this.getOptions(schema as JSONSchema7),
+    parseQuery(this.resourceQuery || '?'),
+  ) as JsonLoaderOptions;
 
   const { cdn, name = '[name]-[contenthash:8].[ext]', ignore = false, esModule } = options;
   const { rootContext } = this;
 
   // console.info('skr: cdn-loader', this.resourcePath, options);
-
   /**
    * @description
    * 文件输出路径，实际的文件系统写入路径
+   * loader-utils 的类型文件没有更新导致冲突
    */
-  const fileOutputPath = interpolateName(this, name, {
+  const fileOutputPath = interpolateName(this as any, name, {
     content: source,
   });
 

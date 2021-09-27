@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "rootDir": "src",
-    "outDir": "./",
+    "outDir": "lib",
     "typeRoots": ["templates/native-ts/src/typings", "node_modules/@types"]
   },
   "include": ["./src/**/*"]

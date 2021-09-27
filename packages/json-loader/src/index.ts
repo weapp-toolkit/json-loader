@@ -1,6 +1,5 @@
 import { LoaderContext } from 'webpack';
-import { getOptions, interpolateName } from 'loader-utils';
-import { validate } from 'schema-utils';
+import { interpolateName } from 'loader-utils';
 import { JSONSchema7 } from 'json-schema';
 import { merge, replaceExt, resolveAppEntryPath } from '@weapp-toolkit/core';
 import { IWeappAppConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
@@ -47,10 +46,8 @@ const schema: JSONSchema7 = {
  * @returns
  */
 function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer): void {
-  const options = getOptions(this) as JsonLoaderOptions;
+  const options = this.getOptions(schema);
   const callback = this.async();
-
-  validate(schema, options);
 
   const { emit = false, preprocessor = {} } = options;
 
@@ -81,7 +78,8 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: string | Buffer)
     return;
   }
 
-  const outputPath = interpolateName(this, '[name].[ext]', {
+  /** loader-utils type 没更新和 webpack5 冲突 */
+  const outputPath = interpolateName(this as any, '[name].[ext]', {
     sourceString,
   });
 

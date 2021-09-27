@@ -1,9 +1,7 @@
 import path from 'path';
 import { Compiler, LoaderContext } from 'webpack';
-import { validate } from 'schema-utils';
 import { JSONSchema7 } from 'json-schema';
 import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
-import { getOptions } from 'loader-utils';
 import { handlerRunner } from './handler-runner';
 import { DefaultHandler } from './handler/default';
 import { JavascriptHandler } from './handler/javascript';
@@ -34,10 +32,8 @@ const schema: JSONSchema7 = {
  * @returns
  */
 async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: string | Buffer): Promise<void> {
-  const options = getOptions(this) as AssetsLoaderOptions;
+  const options = this.getOptions(schema);
   const callback = this.async();
-
-  validate(schema, options);
 
   // const { esModule } = options;
 

@@ -30,8 +30,5 @@
   "dependencies": {
     "enhanced-resolve": "^5.8.3",
     "lodash": "^4.17.21"
-  },
-  "devDependencies": {
-    "webpack": "^5.52.1"
   }
 }

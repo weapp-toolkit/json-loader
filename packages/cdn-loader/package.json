@@ -51,14 +51,6 @@
   "dependencies": {
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
-    "json-schema": "^0.3.0",
-    "loader-utils": "^2.0.0",
-    "schema-utils": "^3.1.1"
-  },
-  "devDependencies": {
-    "@types/loader-runner": "^2.2.4",
-    "@types/loader-utils": "^2.0.3",
-    "loader-runner": "^4.2.0",
-    "webpack": "^5.51.1"
+    "loader-utils": "^2.0.0"
   }
 }

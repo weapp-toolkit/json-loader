@@ -1,0 +1,36 @@
+.abc-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 300rpx;
+  height: 100rpx;
+  border-radius: 55rpx;
+  font-size: 18px;
+  color: #fff;
+
+  &.normal-red {
+    background-image: linear-gradient(180deg, #ff9811 3%, #ff5533 100%);
+    box-shadow: 0 10px 20px 0 rgba(255, 85, 51, 0.3);
+  }
+
+  &.ghost-red {
+    border: 2px solid #ff5533;
+    color: #ff5533;
+  }
+
+  &.normal-blue {
+    background-image: linear-gradient(180deg, #5dd8fb 0%, #5dc1fb 97%);
+    box-shadow: 0 8px 16px 0 rgba(93, 193, 251, 0.3);
+  }
+
+  &.ghost-blue {
+    border: 2px solid #5DC1FB;
+    color: #5DC1FB;
+  }
+
+  &.disabled {
+    background-image: linear-gradient(180deg, #DDDDDD 3%, #CCCCCC 100%);
+    box-shadow: none;
+    color: #EEEEEE;
+  }
+}
