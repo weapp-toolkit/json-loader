@@ -6,7 +6,9 @@ import {
   APP_GROUP_NAME,
   APP_PACKAGE_NAME,
   DEFAULT_ASSETS_MAP_IGNORES,
-  INDEPENDENT_PKG_OUTSIDE_DEP_DIR,
+  PKG_OUTSIDE_DEP_DIRNAME,
+  PKG_OUTSIDE_DEP_UPPER_DIRNAME,
+  UPPER_DIR_SYMBOL_REG,
 } from '../../utils/constant';
 import { DependencyTree, DependencyTreeNode } from '../dependencyTree';
 
@@ -50,7 +52,7 @@ export class AssetsMap {
   constructor(options: IAssetsMapOptions) {
     this.context = options.context;
     this.ignore = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignore || []);
-    this.publicPath = options.publicPath || INDEPENDENT_PKG_OUTSIDE_DEP_DIR;
+    this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
     this.dependencyTree = options.dependencyTree;
   }
 
@@ -145,8 +147,10 @@ export class AssetsMap {
 
     /** 获取相对 app 文件夹的文件路径
      * 用 basename 替换的原因是文件后缀名或文件名经过 loader 处理后可能发生变化
+     * 并把相对 app 在父级目录的部分替换为 PKG_OUTSIDE_DEP_UPPER_DIRNAME
      */
-    const filename = path.relative(this.context, path.join(path.dirname(request), relationship.basename));
+    const filepath = path.join(path.dirname(request), relationship.basename);
+    const filename = path.relative(this.context, filepath).replace(UPPER_DIR_SYMBOL_REG, PKG_OUTSIDE_DEP_UPPER_DIRNAME);
     /** 查找当前模块的 chunkNames */
     const chunkNames = this.findAssetModuleChunkNames(request);
     const optimizedAssetPathMap = this.getOptimizedAssetPathMap(chunkNames, filename);
@@ -161,7 +165,14 @@ export class AssetsMap {
    */
   private getChunkAssetPath(request: string, chunkName: string) {
     const relationship = this.assetsRelationship.get(request);
-    const defaultFilename = path.relative(this.context, request);
+    /**
+     * @description 默认的文件名
+     *
+     * 将 app 上层的目录名转换为 PKG_OUTSIDE_DEP_SUPER_DIR，../xxx => PKG_OUTSIDE_DEP_UPPER_DIRNAME/xxx
+     */
+    const defaultFilename = path
+      .relative(this.context, request)
+      .replace(UPPER_DIR_SYMBOL_REG, PKG_OUTSIDE_DEP_UPPER_DIRNAME);
 
     /** 未知的资源 */
     if (!relationship) {

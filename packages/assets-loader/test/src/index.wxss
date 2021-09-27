@@ -1,5 +1,0 @@
-@import './reset.wxss';
-
-page {
-  background: url(./level1.png);
-}

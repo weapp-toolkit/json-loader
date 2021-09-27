@@ -3,7 +3,7 @@ import fsx from 'fs-extra';
 import globby from 'globby';
 import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
-import { APP_GROUP_NAME, INDEPENDENT_PKG_OUTSIDE_DEP_DIR } from '../../utils/constant';
+import { APP_GROUP_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 
 export interface IDependencyTreeNode {
   /** app 根绝对路径 */
@@ -110,7 +110,7 @@ export class DependencyTreeNode {
         /** 如果不是主包分组的依赖，调整其模块到独立分包下 */
         this._chunkName = relativePath.startsWith(packageGroup)
           ? relativePath
-          : path.join(packageGroup, INDEPENDENT_PKG_OUTSIDE_DEP_DIR, relativePath);
+          : path.join(packageGroup, PKG_OUTSIDE_DEP_DIRNAME, relativePath);
       }
     }
 

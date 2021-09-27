@@ -4,7 +4,7 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: [path.resolve(__dirname, './src/main.js'), path.resolve(__dirname, './src/index.wxss')],
+    app: [path.resolve(__dirname, './src/main.js'), path.resolve(__dirname, './src/index.less')],
     // app: path.resolve(__dirname, './src/index.wxs'),
   },
   output: {
@@ -29,6 +29,10 @@ const webpackConfig: webpack.Configuration = {
       {
         test: /\.wxss$/,
         use: [path.resolve(__dirname, '../lib/index.js'), 'extract-loader', 'css-loader'],
+      },
+      {
+        test: /\.less$/,
+        use: [path.resolve(__dirname, '../lib/index.js'), 'extract-loader', 'css-loader', 'less-loader'],
       },
       {
         test: /\.(jpg|png)$/,

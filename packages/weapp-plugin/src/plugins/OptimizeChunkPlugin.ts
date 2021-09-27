@@ -3,7 +3,7 @@ import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
 import { removeExt } from '@weapp-toolkit/core';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
-import { INDEPENDENT_PKG_OUTSIDE_DEP_DIR } from '../utils/constant';
+import { PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
 import { DependencyTree } from '../modules/dependencyTree';
@@ -47,7 +47,7 @@ export class OptimizeChunkPlugin {
   constructor(options: IOptimizeChunkPluginOptions) {
     this.context = options.context;
     this.dependencyTree = options.dependencyTree;
-    this.publicPath = options.publicPath || INDEPENDENT_PKG_OUTSIDE_DEP_DIR;
+    this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
     this.ignore = [/.(js|ts)x?$/].concat(options.ignore || []);
 
     this.assetsMap = new AssetsMap({
@@ -72,7 +72,7 @@ export class OptimizeChunkPlugin {
             entryPoint.chunks.forEach((chunk) => {
               // TODO: 更合理的方式判断 splitChunk
               if (chunk.chunkReason && chunk.chunkReason.indexOf('split chunk') > -1) {
-                const clonedChunkName = `${packageGroup}/${INDEPENDENT_PKG_OUTSIDE_DEP_DIR}/${chunk.name}`;
+                const clonedChunkName = `${packageGroup}/${PKG_OUTSIDE_DEP_DIRNAME}/${chunk.name}`;
                 let clonedChunk = cloneChunkCache.get(clonedChunkName);
 
                 if (!clonedChunk) {
@@ -124,7 +124,7 @@ export class OptimizeChunkPlugin {
         minSize: 1,
         chunks(chunk: Chunk) {
           // 由主包移动到独立分宝的资源不参与splitChunk
-          if (chunk.name.indexOf(INDEPENDENT_PKG_OUTSIDE_DEP_DIR) > -1) {
+          if (chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1) {
             return false;
           }
           return true;
