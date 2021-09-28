@@ -50,6 +50,7 @@
     "@babel/parser": "^7.15.7",
     "@babel/preset-env": "^7.15.6",
     "@babel/traverse": "^7.15.4",
+    "@babel/types": "^7.15.6",
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",

@@ -1,6 +1,4 @@
 {
-  "watch": [
-    "./src"
-  ],
+  "watch": ["./src", "./tsconfig.json"],
   "ext": "js, ts, json"
 }

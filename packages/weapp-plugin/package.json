@@ -7,10 +7,10 @@
   "sideEffects": false,
   "scripts": {
     "test": "jest",
-    "dev": "nodemon --config ./nodemon.dev.json --exec 'rollup -c'",
+    "dev": "tsc -w",
     "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
     "debug:lite": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
-    "build": "rimraf lib es && rollup -c"
+    "build": "rimraf lib && tsc"
   },
   "repository": {
     "type": "git",

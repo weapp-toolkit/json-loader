@@ -44,7 +44,7 @@
     },
     {
       "type": "npm",
-      "script": "debug",
+      "script": "debug:lite",
       "path": "packages/assets-loader/",
       "problemMatcher": [],
       "label": "assets-loader: debug",

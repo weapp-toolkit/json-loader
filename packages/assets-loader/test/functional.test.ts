@@ -16,6 +16,18 @@ runLoaders(
 
     // 基础上下文之外的额外 loader 上下文
     context: {
+      _compiler: {
+        options: {
+          entry: {
+            app: {
+              import: [path.resolve(__dirname, './src/main.js')],
+            },
+          },
+        },
+      },
+      getOptions() {
+        return {};
+      },
       getResolve() {
         return function (context: string, request: string) {
           return path.resolve(context, request);
@@ -31,6 +43,8 @@ runLoaders(
     // err: Error?
     // result.result: Buffer | String
     // The result
-    // console.info('skr: loader result', result);
+    if (err) {
+      console.error(err);
+    }
   },
 );
