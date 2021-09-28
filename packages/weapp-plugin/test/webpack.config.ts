@@ -1,7 +1,7 @@
 import path from 'path';
 import webpack from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import WeappPlugin from '../es';
+import WeappPlugin from '../lib';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
@@ -77,7 +77,7 @@ const webpackConfig: webpack.Configuration = {
   plugins: [
     new CleanWebpackPlugin(),
     new WeappPlugin({
-      ignore: [],
+      ignores: [],
     }),
   ],
 };

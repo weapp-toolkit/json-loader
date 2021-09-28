@@ -1,7 +1,7 @@
 import path from 'path';
 import { Compiler, EntryPlugin } from 'webpack';
 import { createResolver, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
-import { APP_GROUP_NAME } from 'src/utils/constant';
+import { APP_GROUP_NAME } from '../utils/constant';
 import { addEntryFactory } from '../utils/dependency';
 import { DependencyTree } from '../modules/dependencyTree';
 
