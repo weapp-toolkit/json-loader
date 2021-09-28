@@ -57,6 +57,6 @@
   "devDependencies": {
     "@weapp-toolkit/assets-loader": "1.0.0",
     "@weapp-toolkit/cdn-loader": "1.0.0",
-    "@weapp-toolkit/json-loader": "workspace:^1.0.0"
+    "@weapp-toolkit/json-loader": "1.0.0"
   }
 }

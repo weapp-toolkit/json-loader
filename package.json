@@ -1,16 +1,6 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
-    "nohoist": [
-      "**/@babel",
-      "**/@babel/**",
-      "**/*babel*"
-    ]
-  },
   "scripts": {
     "postinstall": "husky install",
     "pre-commit": "lint-staged",
