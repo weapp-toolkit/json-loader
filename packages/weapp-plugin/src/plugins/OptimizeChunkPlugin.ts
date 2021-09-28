@@ -17,7 +17,7 @@ export interface IOptimizeChunkPluginOptions {
   /** 拷贝代码的输出目录 */
   publicPath?: string;
   /** 忽略的文件（夹） */
-  ignore?: Array<RegExp>;
+  ignores?: RegExp[];
   /** 依赖树实例 */
   dependencyTree: DependencyTree;
 }
@@ -35,7 +35,7 @@ export class OptimizeChunkPlugin {
   publicPath: string;
 
   /** 忽略的文件 */
-  ignore: Required<IOptimizeChunkPluginOptions>['ignore'];
+  ignores: Required<IOptimizeChunkPluginOptions>['ignores'];
 
   /** 静态资源模块依赖表 */
   assetsMap: AssetsMap;
@@ -47,11 +47,11 @@ export class OptimizeChunkPlugin {
     this.context = options.context;
     this.dependencyTree = options.dependencyTree;
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
-    this.ignore = [/.(js|ts)x?$/].concat(options.ignore || []);
+    this.ignores = [/.(js|ts)x?$/].concat(options.ignores || []);
 
     this.assetsMap = new AssetsMap({
       context: options.context,
-      ignore: options.ignore,
+      ignores: options.ignores,
       dependencyTree: options.dependencyTree,
       publicPath: options.publicPath,
     });
@@ -181,7 +181,7 @@ export class OptimizeChunkPlugin {
     const { assetsMap } = this;
 
     compilation.modules.forEach((module) => {
-      if (module instanceof NormalModule && !shouldIgnore(this.ignore, module.resource)) {
+      if (module instanceof NormalModule && !shouldIgnore(this.ignores, module.resource)) {
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { assets, assetsInfo } = module.buildInfo;
 

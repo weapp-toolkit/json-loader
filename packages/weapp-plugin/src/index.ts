@@ -6,7 +6,8 @@ import { AddEntryPlugin } from './plugins/AddEntryPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 
 export interface IWeappPluginOptions {
-  ignore?: RegExp[];
+  /** 忽略的路径 */
+  ignores?: RegExp[];
 }
 
 export default class WeappPlugin {
@@ -46,14 +47,14 @@ export default class WeappPlugin {
     this.dependencyTree = dependencyTree;
 
     this.addEntryPlugin = new AddEntryPlugin({
-      ignore: this.options.ignore,
+      ignores: this.options.ignores,
       dependencyTree,
     });
     this.addEntryPlugin.apply(compiler);
 
     this.optimizeChunkPlugin = new OptimizeChunkPlugin({
       context: this.context,
-      ignore: this.options.ignore,
+      ignores: this.options.ignores,
       dependencyTree,
     });
     this.optimizeChunkPlugin.apply(compiler);

@@ -1,5 +1,5 @@
 {
   "watch": ["test/**/*", "lib/**/*"],
   "ext": "js, ts, json",
-  "ignore": ["test/dist/*", "test/src/*"]
+  "ignore": ["test/dist/*"]
 }

@@ -9,9 +9,14 @@ import { DependencyTreeNode } from './TreeNode';
  * 依赖树初始化选项
  */
 export interface IDependencyTreeOptions {
-  resolver: Resolver /** 路径解析器 */;
-  context: string /** app 文件夹 */;
-  app: string /** 入口文件 */;
+  /** 忽略的路径 */
+  ignores?: RegExp[];
+  /** 路径解析器 */
+  resolver: Resolver;
+  /** app 文件夹 */
+  context: string;
+  /** 入口文件 */
+  app: string;
   compiler: Compiler;
 }
 
@@ -23,13 +28,14 @@ export class DependencyTree extends DependencyTreeNode {
   public compiler: Compiler;
 
   constructor(options: IDependencyTreeOptions) {
-    const { resolver, context, app, compiler } = options;
+    const { resolver, context, app, ignores = [], compiler } = options;
 
     super({
       appRoot: context,
       packageName: APP_PACKAGE_NAME,
       packageGroup: APP_GROUP_NAME,
       resolver,
+      ignores,
       pathname: app,
     });
     this.compiler = compiler;

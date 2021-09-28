@@ -9,7 +9,7 @@ import { DependencyTree } from '../modules/dependencyTree';
  * AddEntryPlugin 初始化选项
  */
 export interface IAddEntryPluginOptions {
-  ignore?: Array<string | RegExp> /** 忽略的文件（夹） */;
+  ignores?: Array<string | RegExp> /** 忽略的文件（夹） */;
   dependencyTree: DependencyTree /** 依赖树实例 */;
 }
 
@@ -19,7 +19,7 @@ export interface IAddEntryPluginOptions {
 export class AddEntryPlugin {
   static PLUGIN_NAME = 'AddEntryPlugin';
 
-  ignore: Array<string | RegExp>;
+  ignores: Array<string | RegExp>;
 
   /** 小程序项目根文件夹，app.json 所在目录 */
   context!: string;
@@ -34,7 +34,7 @@ export class AddEntryPlugin {
   addEntry!: (entry: string, options: EntryPlugin['options']) => void;
 
   constructor(options: IAddEntryPluginOptions) {
-    this.ignore = options.ignore || [];
+    this.ignores = options.ignores || [];
     this.dependencyTree = options.dependencyTree;
   }
 

@@ -4,6 +4,7 @@ import globby from 'globby';
 import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
 import { APP_GROUP_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
+import { shouldIgnore } from '../../utils/ignore';
 
 export interface IDependencyTreeNode {
   /** app 根绝对路径 */
@@ -16,6 +17,8 @@ export interface IDependencyTreeNode {
   pathname: string;
   /** 模块路径解析工具 */
   resolver: Resolver;
+  /** 忽略的路径 */
+  ignores: RegExp[];
   /** 父节点依赖绝对路径 */
   parentPathname?: string;
 }
@@ -48,6 +51,9 @@ export class DependencyTreeNode {
   /** app 根路径 */
   public appRoot: string;
 
+  /** 忽略的路径 */
+  public ignores: RegExp[];
+
   /** 分包名 */
   public packageName: string;
 
@@ -69,7 +75,7 @@ export class DependencyTreeNode {
   public modulesMap = new Map<string, DependencyTreeNode>();
 
   constructor(options: IDependencyTreeNode) {
-    const { appRoot, pathname, resolver, parentPathname, packageName, packageGroup } = options;
+    const { appRoot, pathname, resolver, ignores, parentPathname, packageName, packageGroup } = options;
     const context = path.dirname(pathname);
 
     this.appRoot = appRoot;
@@ -80,6 +86,7 @@ export class DependencyTreeNode {
     this.parentPathname = parentPathname;
     this.resolver = resolver;
     this.resolve = resolver.resolveDependencySync.bind(null, context);
+    this.ignores = ignores;
   }
 
   /** 依赖类型 */
@@ -181,12 +188,18 @@ export class DependencyTreeNode {
    * @param resourcePath 资源绝对路径
    */
   public addModule(packageName: string, packageGroup: string, resourcePath: string): void {
+    /** 忽略处理的路径 */
+    if (shouldIgnore(this.ignores, resourcePath)) {
+      return;
+    }
+
     const dependencyTreeNode = createDependencyTreeNode({
       appRoot: this.appRoot,
       packageName,
       packageGroup,
       pathname: resourcePath,
       resolver: this.resolver,
+      ignores: this.ignores,
     });
     dependencyTreeNode.build();
 
@@ -246,7 +259,7 @@ export const createDependencyTreeNode: CachedFunction<(options: IDependencyTreeN
   }
 
   const { cache } = createDependencyTreeNode;
-  const { appRoot, packageName, packageGroup, pathname, resolver } = options;
+  const { appRoot, packageName, packageGroup, pathname, resolver, ignores } = options;
 
   const cacheId = `${packageGroup}:${pathname}`;
 
@@ -262,6 +275,7 @@ export const createDependencyTreeNode: CachedFunction<(options: IDependencyTreeN
     packageGroup,
     pathname,
     resolver,
+    ignores,
   });
   cache[cacheId] = dependencyTreeNode;
   return dependencyTreeNode;

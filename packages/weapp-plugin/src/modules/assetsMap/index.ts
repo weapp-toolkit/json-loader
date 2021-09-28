@@ -18,7 +18,7 @@ export interface IAssetsMapOptions {
   /** 独立分包外部依赖拷贝目录 */
   publicPath?: string;
   /** 忽略的文件（夹） */
-  ignore?: Array<RegExp>;
+  ignores?: Array<RegExp>;
   /** 依赖树实例 */
   dependencyTree: DependencyTree;
 }
@@ -44,14 +44,14 @@ export class AssetsMap {
   public publicPath: string;
 
   /** 忽略的文件 */
-  public ignore: Required<IAssetsMapOptions>['ignore'];
+  public ignores: Required<IAssetsMapOptions>['ignores'];
 
   /** 依赖树 */
   public dependencyTree: DependencyTree;
 
   constructor(options: IAssetsMapOptions) {
     this.context = options.context;
-    this.ignore = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignore || []);
+    this.ignores = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignores || []);
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
     this.dependencyTree = options.dependencyTree;
   }
@@ -61,7 +61,7 @@ export class AssetsMap {
      * 构建父子关联
      */
     compilation.modules.forEach((module) => {
-      if (module instanceof NormalModule && !shouldIgnore(this.ignore, module.resource)) {
+      if (module instanceof NormalModule && !shouldIgnore(this.ignores, module.resource)) {
         /** 去除 query 的资源绝对路径 */
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { parentsPath, extname } = module.buildInfo;
