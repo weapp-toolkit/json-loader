@@ -54,6 +54,7 @@
     "@weapp-toolkit/core": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",
+    "lodash": "^4.17.21",
     "tapable": "^2.2.0"
   }
 }

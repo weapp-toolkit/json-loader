@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@weapp-toolkit/core": "^1.0.0",
-    "@weapp-toolkit/weapp-types": "^1.0.0"
+    "@weapp-toolkit/weapp-types": "^1.0.0",
+    "loader-utils": "^2.0.0"
   }
 }
