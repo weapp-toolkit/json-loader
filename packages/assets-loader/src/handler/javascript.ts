@@ -1,20 +1,17 @@
-import path from 'path';
-import { parse } from '@babel/parser';
+import globby from 'globby';
 import { transform } from '@babel/core';
-import traverse, { NodePath } from '@babel/traverse';
-import generator from '@babel/generator';
-import * as t from '@babel/types';
-import { AssetImportType, Assets, createAsset } from '../modules/asset';
-import { getAssetsLoaderPlaceholder, handleSourceCode } from '../core';
-
+import { LoaderContext } from 'webpack';
+import { handleSourceCode } from '../core';
 import { Handler, HandlerRunner } from '../handler-runner';
+import { loadModule } from '../common';
+import { replaceExt } from '../../../core/lib';
 
 export class JavascriptHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'JavascriptHandler';
 
   apply(runner: HandlerRunner<T>): void {
     const { loaderContext, resolver } = runner;
-    const { context } = loaderContext;
+    const { context, resourcePath } = loaderContext;
 
     runner.hooks.analysisCode.tap(JavascriptHandler.HANDLER_NAME, (sourceCode) => {
       sourceCode = transform(sourceCode, { sourceType: 'module', comments: false })!.code || '';
@@ -32,47 +29,26 @@ export class JavascriptHandler<T> implements Handler<T> {
     });
 
     /** 默认是输出文件，这里漏给 webpack 处理 */
-    runner.hooks.afterHandleAssets.tap(JavascriptHandler.HANDLER_NAME, (code) => code);
+    runner.hooks.afterHandleAssets.tapPromise(JavascriptHandler.HANDLER_NAME, async (code) => {
+      const { _module, _compilation } = loaderContext;
+
+      /** entry 的 issuer 为 null */
+      if (_module && !_compilation?.moduleGraph.getIssuer(_module)) {
+        await this.addEntryAssetDependencies(loaderContext);
+      }
+
+      return code;
+    });
   }
 
-  private handleImportOrRequireFunctionCall(assets: Assets[], nodePath: NodePath<t.CallExpression>) {
-    const { node } = nodePath;
+  /**
+   * 为 entry 添加同名静态资源依赖（wxml、json、wxss等）
+   * @param loaderContext
+   */
+  private async addEntryAssetDependencies(loaderContext: LoaderContext<T>): Promise<void> {
+    const request = loaderContext.resourcePath;
+    const assets = globby.sync(replaceExt(request, '.{wxml,json,wxss,css,less,scss,sass,styl,stylus,postcss}'));
 
-    if (!t.isImport(node.callee)) {
-      return;
-    }
-
-    nodePath.traverse({
-      StringLiteral: (sPath) => {
-        console.info('skr: import StringLiteral', sPath.node);
-      },
-      BinaryExpression: (bPath) => {
-        console.info('skr: import BinaryExpression', bPath.node);
-      },
-    });
-
-    console.info('skr: import()', { node, source: nodePath.getSource() });
-  }
-
-  private createAssetFromStringLiteral(assets: Assets[], type: AssetImportType, nodePath: NodePath<t.StringLiteral>) {
-    const stringLiteralNode = nodePath.node;
-
-    if (!/\.\w+$/.test(stringLiteralNode.value)) {
-      return;
-    }
-
-    const asset = createAsset(type, {
-      code: stringLiteralNode.value,
-      request: stringLiteralNode.value,
-    });
-
-    const placeholder = getAssetsLoaderPlaceholder(assets.length);
-    /** 修改其内容为占位符 */
-    stringLiteralNode.value = placeholder;
-    assets.push(asset);
-
-    /** 下面这种写法会导致套娃，原因未知 */
-    // const placeholderNode = t.stringLiteral(getAssetsLoaderPlaceholder(asset.length));
-    // stringLiteralPath.replaceWith(placeholderNode);
+    await Promise.all(assets.map((asset) => loadModule(loaderContext, asset)));
   }
 }
