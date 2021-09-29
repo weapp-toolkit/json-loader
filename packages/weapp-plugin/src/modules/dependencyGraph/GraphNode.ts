@@ -6,14 +6,14 @@ import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { shouldIgnore } from '../../utils/ignore';
 
-export enum TreeNodeType {
+export enum GraphNodeType {
   App,
   Page,
   Component,
   Other,
 }
 
-export interface IDependencyTreeNode {
+export interface IDependencyGraphNode {
   /** app 根绝对路径 */
   appRoot: string;
   /** 分包名 */
@@ -29,7 +29,7 @@ export interface IDependencyTreeNode {
   /** 父节点依赖绝对路径 */
   parentPathname?: string;
   /** 节点类型 */
-  nodeType: TreeNodeType;
+  nodeType: GraphNodeType;
 }
 
 /**
@@ -41,7 +41,7 @@ export interface IDependencyTreeNode {
  *  - 每个分包均属于分包粒度
  *  - 每个页面或组件均为独立的 chunk 粒度
  */
-export class DependencyTreeNode {
+export class DependencyGraphNode {
   /** 依赖类型 */
   private _assetType!: AssetType;
 
@@ -79,16 +79,16 @@ export class DependencyTreeNode {
   public parentPathname?: string;
 
   /** 父模块 （依赖了该节点的模块） */
-  public incomingModules = new Set<DependencyTreeNode>();
+  public incomingModules = new Set<DependencyGraphNode>();
 
   /** 子模块 （该节点依赖的模块） */
-  public outgoingModules = new Set<DependencyTreeNode>();
+  public outgoingModules = new Set<DependencyGraphNode>();
 
-  public modulesMap = new Map<string, DependencyTreeNode>();
+  public modulesMap = new Map<string, DependencyGraphNode>();
 
-  public nodeType: TreeNodeType;
+  public nodeType: GraphNodeType;
 
-  constructor(options: IDependencyTreeNode) {
+  constructor(options: IDependencyGraphNode) {
     const { appRoot, pathname, resolver, ignores, parentPathname, packageNames, packageGroup, nodeType } = options;
     const context = path.dirname(pathname);
 
@@ -174,23 +174,23 @@ export class DependencyTreeNode {
   }
 
   /** 递归所有的子依赖 */
-  public getModules(): DependencyTreeNode[] {
+  public getModules(): DependencyGraphNode[] {
     const { outgoingModules: modules } = this;
 
     // TODO: 循环依赖问题？
     /** 获取 children js */
-    const childrenDependencies = Array.from(modules).reduce((deps: DependencyTreeNode[], child) => {
+    const childrenDependencies = Array.from(modules).reduce((deps: DependencyGraphNode[], child) => {
       return deps.concat(child.getModules());
     }, []);
 
-    return [this as DependencyTreeNode].concat(childrenDependencies);
+    return [this as DependencyGraphNode].concat(childrenDependencies);
   }
 
   /** 递归所有的子依赖 chunk 映射 */
-  public getModuleMaps(): Map<string, DependencyTreeNode> {
+  public getModuleMaps(): Map<string, DependencyGraphNode> {
     const { outgoingModules: modules, modulesMap } = this;
 
-    const combinedModulesMap = new Map<string, DependencyTreeNode>(modulesMap);
+    const combinedModulesMap = new Map<string, DependencyGraphNode>(modulesMap);
 
     Array.from(modules).forEach((child) => {
       const childModulesMap = child.getModuleMaps();
@@ -220,7 +220,7 @@ export class DependencyTreeNode {
     packageNames: Set<string>;
     packageGroup: string;
     resourcePath: string;
-    nodeType: TreeNodeType;
+    nodeType: GraphNodeType;
   }): void {
     const { packageNames, packageGroup, resourcePath, nodeType } = options;
     /** 忽略处理的路径 */
@@ -228,7 +228,7 @@ export class DependencyTreeNode {
       return;
     }
 
-    const dependencyTreeNode = createDependencyTreeNode({
+    const dependencyGraphNode = createDependencyGraphNode({
       appRoot: this.appRoot,
       packageNames,
       packageGroup,
@@ -238,13 +238,13 @@ export class DependencyTreeNode {
       nodeType,
     });
 
-    dependencyTreeNode.build();
+    dependencyGraphNode.build();
 
-    this.outgoingModules.add(dependencyTreeNode);
-    dependencyTreeNode.incomingModules.add(this);
+    this.outgoingModules.add(dependencyGraphNode);
+    dependencyGraphNode.incomingModules.add(this);
 
     if (!this.isAssets()) {
-      this.modulesMap.set(dependencyTreeNode.chunkName, dependencyTreeNode);
+      this.modulesMap.set(dependencyGraphNode.chunkName, dependencyGraphNode);
     }
   }
 
@@ -253,7 +253,7 @@ export class DependencyTreeNode {
    * @param resourcePath
    * @param nodeType
    */
-  public addCurrentPackageModule(resourcePath: string, nodeType: TreeNodeType) {
+  public addCurrentPackageModule(resourcePath: string, nodeType: GraphNodeType) {
     this.addModule({
       packageNames: this.packageNames,
       packageGroup: this.packageGroup,
@@ -272,7 +272,7 @@ export class DependencyTreeNode {
       /** 获取 js 路径 */
       const resourcePath = resolve(resource);
 
-      this.addCurrentPackageModule(resourcePath, TreeNodeType.Component);
+      this.addCurrentPackageModule(resourcePath, GraphNodeType.Component);
     });
   }
 
@@ -298,32 +298,32 @@ export class DependencyTreeNode {
 
 /**
  * 创建依赖树节点
- * @param options IDependencyTreeNode
+ * @param options IDependencyGraphNode
  * @returns
  */
-export const createDependencyTreeNode: CachedFunction<(options: IDependencyTreeNode) => DependencyTreeNode> = (
+export const createDependencyGraphNode: CachedFunction<(options: IDependencyGraphNode) => DependencyGraphNode> = (
   options,
 ) => {
-  if (!createDependencyTreeNode.cache) {
-    createDependencyTreeNode.cache = {};
+  if (!createDependencyGraphNode.cache) {
+    createDependencyGraphNode.cache = {};
   }
 
-  const { cache } = createDependencyTreeNode;
+  const { cache } = createDependencyGraphNode;
   const { appRoot, packageNames, packageGroup, pathname, resolver, ignores, nodeType } = options;
 
   const cacheId = `${packageGroup}:${pathname}`;
 
-  let dependencyTreeNode: DependencyTreeNode;
+  let dependencyGraphNode: DependencyGraphNode;
 
   /** 如果已经有创建过，复用 */
   if (cache[cacheId]) {
-    dependencyTreeNode = cache[cacheId];
+    dependencyGraphNode = cache[cacheId];
     packageNames.forEach((packageName) => {
-      recursiveAddPackageNames(dependencyTreeNode, packageName);
+      recursiveAddPackageNames(dependencyGraphNode, packageName);
     });
   } else {
     /** 否则创建新的节点并缓存 */
-    dependencyTreeNode = new DependencyTreeNode({
+    dependencyGraphNode = new DependencyGraphNode({
       appRoot,
       packageNames: new Set(packageNames),
       packageGroup,
@@ -332,13 +332,13 @@ export const createDependencyTreeNode: CachedFunction<(options: IDependencyTreeN
       ignores,
       nodeType,
     });
-    cache[cacheId] = dependencyTreeNode;
+    cache[cacheId] = dependencyGraphNode;
   }
 
-  return dependencyTreeNode;
+  return dependencyGraphNode;
 };
 
-function recursiveAddPackageNames(node: DependencyTreeNode, packageName: string) {
+function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string) {
   if (!node.packageNames.has(packageName)) {
     node.packageNames.add(packageName);
     node.outgoingModules.forEach((outgoingModule) => {

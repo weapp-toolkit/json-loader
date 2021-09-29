@@ -3,13 +3,13 @@ import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
 import { Compiler } from 'webpack';
 import { Resolver } from '@weapp-toolkit/core';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
-import { DependencyTreeNode } from './TreeNode';
-import { TreeNodeType } from '.';
+import { DependencyGraphNode } from './GraphNode';
+import { GraphNodeType } from '.';
 
 /**
  * 依赖树初始化选项
  */
-export interface IDependencyTreeOptions {
+export interface IDependencyGraphOptions {
   /** 忽略的路径 */
   ignores?: RegExp[];
   /** 路径解析器 */
@@ -22,13 +22,13 @@ export interface IDependencyTreeOptions {
 }
 
 /** 依赖树 */
-export class DependencyTree extends DependencyTreeNode {
+export class DependencyGraph extends DependencyGraphNode {
   /** 缓存的模块映射 */
-  private _modulesMap: Map<string, DependencyTreeNode> | undefined;
+  private _modulesMap: Map<string, DependencyGraphNode> | undefined;
 
   public compiler: Compiler;
 
-  constructor(options: IDependencyTreeOptions) {
+  constructor(options: IDependencyGraphOptions) {
     const { resolver, context, app, ignores = [], compiler } = options;
 
     super({
@@ -38,7 +38,7 @@ export class DependencyTree extends DependencyTreeNode {
       resolver,
       ignores,
       pathname: app,
-      nodeType: TreeNodeType.App,
+      nodeType: GraphNodeType.App,
     });
     this.compiler = compiler;
   }
@@ -58,7 +58,7 @@ export class DependencyTree extends DependencyTreeNode {
   /**
    * 获取模块映射
    */
-  public getModuleMaps(): Map<string, DependencyTreeNode> {
+  public getModuleMaps(): Map<string, DependencyGraphNode> {
     if (!this._modulesMap) {
       this._modulesMap = super.getModuleMaps();
     }
@@ -81,7 +81,7 @@ export class DependencyTree extends DependencyTreeNode {
     /** 添加主包里的 pages */
     this.addPageModules(APP_PACKAGE_NAME, APP_GROUP_NAME, pages);
     /** 添加主包使用的 components */
-    this.addAppPackageModules(Object.values(usingComponents), TreeNodeType.Component);
+    this.addAppPackageModules(Object.values(usingComponents), GraphNodeType.Component);
     /** 添加 TabBar */
     this.addTabBar(tabBar);
     /** 添加分包 chunk */
@@ -101,7 +101,7 @@ export class DependencyTree extends DependencyTreeNode {
     /** 如果是自定义 TabBar，解析自定义 TabBar 文件夹依赖 */
     if (custom) {
       const tabBarEntryPath = this.resolve(CUSTOM_TAB_BAR_CONTEXT);
-      this.addCurrentPackageModule(tabBarEntryPath, TreeNodeType.Other);
+      this.addCurrentPackageModule(tabBarEntryPath, GraphNodeType.Other);
     }
 
     /** 获取 TabBar 列表配置里的图标资源 */
@@ -121,7 +121,7 @@ export class DependencyTree extends DependencyTreeNode {
       return resources;
     }, []);
 
-    this.addAppPackageModules(assets, TreeNodeType.Other);
+    this.addAppPackageModules(assets, GraphNodeType.Other);
   }
 
   /**
@@ -150,7 +150,7 @@ export class DependencyTree extends DependencyTreeNode {
    * @param nodeType
    * @param resolve
    */
-  private addAppPackageModules(resources: string[], nodeType: TreeNodeType, resolve = this.resolve) {
+  private addAppPackageModules(resources: string[], nodeType: GraphNodeType, resolve = this.resolve) {
     resources.map((resource) => {
       /** 获取路径 */
       const resourcePath = resolve(resource);
@@ -174,7 +174,7 @@ export class DependencyTree extends DependencyTreeNode {
         packageNames: new Set([packageName]),
         packageGroup,
         resourcePath,
-        nodeType: TreeNodeType.Page,
+        nodeType: GraphNodeType.Page,
       });
     });
   }
