@@ -4,7 +4,8 @@ import { AsyncSeriesBailHook } from 'tapable';
 import { Resolver } from '@weapp-toolkit/core';
 import { IPlaceholderMapValue, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { replacePlaceholder } from './core';
-import { AssetImportType, Assets, IHandleSourceCodeResult } from './types';
+import { Assets, AssetImportType } from './modules/asset/type';
+import { IHandleSourceCodeResult } from './types';
 
 export interface HandlerRunnerClassOptions<T> {
   loaderContext: LoaderContext<T>;

@@ -11,7 +11,12 @@ const webpackConfig: webpack.Configuration = {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].js',
   },
-  watch: true,
+  stats: {
+    errors: true,
+    chunks: false,
+    assets: false,
+    modules: false,
+  },
   target: 'node',
   mode: 'production',
   devtool: 'cheap-source-map',

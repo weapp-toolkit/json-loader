@@ -11,6 +11,13 @@ const webpackConfig: webpack.Configuration = {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].js',
   },
+  stats: {
+    errors: true,
+    warnings: true,
+    chunks: false,
+    assets: false,
+    modules: false,
+  },
   watch: false,
   target: 'node',
   mode: 'development',

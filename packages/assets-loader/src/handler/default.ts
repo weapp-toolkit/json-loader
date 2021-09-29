@@ -4,6 +4,7 @@ import { shortid } from '@weapp-toolkit/core';
 import { Handler, HandlerRunner, HooksParameter } from '../handler-runner';
 import { handleEmit, loadModule } from '../common';
 import { handleSourceCode } from '../core';
+import { GlobAsset } from '../modules/asset';
 
 /**
  * 当资源没有被任何其他 handler 处理时，会走到 default handler
@@ -29,14 +30,14 @@ export class DefaultHandler<T> implements Handler<T> {
 
     runner.hooks.handleGlobAssets.tapPromise(DefaultHandler.HANDLER_NAME, async ({ asset, end }) => {
       /** ts 类型安全 */
-      if (!('glob' in asset)) {
+      if (!(asset instanceof GlobAsset)) {
         return end(asset.code);
       }
 
       /**
        * 要先处理 alias 的路径，否则扫描不出
        */
-      const pathPieces = asset.glob.split('/');
+      const pathPieces = asset.getGlobExpression().split('/');
       const splitIndex = pathPieces.findIndex((piece) => piece.includes('*'));
       const baseDirname = pathPieces.splice(0, splitIndex).join('/');
       const globPiece = pathPieces.join('/');

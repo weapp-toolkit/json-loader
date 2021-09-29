@@ -1,6 +1,6 @@
 import path from 'path';
 // import './index.wxss';
-import '@/index.wxml';
+import { a } from '@/index.wxml';
 
 const imageMap = {
   LEVEL_1: './level1.png',
@@ -29,8 +29,8 @@ export function getImageById(id) {
   return `./level${id}.png`;
 }
 
-// export function getImageHasDirectory(id) {
-//   return `./${folder}/${id}.png`;
+// export function getImageHasDirectory(imgName) {
+//   return `./${folder}/${imgName}`;
 // }
 
 export default imageMap;

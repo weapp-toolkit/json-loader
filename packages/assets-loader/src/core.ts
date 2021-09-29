@@ -1,4 +1,5 @@
-import { Assets, AssetImportType } from './types';
+import { GlobAsset, HttpAsset, ModuleAsset, NormalAsset, UnknownAsset } from './modules/asset';
+import { Assets } from './modules/asset/type';
 
 interface IHandleSourceCodeResult {
   assets: Assets[];
@@ -21,6 +22,7 @@ export const NORMAL_MATCHER = /^[^{}'"`]+\.\w+$/;
 /** 匹配非纯文本资源 */
 export const GLOB_MATCHER = /[${}+'"`]+(.*)?\.\w+$/;
 
+/** 获取占位符，从 0 开始 */
 export const getAssetsLoaderPlaceholder = (index: number): string => `___ASSETS_LOADER_PLACEHOLDER_${index}___`;
 
 /**
@@ -32,47 +34,37 @@ const handleAssets = (code: string): Assets => {
   const request = code.replace(/^['"`]/, '').replace(/['"`]$/, '');
 
   if (HTTP_MATCHER.test(request)) {
-    return {
-      type: AssetImportType.Http,
+    return new HttpAsset({
       request,
       code,
-    };
+    });
   }
 
   if (MODULE_MATCHER.test(request)) {
-    return {
-      type: AssetImportType.Module,
+    return new ModuleAsset({
       request: code.match(/(?<=['"`])(.*?)(?=['"`])/)![0],
       code: code.match(/['"`](.*?)['"`]/)![0],
-    };
+    });
   }
 
   if (NORMAL_MATCHER.test(request)) {
-    return {
-      type: AssetImportType.Normal,
+    return new NormalAsset({
       request,
       code,
-    };
+    });
   }
 
   if (GLOB_MATCHER.test(request)) {
-    let handledRequest = request;
-    handledRequest = handledRequest.replace(TEMPLATE_STRING_MATCHER, '*');
-    handledRequest = handledRequest.replace(EXPRESSION_MATCHER, '*');
-
-    return {
-      type: AssetImportType.Glob,
-      glob: handledRequest,
+    return new GlobAsset({
       request,
       code,
-    };
+    });
   }
 
-  return {
-    type: AssetImportType.Unknown,
+  return new UnknownAsset({
     request,
     code,
-  };
+  });
 };
 
 /**
