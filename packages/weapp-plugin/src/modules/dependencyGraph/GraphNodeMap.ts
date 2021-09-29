@@ -12,7 +12,7 @@ export class GraphNodeMap {
   /** chunkName => 模块 */
   public chunkModuleMap = new Map<string, DependencyGraphNode>();
 
-  constructor(defaultSet?: Set<DependencyGraphNode>) {
+  constructor(defaultSet?: Set<DependencyGraphNode> | DependencyGraphNode[]) {
     this.clean();
 
     if (defaultSet) {
@@ -33,13 +33,14 @@ export class GraphNodeMap {
    * 添加节点
    * @param node
    */
-  public add(node: DependencyGraphNode | DependencyGraphNode[] | Set<DependencyGraphNode>): void {
+  public add(node: DependencyGraphNode | DependencyGraphNode[] | Set<DependencyGraphNode>): GraphNodeMap {
     if (Array.isArray(node) || node instanceof Set) {
       node.forEach(this.addOneNode.bind(this));
-      return;
+      return this;
     }
 
     this.addOneNode(node);
+    return this;
   }
 
   /**
@@ -83,7 +84,7 @@ export class GraphNodeMap {
     return combinedGraphNodeMap;
   }
 
-  private init(defaultSet: Set<DependencyGraphNode>) {
+  private init(defaultSet: Set<DependencyGraphNode> | DependencyGraphNode[]) {
     defaultSet.forEach((node) => {
       this.add(node);
     });

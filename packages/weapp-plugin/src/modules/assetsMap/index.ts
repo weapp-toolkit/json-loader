@@ -61,7 +61,10 @@ export class AssetsMap {
      * 构建父子关联
      */
     compilation.modules.forEach((module) => {
-      if (module instanceof NormalModule && !shouldIgnore(this.ignores, module.resource)) {
+      /**
+       * 初始化时不应该忽略 js，需要 js 提供 Chunk 信息
+       */
+      if (module instanceof NormalModule) {
         /** 去除 query 的资源绝对路径 */
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { parentsPath, extname } = module.buildInfo;

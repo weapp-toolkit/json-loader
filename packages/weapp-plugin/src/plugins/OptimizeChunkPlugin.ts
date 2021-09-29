@@ -3,7 +3,7 @@ import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
 import { removeExt } from '@weapp-toolkit/core';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
-import { PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
+import { DEFAULT_ASSETS_MAP_IGNORES, PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
 import { DependencyGraph } from '../modules/dependencyGraph';
@@ -48,11 +48,11 @@ export class OptimizeChunkPlugin {
     this.context = options.context;
     this.dependencyGraph = options.dependencyGraph;
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
-    this.ignores = [/.(js|ts)x?$/].concat(options.ignores || []);
+    this.ignores = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignores || []);
 
     this.assetsMap = new AssetsMap({
       context: options.context,
-      ignores: options.ignores,
+      ignores: this.ignores,
       dependencyGraph: options.dependencyGraph,
       publicPath: options.publicPath,
     });
@@ -107,7 +107,7 @@ export class OptimizeChunkPlugin {
       });
 
       compilation.hooks.beforeChunkAssets.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-        // console.info('skr: all assets beforeChunkAssets', Object.keys(compilation.assets));
+        console.info('skr: all assets beforeChunkAssets', Object.keys(compilation.assets));
       });
     });
 
@@ -175,11 +175,6 @@ export class OptimizeChunkPlugin {
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { assets, assetsInfo } = module.buildInfo;
 
-        // if (absolutePath.includes('level')) {
-        //   console.info('skr: optimizeAssetModules', { absolutePath });
-        //   // debugger;
-        // }
-
         /** 没有资源实体 */
         if (!assets) {
           return;
@@ -217,8 +212,6 @@ export class OptimizeChunkPlugin {
             optimizedAssets[fileInfo.keepName ? assetName : filename] = fileSource;
           }
         }
-
-        // console.info('skr: optimizeAssetModules', { resource, chunkNames, assets, assetsInfo, optimizedAssets });
 
         module.buildInfo.assets = optimizedAssets;
       }

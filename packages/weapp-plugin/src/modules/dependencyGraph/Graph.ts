@@ -55,7 +55,10 @@ export class DependencyGraph extends DependencyGraphNode {
     const appJsonPath = resolve('app.json');
     const appJson: IWeappAppConfig = fsx.readJSONSync(appJsonPath);
 
+    super.build();
     this.addAppChunk(appJson);
+    /** 根节点要添加自己 */
+    this.graphNodeMap.add(this);
   }
 
   /**
@@ -73,14 +76,10 @@ export class DependencyGraph extends DependencyGraphNode {
    * 添加 app chunk
    */
   private addAppChunk(appJson: IWeappAppConfig) {
-    const { pages, usingComponents = {}, tabBar } = appJson;
+    const { pages, tabBar } = appJson;
 
-    /** 添加同名资源文件 */
-    this.addAllAssets();
     /** 添加主包里的 pages */
     this.addPageModules(APP_PACKAGE_NAME, APP_GROUP_NAME, pages);
-    /** 添加主包使用的 components */
-    this.addAppPackageModules(Object.values(usingComponents), GraphNodeType.Component);
     /** 添加 TabBar */
     this.addTabBar(tabBar);
     /** 添加分包 chunk */
@@ -100,7 +99,12 @@ export class DependencyGraph extends DependencyGraphNode {
     /** 如果是自定义 TabBar，解析自定义 TabBar 文件夹依赖 */
     if (custom) {
       const tabBarEntryPath = this.resolve(CUSTOM_TAB_BAR_CONTEXT);
-      this.addCurrentPackageModule(tabBarEntryPath, GraphNodeType.Other);
+      this.addModule({
+        packageNames: this.packageNames,
+        packageGroup: this.packageGroup,
+        resourcePath: tabBarEntryPath,
+        nodeType: GraphNodeType.Other,
+      });
     }
 
     /** 获取 TabBar 列表配置里的图标资源 */
@@ -153,7 +157,12 @@ export class DependencyGraph extends DependencyGraphNode {
     resources.map((resource) => {
       /** 获取路径 */
       const resourcePath = resolve(resource);
-      this.addCurrentPackageModule(resourcePath, nodeType);
+      this.addModule({
+        packageNames: this.packageNames,
+        packageGroup: this.packageGroup,
+        resourcePath,
+        nodeType,
+      });
     });
   }
 

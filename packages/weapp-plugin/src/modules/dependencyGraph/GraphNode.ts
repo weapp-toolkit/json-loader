@@ -1,6 +1,5 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import globby from 'globby';
 import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
 import { isInSubPackage } from '../../utils/dependency';
@@ -28,8 +27,6 @@ export interface IDependencyGraphNode {
   resolver: Resolver;
   /** 忽略的路径 */
   ignores: RegExp[];
-  /** 父节点依赖绝对路径 */
-  parentPathname?: string;
   /** 节点类型 */
   nodeType: GraphNodeType;
 }
@@ -37,7 +34,7 @@ export interface IDependencyGraphNode {
 function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string) {
   if (!node.packageNames.has(packageName)) {
     node.packageNames.add(packageName);
-    node.outgoingModules.forEach((outgoingModule) => {
+    node.outgoingNodes.forEach((outgoingModule) => {
       recursiveAddPackageNames(outgoingModule, packageName);
     });
   }
@@ -53,6 +50,9 @@ function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string
  *  - 每个页面或组件均为独立的 chunk 粒度
  */
 export class DependencyGraphNode {
+  /** 信号量，标记是否正在遍历，避免循环 */
+  private _isVisiting = false;
+
   /** 依赖类型 */
   private _assetType!: AssetType;
 
@@ -86,14 +86,14 @@ export class DependencyGraphNode {
   /** 依赖文件夹绝对路径 */
   public context: string;
 
-  /** 父节点依赖绝对路径 */
-  public parentPathname?: string;
+  /** 父节点 （依赖了该节点的节点） */
+  public incomingNodes = new Set<DependencyGraphNode>();
 
-  /** 父模块 （依赖了该节点的模块） */
-  public incomingModules = new Set<DependencyGraphNode>();
+  /** 子节点 （该节点依赖的节点） */
+  public outgoingNodes = new Set<DependencyGraphNode>();
 
-  /** 子模块 （该节点依赖的模块） */
-  public outgoingModules = new Set<DependencyGraphNode>();
+  /** 静态资源依赖 */
+  public assets = new Set<string>();
 
   /** 图节点映射管理 */
   public graphNodeMap = new GraphNodeMap();
@@ -101,14 +101,13 @@ export class DependencyGraphNode {
   public nodeType: GraphNodeType;
 
   constructor(options: IDependencyGraphNode) {
-    const { appRoot, pathname, resolver, ignores, parentPathname, packageNames, packageGroup, nodeType } = options;
+    const { appRoot, pathname, resolver, ignores, packageNames, packageGroup, nodeType } = options;
     const context = path.dirname(pathname);
 
     this.appRoot = appRoot;
     this.packageGroup = packageGroup;
     this.pathname = pathname;
     this.context = context;
-    this.parentPathname = parentPathname;
     this.resolver = resolver;
     this.resolve = resolver.resolveDependencySync.bind(null, context);
     this.ignores = ignores;
@@ -116,14 +115,6 @@ export class DependencyGraphNode {
     packageNames.forEach((packageName) => {
       this.packageNames.add(packageName);
     });
-  }
-
-  /** 依赖类型 */
-  public get type(): AssetType {
-    if (!this._assetType) {
-      this._assetType = getAssetType(this.pathname);
-    }
-    return this._assetType;
   }
 
   /** 依赖文件名 */
@@ -173,45 +164,30 @@ export class DependencyGraphNode {
    * 扫描 json 依赖，添加同名依赖（wxml、wxs 等）
    */
   public build(): void {
-    const { type, resolve, basename } = this;
+    const { resolve, basename } = this;
 
-    /** js 为入口文件，只有是 js 时才处理依赖 */
-    if (type === 'js') {
-      const jsonPath = resolve(replaceExt(basename, '.json'));
-      const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
+    const jsonPath = resolve(replaceExt(basename, '.json'));
+    const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
-      this.addAllChildComponents(Object.values(json.usingComponents || {}));
-      this.addAllAssets();
-    }
-  }
-
-  /** 递归所有的子依赖 */
-  public getModules(): DependencyGraphNode[] {
-    const { outgoingModules: modules } = this;
-
-    // TODO: 循环依赖问题？
-    /** 获取 children js */
-    const childrenDependencies = Array.from(modules).reduce((deps: DependencyGraphNode[], child) => {
-      return deps.concat(child.getModules());
-    }, []);
-
-    return [this as DependencyGraphNode].concat(childrenDependencies);
+    this.addOutgoingNodes(Object.values(json.usingComponents || {}));
   }
 
   /** 递归所有的子节点映射 */
   public getGraphNodeMap(): GraphNodeMap {
-    const { outgoingModules: modules, graphNodeMap } = this;
+    if (this._isVisiting) {
+      /** 返回一个空的 GraphNodeMap */
+      return new GraphNodeMap();
+    }
 
-    const childrenGraphNodeMap = Array.from(modules).map((child) => child.getGraphNodeMap());
+    this._isVisiting = true;
+
+    const { outgoingNodes, graphNodeMap } = this;
+
+    const childrenGraphNodeMap = Array.from(outgoingNodes).map((child) => child.getGraphNodeMap());
+
+    this._isVisiting = false;
 
     return graphNodeMap.concat(...childrenGraphNodeMap);
-  }
-
-  /**
-   * 当前节点是否是 assets
-   */
-  public isAssets(): boolean {
-    return this.type !== 'js';
   }
 
   /**
@@ -244,26 +220,10 @@ export class DependencyGraphNode {
 
     dependencyGraphNode.build();
 
-    this.outgoingModules.add(dependencyGraphNode);
-    dependencyGraphNode.incomingModules.add(this);
+    this.outgoingNodes.add(dependencyGraphNode);
+    dependencyGraphNode.incomingNodes.add(this);
 
-    if (!this.isAssets()) {
-      this.graphNodeMap.add(dependencyGraphNode);
-    }
-  }
-
-  /**
-   * 添加当前分包下的子模块
-   * @param resourcePath
-   * @param nodeType
-   */
-  public addCurrentPackageModule(resourcePath: string, nodeType: GraphNodeType) {
-    this.addModule({
-      packageNames: this.packageNames,
-      packageGroup: this.packageGroup,
-      resourcePath,
-      nodeType,
-    });
+    this.graphNodeMap.add(dependencyGraphNode);
   }
 
   /**
@@ -271,31 +231,17 @@ export class DependencyGraphNode {
    * @param resources
    * @param resolve
    */
-  public addAllChildComponents(resources: string[], resolve = this.resolve): void {
+  public addOutgoingNodes(resources: string[], resolve = this.resolve): void {
     resources.map((resource) => {
       /** 获取 js 路径 */
       const resourcePath = resolve(resource);
 
-      this.addCurrentPackageModule(resourcePath, GraphNodeType.Component);
-    });
-  }
-
-  /**
-   * 添加页面/组件的所有同名资源文件，如 wxml
-   */
-  public addAllAssets(): void {
-    const { basename, context, resolve } = this;
-
-    const assets = globby.sync(replaceExt(basename, '.*'), {
-      cwd: context,
-      ignore: ['*.{js,ts,wxs}'],
-    });
-
-    assets.map((resource) => {
-      /** 获取绝对路径 */
-      const resourcePath = resolve(resource);
-
-      this.addCurrentPackageModule(resourcePath, this.nodeType);
+      this.addModule({
+        packageNames: this.packageNames,
+        packageGroup: this.packageGroup,
+        resourcePath,
+        nodeType: GraphNodeType.Component,
+      });
     });
   }
 }

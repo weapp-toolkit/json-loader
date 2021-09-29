@@ -55,28 +55,23 @@ export class AddEntryPlugin {
    * 添加项目所有依赖
    */
   setAllEntries(): void {
-    const modules = this.dependencyGraph.getModules();
+    const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
 
-    modules.forEach((module) => {
+    graphNodeMap.modules.forEach((module) => {
       const { pathname, packageGroup, chunkName } = module;
 
-      const option = { name: chunkName };
-
-      if (!module.isAssets()) {
-        Object.assign(option, {
-          runtime:
-            /**
-             * 和 runtime 生成位置有关，并让目录结构更好看
-             * app 分组本身位于小程序根目录，这里不特殊处理
-             * 会将 runtime 生成到名为 APP_GROUP_NAME 的目录下
-             */
-            packageGroup === APP_GROUP_NAME
-              ? `${path.basename(packageGroup)}.runtime`
-              : path.join(packageGroup, `${path.basename(packageGroup)}.runtime`),
-        });
-      }
-
-      this.addEntry(pathname, option);
+      this.addEntry(pathname, {
+        name: chunkName,
+        runtime:
+          /**
+           * 和 runtime 生成位置有关，并让目录结构更好看
+           * app 分组本身位于小程序根目录，这里不特殊处理
+           * 会将 runtime 生成到名为 APP_GROUP_NAME 的目录下
+           */
+          packageGroup === APP_GROUP_NAME
+            ? `${path.basename(packageGroup)}.runtime`
+            : path.join(packageGroup, `${path.basename(packageGroup)}.runtime`),
+      });
     });
   }
 }
