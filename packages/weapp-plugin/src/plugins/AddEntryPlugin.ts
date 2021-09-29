@@ -3,14 +3,14 @@ import { Compiler, EntryPlugin } from 'webpack';
 import { createResolver, resolveAppEntryPath, Resolver } from '@weapp-toolkit/core';
 import { APP_GROUP_NAME } from '../utils/constant';
 import { addEntryFactory } from '../utils/dependency';
-import { DependencyTree } from '../modules/dependencyTree';
+import { DependencyGraph } from '../modules/dependencyGraph';
 
 /**
  * AddEntryPlugin 初始化选项
  */
 export interface IAddEntryPluginOptions {
   ignores?: Array<string | RegExp> /** 忽略的文件（夹） */;
-  dependencyTree: DependencyTree /** 依赖树实例 */;
+  dependencyGraph: DependencyGraph /** 依赖树实例 */;
 }
 
 /**
@@ -28,14 +28,14 @@ export class AddEntryPlugin {
   resolver!: Resolver;
 
   /** 依赖树 */
-  dependencyTree: DependencyTree;
+  dependencyGraph: DependencyGraph;
 
   /** 添加 entry 函数 */
   addEntry!: (entry: string, options: EntryPlugin['options']) => void;
 
   constructor(options: IAddEntryPluginOptions) {
     this.ignores = options.ignores || [];
-    this.dependencyTree = options.dependencyTree;
+    this.dependencyGraph = options.dependencyGraph;
   }
 
   apply(compiler: Compiler): void {
@@ -55,7 +55,7 @@ export class AddEntryPlugin {
    * 添加项目所有依赖
    */
   setAllEntries(): void {
-    const modules = this.dependencyTree.getModules();
+    const modules = this.dependencyGraph.getModules();
 
     modules.forEach((module) => {
       const { pathname, packageGroup, chunkName } = module;

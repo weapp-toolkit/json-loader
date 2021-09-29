@@ -1,3 +1,5 @@
+import MyLog from '../../libs/log';
+
 Component({
   options: {
     addGlobalClass: true,
@@ -10,6 +12,10 @@ Component({
     },
   },
   data: {},
-  lifetimes: {},
+  lifetimes: {
+    attached() {
+      new MyLog().log('no-data: my log');
+    },
+  },
   methods: {},
 });

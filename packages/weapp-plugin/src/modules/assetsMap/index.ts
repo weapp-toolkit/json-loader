@@ -10,7 +10,7 @@ import {
   PKG_OUTSIDE_DEP_UPPER_DIRNAME,
   UPPER_DIR_SYMBOL_REG,
 } from '../../utils/constant';
-import { DependencyTree, DependencyTreeNode } from '../dependencyTree';
+import { DependencyGraph, DependencyGraphNode } from '../dependencyGraph';
 
 export interface IAssetsMapOptions {
   /** app 目录 */
@@ -20,7 +20,7 @@ export interface IAssetsMapOptions {
   /** 忽略的文件（夹） */
   ignores?: Array<RegExp>;
   /** 依赖树实例 */
-  dependencyTree: DependencyTree;
+  dependencyGraph: DependencyGraph;
 }
 
 interface ModuleRelationship {
@@ -47,13 +47,13 @@ export class AssetsMap {
   public ignores: Required<IAssetsMapOptions>['ignores'];
 
   /** 依赖树 */
-  public dependencyTree: DependencyTree;
+  public dependencyGraph: DependencyGraph;
 
   constructor(options: IAssetsMapOptions) {
     this.context = options.context;
     this.ignores = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignores || []);
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
-    this.dependencyTree = options.dependencyTree;
+    this.dependencyGraph = options.dependencyGraph;
   }
 
   public init(compilation: Compilation) {
@@ -234,33 +234,33 @@ export class AssetsMap {
 
   /**
    * 通过 chunkName 获取优化后的 {chunkName => 资源路径} 映射
-   * @param treeNodes
+   * @param chunkNames
    * @param filename 相对于 appRoot 的路径
    * @returns
    */
   private getOptimizedAssetPathMap(chunkNames: string[], filename: string): Map<string, string> {
-    const moduleMaps = this.dependencyTree.getModuleMaps();
+    const moduleMaps = this.dependencyGraph.getModuleMaps();
 
     // if (filename.endsWith('.wxs')) {
     //   console.info('skr: optimizeAssetModules', { filename, chunkNames });
     //   // debugger;
     // }
 
-    /** chunkName 对应的 dependencyTreeNode 实例列表 */
-    const treeNodes = chunkNames
+    /** chunkName 对应的 dependencyGraphNode 实例列表 */
+    const graphNodes = chunkNames
       .map((chunkName) => moduleMaps.get(chunkName))
-      .filter((node) => typeof node !== 'undefined') as DependencyTreeNode[];
+      .filter((node) => typeof node !== 'undefined') as DependencyGraphNode[];
 
     /** 依赖引用者 */
     const dependencyUsers = new Set<string>();
     /** 未在主包使用 */
-    const notUsedInAppPackage = treeNodes.every(({ packageName, independent }) => {
+    const notUsedInAppPackage = graphNodes.every(({ packageNames, independent }) => {
       /** 独立分包不计算使用次数 */
       if (!independent) {
-        dependencyUsers.add(packageName);
+        packageNames.forEach((packageName) => dependencyUsers.add(packageName));
       }
 
-      return packageName !== APP_PACKAGE_NAME;
+      return !packageNames.has(APP_PACKAGE_NAME) && packageNames.size === 1;
     });
 
     /** 只在一个分包使用 */
@@ -270,8 +270,8 @@ export class AssetsMap {
     /** chunkName 和资源路径前缀的映射 */
     const optimizedAssetPathMap = new Map<string, string>();
 
-    treeNodes.forEach((treeNode) => {
-      const { packageName, packageGroup } = treeNode;
+    graphNodes.forEach((graphNode) => {
+      const { packageNames, packageGroup } = graphNode;
 
       /**
        * @thinking
@@ -279,12 +279,17 @@ export class AssetsMap {
        */
 
       /** 当只在一个分包中使用了，并且不属于当前分包，将其移动到该分包下 */
-      if (onlyUsedInOneSubPackage && !filename.startsWith(packageName)) {
-        optimizedAssetPathMap.set(packageGroup, path.join(packageName, this.publicPath, filename));
+      if (onlyUsedInOneSubPackage) {
+        // && !filename.startsWith(packageName)
+        let packageName = '';
+        packageNames.forEach((n) => (packageName = n));
+        if (!filename.startsWith(packageName)) {
+          optimizedAssetPathMap.set(packageGroup, path.join(packageName, this.publicPath, filename));
+        }
         return;
       }
 
-      optimizedAssetPathMap.set(packageGroup, this.getAssetPath(treeNode, filename));
+      optimizedAssetPathMap.set(packageGroup, this.getAssetPath(graphNode, filename));
     });
 
     return optimizedAssetPathMap;
@@ -297,26 +302,26 @@ export class AssetsMap {
    * @returns
    */
   private getUnrecognizedAssetPath(chunkName: string, filename: string) {
-    const moduleMaps = this.dependencyTree.getModuleMaps();
+    const moduleMaps = this.dependencyGraph.getModuleMaps();
 
-    /** chunkName 对应的 dependencyTreeNode 实例 */
-    const treeNode = moduleMaps.get(chunkName);
+    /** chunkName 对应的 dependencyGraphNode 实例 */
+    const graphNode = moduleMaps.get(chunkName);
 
-    if (!treeNode) {
+    if (!graphNode) {
       return filename;
     }
 
-    return this.getAssetPath(treeNode, filename);
+    return this.getAssetPath(graphNode, filename);
   }
 
   /**
-   * 根据资源所属 treeNode 信息输出路径
-   * @param treeNode
+   * 根据资源所属 graphNode 信息输出路径
+   * @param graphNode
    * @param filename
    * @returns
    */
-  private getAssetPath(treeNode: DependencyTreeNode, filename: string) {
-    const { packageGroup, independent } = treeNode;
+  private getAssetPath(graphNode: DependencyGraphNode, filename: string) {
+    const { packageGroup, independent } = graphNode;
 
     /**
      * @thinking
@@ -343,13 +348,13 @@ export class AssetsMap {
    * @returns
    */
   private getPackageGroup(chunkName: string): string {
-    const moduleMaps = this.dependencyTree.getModuleMaps();
-    const treeNode = moduleMaps.get(chunkName);
+    const moduleMaps = this.dependencyGraph.getModuleMaps();
+    const graphNode = moduleMaps.get(chunkName);
 
-    if (!treeNode) {
+    if (!graphNode) {
       return APP_GROUP_NAME;
     }
 
-    return treeNode.packageGroup;
+    return graphNode.packageGroup;
   }
 }

@@ -6,7 +6,7 @@ import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
-import { DependencyTree } from '../modules/dependencyTree';
+import { DependencyGraph } from '../modules/dependencyGraph';
 
 /**
  * DependencyPlugin 初始化选项
@@ -19,7 +19,7 @@ export interface IOptimizeChunkPluginOptions {
   /** 忽略的文件（夹） */
   ignores?: RegExp[];
   /** 依赖树实例 */
-  dependencyTree: DependencyTree;
+  dependencyGraph: DependencyGraph;
 }
 
 /**
@@ -41,18 +41,18 @@ export class OptimizeChunkPlugin {
   assetsMap: AssetsMap;
 
   /** 依赖树 */
-  dependencyTree!: DependencyTree;
+  dependencyGraph!: DependencyGraph;
 
   constructor(options: IOptimizeChunkPluginOptions) {
     this.context = options.context;
-    this.dependencyTree = options.dependencyTree;
+    this.dependencyGraph = options.dependencyGraph;
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
     this.ignores = [/.(js|ts)x?$/].concat(options.ignores || []);
 
     this.assetsMap = new AssetsMap({
       context: options.context,
       ignores: options.ignores,
-      dependencyTree: options.dependencyTree,
+      dependencyGraph: options.dependencyGraph,
       publicPath: options.publicPath,
     });
   }
@@ -65,9 +65,9 @@ export class OptimizeChunkPlugin {
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
       compilation.hooks.afterOptimizeChunks.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
         const cloneChunkCache = new Map();
-        const { dependencyTree } = this;
+        const { dependencyGraph } = this;
         compilation.entrypoints.forEach((entryPoint) => {
-          const moduleMaps = dependencyTree.getModuleMaps();
+          const moduleMaps = dependencyGraph.getModuleMaps();
           const { packageGroup, independent } = moduleMaps.get(entryPoint.name || '') || {};
           if (packageGroup && independent) {
             // 如果是独立分包！
@@ -133,7 +133,6 @@ export class OptimizeChunkPlugin {
           return true;
         },
         name: (module: Module, chunks: Chunk[], cacheGroupKey: string) => {
-          // debugger;
           if (module instanceof NormalModule) {
             if (path.extname(module.resource) === '.js' && !module.isEntryModule()) {
               // debugger;
