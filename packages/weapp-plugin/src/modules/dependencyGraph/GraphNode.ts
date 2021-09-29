@@ -3,6 +3,7 @@ import fsx from 'fs-extra';
 import globby from 'globby';
 import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
+import { isInSubPackage } from '../../utils/dependency';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { shouldIgnore } from '../../utils/ignore';
 import { GraphNodeMap } from './GraphNodeMap';
@@ -31,6 +32,15 @@ export interface IDependencyGraphNode {
   parentPathname?: string;
   /** 节点类型 */
   nodeType: GraphNodeType;
+}
+
+function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string) {
+  if (!node.packageNames.has(packageName)) {
+    node.packageNames.add(packageName);
+    node.outgoingModules.forEach((outgoingModule) => {
+      recursiveAddPackageNames(outgoingModule, packageName);
+    });
+  }
 }
 
 /**
@@ -137,7 +147,7 @@ export class DependencyGraphNode {
           packageNames.forEach((n) => (packageName = n));
           /** 若只被一个普通分包引用了，且pathname不在该分包，调整到对应的包内 */
           this._chunkName =
-            packageName !== APP_PACKAGE_NAME && !relativePath.startsWith(packageName)
+            packageName !== APP_PACKAGE_NAME && !isInSubPackage(relativePath, packageName)
               ? path.join(packageName, PKG_OUTSIDE_DEP_DIRNAME, relativePath)
               : relativePath;
         } else {
@@ -145,7 +155,7 @@ export class DependencyGraphNode {
         }
       } else {
         /** 如果不是主包分组的依赖，调整其模块到独立分包下 */
-        this._chunkName = relativePath.startsWith(packageGroup)
+        this._chunkName = isInSubPackage(relativePath, packageGroup)
           ? relativePath
           : path.join(packageGroup, PKG_OUTSIDE_DEP_DIRNAME, relativePath);
       }
@@ -331,12 +341,3 @@ export const createDependencyGraphNode: CachedFunction<(options: IDependencyGrap
 
   return dependencyGraphNode;
 };
-
-function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string) {
-  if (!node.packageNames.has(packageName)) {
-    node.packageNames.add(packageName);
-    node.outgoingModules.forEach((outgoingModule) => {
-      recursiveAddPackageNames(outgoingModule, packageName);
-    });
-  }
-}

@@ -7,6 +7,7 @@ import { PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
 import { DependencyGraph } from '../modules/dependencyGraph';
+import { isInSubPackage } from '../utils/dependency';
 
 /**
  * DependencyPlugin 初始化选项
@@ -59,22 +60,26 @@ export class OptimizeChunkPlugin {
 
   apply(compiler: Compiler): void {
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
+      // 处理独立分包引用主包 js 资源的情况
       compilation.hooks.afterOptimizeChunks.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
         const cloneChunkCache = new Map();
         const { dependencyGraph } = this;
+
         compilation.entrypoints.forEach((entryPoint) => {
           const graphNodeMap = dependencyGraph.getGraphNodeMap();
           const { packageGroup, independent } = graphNodeMap.getNodeByChunkName(entryPoint.name || '') || {};
           if (packageGroup && independent) {
-            // 如果是独立分包！
-            const { chunkGraph } = compilation;
+            // 对于独立分包的entryPoint，扫描其依赖的所有chunk
+            // 如果chunk不在内独立分包内，则拷贝一个新chunk输出在独立分包中
             entryPoint.chunks.forEach((chunk) => {
-              // TODO: 更合理的方式判断 splitChunk
-              if (chunk.chunkReason && chunk.chunkReason.indexOf('split chunk') > -1) {
+              if (!isInSubPackage(chunk.name, packageGroup)) {
+                // 从主包移动到独立分包的chunk在独立分包内的输出路径
                 const clonedChunkName = `${packageGroup}/${PKG_OUTSIDE_DEP_DIRNAME}/${chunk.name}`;
+
                 let clonedChunk = cloneChunkCache.get(clonedChunkName);
 
                 if (!clonedChunk) {
+                  // 若输出路径的chunk未被clone过，clone一个chunk
                   clonedChunk = this.cloneChunk(clonedChunkName, chunk, compilation);
                   clonedChunk.runtime = entryPoint.getRuntimeChunk()?.name;
                   cloneChunkCache.set(clonedChunkName, clonedChunk);
@@ -85,16 +90,7 @@ export class OptimizeChunkPlugin {
                   clonedChunk.idNameHints.add(hint);
                 });
 
-                // const chunkEntryModules = Array.from(
-                //   chunkGraph.getChunkEntryModulesWithChunkGroupIterable(entryPoint.getEntrypointChunk()),
-                // );
-                // for (const [module, chunkGroup] of chunkEntryModules) {
-                //   if (chunkGroup === entryPoint) {
-                //     chunkGraph.disconnectChunkAndEntryModule(chunk, module);
-                //     chunkGraph.connectChunkAndEntryModule(clonedChunk, module, entryPoint);
-                //   }
-                // }
-
+                // 替换掉独立分包entryPoint中原来的chunk
                 entryPoint.replaceChunk(chunk, clonedChunk);
                 clonedChunk.addGroup(entryPoint);
                 chunk.removeGroup(entryPoint);
@@ -116,32 +112,31 @@ export class OptimizeChunkPlugin {
     });
 
     compiler.hooks.environment.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
+      // 补充一些特殊的splitChunk配置
       const splitChunksConfig = compiler.options.optimization.splitChunks;
       const processedConfig: typeof splitChunksConfig = {
         ...splitChunksConfig,
+        // 不做模块合并，维持原来的文件目录结构
         minChunks: 1,
         minSize: 1,
-        chunks(chunk: Chunk) {
-          // 由主包移动到独立分宝的资源不参与splitChunk
-          if (chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1) {
+        chunks: (chunk: Chunk) => {
+          // 由主包移动到独立分包的资源不参与splitChunk
+          const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
+          if (
+            graphNodeMap.getNodeByChunkName(chunk.name)?.independent &&
+            chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1
+          ) {
             return false;
           }
           return true;
         },
-        name: (module: Module, chunks: Chunk[], cacheGroupKey: string) => {
+        name: (module: Module) => {
+          // 按照模块路径输出
           if (module instanceof NormalModule) {
             if (path.extname(module.resource) === '.js' && !module.isEntryModule()) {
-              // debugger;
               return removeExt(path.relative(this.context, module.resource));
             }
           }
-          // TODO: 普通分包的放普通分包里
-          // const moduleFileName = module
-          //   .identifier()
-          //   .split('/')
-          //   .reduceRight((item) => item);
-          // const allChunksNames = chunks.map((item) => item.name).join('~');
-          // return `${allChunksNames}-${moduleFileName}`;
           return false;
         },
       };
