@@ -66,7 +66,8 @@ export async function loadModule<T>(loaderContext: LoaderContext<T>, request: st
         reject(e);
       }
 
-      loaderContext.addDependency(request);
+      /** 去掉 query */
+      loaderContext.addDependency(request.replace(/\?.*$/, ''));
 
       if (!module) {
         console.info('[assets-loader] module is undefined');

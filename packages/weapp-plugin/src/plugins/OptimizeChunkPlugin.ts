@@ -58,17 +58,13 @@ export class OptimizeChunkPlugin {
   }
 
   apply(compiler: Compiler): void {
-    compiler.hooks.watchRun.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-      console.info('skr: watch', { modified: compiler.modifiedFiles, removed: compiler.removedFiles });
-    });
-
     compiler.hooks.finishMake.tap(OptimizeChunkPlugin.PLUGIN_NAME, (compilation) => {
       compilation.hooks.afterOptimizeChunks.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
         const cloneChunkCache = new Map();
         const { dependencyGraph } = this;
         compilation.entrypoints.forEach((entryPoint) => {
-          const moduleMap = dependencyGraph.getModuleMap();
-          const { packageGroup, independent } = moduleMap.get(entryPoint.name || '') || {};
+          const graphNodeMap = dependencyGraph.getGraphNodeMap();
+          const { packageGroup, independent } = graphNodeMap.getNodeByChunkName(entryPoint.name || '') || {};
           if (packageGroup && independent) {
             // 如果是独立分包！
             const { chunkGraph } = compilation;
@@ -115,7 +111,7 @@ export class OptimizeChunkPlugin {
       });
 
       compilation.hooks.beforeChunkAssets.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-        console.info('skr: all assets beforeChunkAssets', Object.keys(compilation.assets));
+        // console.info('skr: all assets beforeChunkAssets', Object.keys(compilation.assets));
       });
     });
 

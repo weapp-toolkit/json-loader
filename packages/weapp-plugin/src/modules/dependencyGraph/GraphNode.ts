@@ -5,6 +5,7 @@ import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { shouldIgnore } from '../../utils/ignore';
+import { GraphNodeMap } from './GraphNodeMap';
 
 export enum GraphNodeType {
   App,
@@ -84,7 +85,8 @@ export class DependencyGraphNode {
   /** 子模块 （该节点依赖的模块） */
   public outgoingModules = new Set<DependencyGraphNode>();
 
-  public moduleMap = new Map<string, DependencyGraphNode>();
+  /** 图节点映射管理 */
+  public graphNodeMap = new GraphNodeMap();
 
   public nodeType: GraphNodeType;
 
@@ -186,21 +188,13 @@ export class DependencyGraphNode {
     return [this as DependencyGraphNode].concat(childrenDependencies);
   }
 
-  /** 递归所有的子依赖 chunk 映射 */
-  public getModuleMap(): Map<string, DependencyGraphNode> {
-    const { outgoingModules: modules, moduleMap } = this;
+  /** 递归所有的子节点映射 */
+  public getGraphNodeMap(): GraphNodeMap {
+    const { outgoingModules: modules, graphNodeMap } = this;
 
-    const combinedModuleMap = new Map<string, DependencyGraphNode>(moduleMap);
+    const childrenGraphNodeMap = Array.from(modules).map((child) => child.getGraphNodeMap());
 
-    Array.from(modules).forEach((child) => {
-      const childModuleMap = child.getModuleMap();
-
-      childModuleMap.forEach((value, key) => {
-        combinedModuleMap.set(key, value);
-      });
-    });
-
-    return combinedModuleMap;
+    return graphNodeMap.concat(...childrenGraphNodeMap);
   }
 
   /**
@@ -244,7 +238,7 @@ export class DependencyGraphNode {
     dependencyGraphNode.incomingModules.add(this);
 
     if (!this.isAssets()) {
-      this.moduleMap.set(dependencyGraphNode.chunkName, dependencyGraphNode);
+      this.graphNodeMap.add(dependencyGraphNode);
     }
   }
 

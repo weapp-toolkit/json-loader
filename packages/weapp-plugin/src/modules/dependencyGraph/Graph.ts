@@ -5,6 +5,7 @@ import { Resolver } from '@weapp-toolkit/core';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { DependencyGraphNode } from './GraphNode';
 import { GraphNodeType } from '.';
+import { GraphNodeMap } from './GraphNodeMap';
 
 /**
  * 依赖树初始化选项
@@ -21,10 +22,12 @@ export interface IDependencyGraphOptions {
   compiler: Compiler;
 }
 
+const DEFAULT_IGNORES = [/^plugin:/];
+
 /** 依赖树 */
 export class DependencyGraph extends DependencyGraphNode {
-  /** 缓存的模块映射 */
-  private _modulesMap: Map<string, DependencyGraphNode> | undefined;
+  /** 缓存的节点映射 */
+  private _graphNodeMap?: GraphNodeMap;
 
   public compiler: Compiler;
 
@@ -36,7 +39,7 @@ export class DependencyGraph extends DependencyGraphNode {
       packageNames: new Set([APP_PACKAGE_NAME]),
       packageGroup: APP_GROUP_NAME,
       resolver,
-      ignores,
+      ignores: ignores.concat(DEFAULT_IGNORES),
       pathname: app,
       nodeType: GraphNodeType.App,
     });
@@ -56,18 +59,14 @@ export class DependencyGraph extends DependencyGraphNode {
   }
 
   /**
-   * 获取模块映射
+   * 获取节点映射
    */
-  public getModuleMap(): Map<string, DependencyGraphNode> {
-    if (!this._modulesMap) {
-      this._modulesMap = super.getModuleMap();
-    }
-
-    return this._modulesMap;
+  public getGraphNodeMap(): GraphNodeMap {
+    return this._graphNodeMap || (this._graphNodeMap = super.getGraphNodeMap());
   }
 
   public resetModuleMap() {
-    this._modulesMap = undefined;
+    this._graphNodeMap = undefined;
   }
 
   /**

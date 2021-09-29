@@ -18,9 +18,9 @@ const webpackConfig: webpack.Configuration = {
     assets: false,
     modules: false,
   },
-  watch: false,
+  watch: true,
   target: 'node',
-  mode: 'development',
+  mode: 'production',
   optimization: {
     usedExports: true,
   },

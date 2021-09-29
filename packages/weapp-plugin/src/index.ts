@@ -58,5 +58,29 @@ export default class WeappPlugin {
       dependencyGraph,
     });
     this.optimizeChunkPlugin.apply(compiler);
+
+    this.watchFileChange(compiler);
+  }
+
+  /**
+   * 当文件发生变化时
+   */
+  private watchFileChange(compiler: Compiler) {
+    compiler.hooks.watchRun.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
+      const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
+      const { modifiedFiles = [], removedFiles = [] } = compiler;
+      console.info('skr: watch', { modifiedFiles, removedFiles });
+
+      if (Array.from(modifiedFiles).length) {
+        modifiedFiles.forEach((filepath) => {});
+      }
+    });
+
+    compiler.hooks.beforeCompile.tap(OptimizeChunkPlugin.PLUGIN_NAME, (params) => {
+      // console.info('skr: beforeCompile', params);
+      params.normalModuleFactory.hooks.beforeResolve.tap(OptimizeChunkPlugin.PLUGIN_NAME, (resolvedData) => {
+        // console.info('skr: beforeResolve', resolvedData.request);
+      });
+    });
   }
 }

@@ -239,7 +239,7 @@ export class AssetsMap {
    * @returns
    */
   private getOptimizedAssetPathMap(chunkNames: string[], filename: string): Map<string, string> {
-    const moduleMap = this.dependencyGraph.getModuleMap();
+    const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
 
     // if (filename.endsWith('.wxs')) {
     //   console.info('skr: optimizeAssetModules', { filename, chunkNames });
@@ -248,7 +248,7 @@ export class AssetsMap {
 
     /** chunkName 对应的 dependencyGraphNode 实例列表 */
     const graphNodes = chunkNames
-      .map((chunkName) => moduleMap.get(chunkName))
+      .map((chunkName) => graphNodeMap.getNodeByChunkName(chunkName))
       .filter((node) => typeof node !== 'undefined') as DependencyGraphNode[];
 
     /** 依赖引用者 */
@@ -302,10 +302,10 @@ export class AssetsMap {
    * @returns
    */
   private getUnrecognizedAssetPath(chunkName: string, filename: string) {
-    const moduleMap = this.dependencyGraph.getModuleMap();
+    const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
 
     /** chunkName 对应的 dependencyGraphNode 实例 */
-    const graphNode = moduleMap.get(chunkName);
+    const graphNode = graphNodeMap.getNodeByChunkName(chunkName);
 
     if (!graphNode) {
       return filename;
@@ -348,8 +348,8 @@ export class AssetsMap {
    * @returns
    */
   private getPackageGroup(chunkName: string): string {
-    const moduleMap = this.dependencyGraph.getModuleMap();
-    const graphNode = moduleMap.get(chunkName);
+    const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
+    const graphNode = graphNodeMap.getNodeByChunkName(chunkName);
 
     if (!graphNode) {
       return APP_GROUP_NAME;
