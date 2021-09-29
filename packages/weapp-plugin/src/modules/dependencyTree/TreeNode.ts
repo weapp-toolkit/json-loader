@@ -3,14 +3,21 @@ import fsx from 'fs-extra';
 import globby from 'globby';
 import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
-import { APP_GROUP_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
+import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { shouldIgnore } from '../../utils/ignore';
+
+export enum TreeNodeType {
+  App,
+  Page,
+  Component,
+  Other,
+}
 
 export interface IDependencyTreeNode {
   /** app 根绝对路径 */
   appRoot: string;
   /** 分包名 */
-  packageName: string;
+  packageNames: Set<string>;
   /** 分包分组名 */
   packageGroup: string;
   /** 依赖绝对路径 */
@@ -21,6 +28,8 @@ export interface IDependencyTreeNode {
   ignores: RegExp[];
   /** 父节点依赖绝对路径 */
   parentPathname?: string;
+  /** 节点类型 */
+  nodeType: TreeNodeType;
 }
 
 /**
@@ -34,7 +43,7 @@ export interface IDependencyTreeNode {
  */
 export class DependencyTreeNode {
   /** 依赖类型 */
-  private _type!: AssetType;
+  private _assetType!: AssetType;
 
   /** 依赖文件名 */
   private _basename!: string;
@@ -55,7 +64,7 @@ export class DependencyTreeNode {
   public ignores: RegExp[];
 
   /** 分包名 */
-  public packageName: string;
+  public packageNames = new Set<string>();
 
   /** 分包分组名 */
   public packageGroup: string;
@@ -69,17 +78,21 @@ export class DependencyTreeNode {
   /** 父节点依赖绝对路径 */
   public parentPathname?: string;
 
-  /** 子依赖 */
-  public modules = new Set<DependencyTreeNode>();
+  /** 父模块 （依赖了该节点的模块） */
+  public incomingModules = new Set<DependencyTreeNode>();
+
+  /** 子模块 （该节点依赖的模块） */
+  public outgoingModules = new Set<DependencyTreeNode>();
 
   public modulesMap = new Map<string, DependencyTreeNode>();
 
+  public nodeType: TreeNodeType;
+
   constructor(options: IDependencyTreeNode) {
-    const { appRoot, pathname, resolver, ignores, parentPathname, packageName, packageGroup } = options;
+    const { appRoot, pathname, resolver, ignores, parentPathname, packageNames, packageGroup, nodeType } = options;
     const context = path.dirname(pathname);
 
     this.appRoot = appRoot;
-    this.packageName = packageName;
     this.packageGroup = packageGroup;
     this.pathname = pathname;
     this.context = context;
@@ -87,14 +100,18 @@ export class DependencyTreeNode {
     this.resolver = resolver;
     this.resolve = resolver.resolveDependencySync.bind(null, context);
     this.ignores = ignores;
+    this.nodeType = nodeType;
+    packageNames.forEach((packageName) => {
+      this.packageNames.add(packageName);
+    });
   }
 
   /** 依赖类型 */
   public get type(): AssetType {
-    if (!this._type) {
-      this._type = getAssetType(this.pathname);
+    if (!this._assetType) {
+      this._assetType = getAssetType(this.pathname);
     }
-    return this._type;
+    return this._assetType;
   }
 
   /** 依赖文件名 */
@@ -107,12 +124,23 @@ export class DependencyTreeNode {
 
   /** chunk 名，用于生成 entry（跨分包时，同一个文件的 chunk 将会不同） */
   public get chunkName(): string {
-    const { appRoot, packageGroup, pathname } = this;
+    const { appRoot, packageGroup, pathname, packageNames } = this;
     if (!this._chunkName) {
       const relativePath = path.relative(appRoot, removeExt(pathname));
 
       if (packageGroup === APP_GROUP_NAME) {
-        this._chunkName = relativePath;
+        if (packageNames.size === 1) {
+          /** 只被一个主包或分包引用了 */
+          let packageName = '';
+          packageNames.forEach((n) => (packageName = n));
+          /** 若只被一个普通分包引用了，且pathname不在该分包，调整到对应的包内 */
+          this._chunkName =
+            packageName !== APP_PACKAGE_NAME && !relativePath.startsWith(packageName)
+              ? path.join(packageName, PKG_OUTSIDE_DEP_DIRNAME, relativePath)
+              : relativePath;
+        } else {
+          this._chunkName = relativePath;
+        }
       } else {
         /** 如果不是主包分组的依赖，调整其模块到独立分包下 */
         this._chunkName = relativePath.startsWith(packageGroup)
@@ -140,15 +168,16 @@ export class DependencyTreeNode {
       const jsonPath = resolve(replaceExt(basename, '.json'));
       const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
-      this.addAllChildren(Object.values(json.usingComponents || {}));
+      this.addAllChildComponents(Object.values(json.usingComponents || {}));
       this.addAllAssets();
     }
   }
 
   /** 递归所有的子依赖 */
   public getModules(): DependencyTreeNode[] {
-    const { modules } = this;
+    const { outgoingModules: modules } = this;
 
+    // TODO: 循环依赖问题？
     /** 获取 children js */
     const childrenDependencies = Array.from(modules).reduce((deps: DependencyTreeNode[], child) => {
       return deps.concat(child.getModules());
@@ -159,7 +188,7 @@ export class DependencyTreeNode {
 
   /** 递归所有的子依赖 chunk 映射 */
   public getModuleMaps(): Map<string, DependencyTreeNode> {
-    const { modules, modulesMap } = this;
+    const { outgoingModules: modules, modulesMap } = this;
 
     const combinedModulesMap = new Map<string, DependencyTreeNode>(modulesMap);
 
@@ -187,7 +216,13 @@ export class DependencyTreeNode {
    * @param packageGroup 分包分组名
    * @param resourcePath 资源绝对路径
    */
-  public addModule(packageName: string, packageGroup: string, resourcePath: string): void {
+  public addModule(options: {
+    packageNames: Set<string>;
+    packageGroup: string;
+    resourcePath: string;
+    nodeType: TreeNodeType;
+  }): void {
+    const { packageNames, packageGroup, resourcePath, nodeType } = options;
     /** 忽略处理的路径 */
     if (shouldIgnore(this.ignores, resourcePath)) {
       return;
@@ -195,15 +230,18 @@ export class DependencyTreeNode {
 
     const dependencyTreeNode = createDependencyTreeNode({
       appRoot: this.appRoot,
-      packageName,
+      packageNames,
       packageGroup,
       pathname: resourcePath,
       resolver: this.resolver,
       ignores: this.ignores,
+      nodeType,
     });
+
     dependencyTreeNode.build();
 
-    this.modules.add(dependencyTreeNode);
+    this.outgoingModules.add(dependencyTreeNode);
+    dependencyTreeNode.incomingModules.add(this);
 
     if (!this.isAssets()) {
       this.modulesMap.set(dependencyTreeNode.chunkName, dependencyTreeNode);
@@ -211,26 +249,38 @@ export class DependencyTreeNode {
   }
 
   /**
-   * 添加页面、组件依赖
-   * @param resources
-   * @param resolve
+   * 添加当前分包下的子模块
+   * @param resourcePath
+   * @param nodeType
    */
-  public addAllChildren(resources: string[], resolve = this.resolve): void {
-    const { packageName, packageGroup } = this;
-
-    resources.map((resource) => {
-      /** 获取 js 路径 */
-      const resourcePath = resolve(resource);
-
-      this.addModule(packageName, packageGroup, resourcePath);
+  public addCurrentPackageModule(resourcePath: string, nodeType: TreeNodeType) {
+    this.addModule({
+      packageNames: this.packageNames,
+      packageGroup: this.packageGroup,
+      resourcePath,
+      nodeType,
     });
   }
 
   /**
-   * 添加所有同名资源文件，如 wxml
+   * 添加页面、组件依赖的子组件
+   * @param resources
+   * @param resolve
+   */
+  public addAllChildComponents(resources: string[], resolve = this.resolve): void {
+    resources.map((resource) => {
+      /** 获取 js 路径 */
+      const resourcePath = resolve(resource);
+
+      this.addCurrentPackageModule(resourcePath, TreeNodeType.Component);
+    });
+  }
+
+  /**
+   * 添加页面/组件的所有同名资源文件，如 wxml
    */
   public addAllAssets(): void {
-    const { packageName, packageGroup, basename, context, resolve } = this;
+    const { basename, context, resolve } = this;
 
     const assets = globby.sync(replaceExt(basename, '.*'), {
       cwd: context,
@@ -241,7 +291,7 @@ export class DependencyTreeNode {
       /** 获取绝对路径 */
       const resourcePath = resolve(resource);
 
-      this.addModule(packageName, packageGroup, resourcePath);
+      this.addCurrentPackageModule(resourcePath, this.nodeType);
     });
   }
 }
@@ -259,24 +309,40 @@ export const createDependencyTreeNode: CachedFunction<(options: IDependencyTreeN
   }
 
   const { cache } = createDependencyTreeNode;
-  const { appRoot, packageName, packageGroup, pathname, resolver, ignores } = options;
+  const { appRoot, packageNames, packageGroup, pathname, resolver, ignores, nodeType } = options;
 
   const cacheId = `${packageGroup}:${pathname}`;
 
+  let dependencyTreeNode: DependencyTreeNode;
+
   /** 如果已经有创建过，复用 */
   if (cache[cacheId]) {
-    return cache[cacheId];
+    dependencyTreeNode = cache[cacheId];
+    packageNames.forEach((packageName) => {
+      recursiveAddPackageNames(dependencyTreeNode, packageName);
+    });
+  } else {
+    /** 否则创建新的节点并缓存 */
+    dependencyTreeNode = new DependencyTreeNode({
+      appRoot,
+      packageNames: new Set(packageNames),
+      packageGroup,
+      pathname,
+      resolver,
+      ignores,
+      nodeType,
+    });
+    cache[cacheId] = dependencyTreeNode;
   }
 
-  /** 否则创建新的节点并缓存 */
-  const dependencyTreeNode = new DependencyTreeNode({
-    appRoot,
-    packageName,
-    packageGroup,
-    pathname,
-    resolver,
-    ignores,
-  });
-  cache[cacheId] = dependencyTreeNode;
   return dependencyTreeNode;
 };
+
+function recursiveAddPackageNames(node: DependencyTreeNode, packageName: string) {
+  if (!node.packageNames.has(packageName)) {
+    node.packageNames.add(packageName);
+    node.outgoingModules.forEach((outgoingModule) => {
+      recursiveAddPackageNames(outgoingModule, packageName);
+    });
+  }
+}

@@ -133,7 +133,6 @@ export class OptimizeChunkPlugin {
           return true;
         },
         name: (module: Module, chunks: Chunk[], cacheGroupKey: string) => {
-          // debugger;
           if (module instanceof NormalModule) {
             if (path.extname(module.resource) === '.js' && !module.isEntryModule()) {
               // debugger;

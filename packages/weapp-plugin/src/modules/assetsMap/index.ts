@@ -254,13 +254,13 @@ export class AssetsMap {
     /** 依赖引用者 */
     const dependencyUsers = new Set<string>();
     /** 未在主包使用 */
-    const notUsedInAppPackage = treeNodes.every(({ packageName, independent }) => {
+    const notUsedInAppPackage = treeNodes.every(({ packageNames, independent }) => {
       /** 独立分包不计算使用次数 */
       if (!independent) {
-        dependencyUsers.add(packageName);
+        packageNames.forEach((packageName) => dependencyUsers.add(packageName));
       }
 
-      return packageName !== APP_PACKAGE_NAME;
+      return !packageNames.has(APP_PACKAGE_NAME) && packageNames.size === 1;
     });
 
     /** 只在一个分包使用 */
@@ -271,7 +271,7 @@ export class AssetsMap {
     const optimizedAssetPathMap = new Map<string, string>();
 
     treeNodes.forEach((treeNode) => {
-      const { packageName, packageGroup } = treeNode;
+      const { packageNames, packageGroup } = treeNode;
 
       /**
        * @thinking
@@ -279,8 +279,13 @@ export class AssetsMap {
        */
 
       /** 当只在一个分包中使用了，并且不属于当前分包，将其移动到该分包下 */
-      if (onlyUsedInOneSubPackage && !filename.startsWith(packageName)) {
-        optimizedAssetPathMap.set(packageGroup, path.join(packageName, this.publicPath, filename));
+      if (onlyUsedInOneSubPackage) {
+        // && !filename.startsWith(packageName)
+        let packageName = '';
+        packageNames.forEach((n) => (packageName = n));
+        if (!filename.startsWith(packageName)) {
+          optimizedAssetPathMap.set(packageGroup, path.join(packageName, this.publicPath, filename));
+        }
         return;
       }
 
