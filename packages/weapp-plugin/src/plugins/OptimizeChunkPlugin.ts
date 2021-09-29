@@ -67,8 +67,8 @@ export class OptimizeChunkPlugin {
         const cloneChunkCache = new Map();
         const { dependencyGraph } = this;
         compilation.entrypoints.forEach((entryPoint) => {
-          const moduleMaps = dependencyGraph.getModuleMaps();
-          const { packageGroup, independent } = moduleMaps.get(entryPoint.name || '') || {};
+          const moduleMap = dependencyGraph.getModuleMap();
+          const { packageGroup, independent } = moduleMap.get(entryPoint.name || '') || {};
           if (packageGroup && independent) {
             // 如果是独立分包！
             const { chunkGraph } = compilation;

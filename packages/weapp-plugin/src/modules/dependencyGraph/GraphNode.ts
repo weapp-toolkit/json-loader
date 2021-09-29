@@ -84,7 +84,7 @@ export class DependencyGraphNode {
   /** 子模块 （该节点依赖的模块） */
   public outgoingModules = new Set<DependencyGraphNode>();
 
-  public modulesMap = new Map<string, DependencyGraphNode>();
+  public moduleMap = new Map<string, DependencyGraphNode>();
 
   public nodeType: GraphNodeType;
 
@@ -187,20 +187,20 @@ export class DependencyGraphNode {
   }
 
   /** 递归所有的子依赖 chunk 映射 */
-  public getModuleMaps(): Map<string, DependencyGraphNode> {
-    const { outgoingModules: modules, modulesMap } = this;
+  public getModuleMap(): Map<string, DependencyGraphNode> {
+    const { outgoingModules: modules, moduleMap } = this;
 
-    const combinedModulesMap = new Map<string, DependencyGraphNode>(modulesMap);
+    const combinedModuleMap = new Map<string, DependencyGraphNode>(moduleMap);
 
     Array.from(modules).forEach((child) => {
-      const childModulesMap = child.getModuleMaps();
+      const childModuleMap = child.getModuleMap();
 
-      childModulesMap.forEach((value, key) => {
-        combinedModulesMap.set(key, value);
+      childModuleMap.forEach((value, key) => {
+        combinedModuleMap.set(key, value);
       });
     });
 
-    return combinedModulesMap;
+    return combinedModuleMap;
   }
 
   /**
@@ -244,7 +244,7 @@ export class DependencyGraphNode {
     dependencyGraphNode.incomingModules.add(this);
 
     if (!this.isAssets()) {
-      this.modulesMap.set(dependencyGraphNode.chunkName, dependencyGraphNode);
+      this.moduleMap.set(dependencyGraphNode.chunkName, dependencyGraphNode);
     }
   }
 

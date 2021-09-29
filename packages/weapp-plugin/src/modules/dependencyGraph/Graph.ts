@@ -58,15 +58,15 @@ export class DependencyGraph extends DependencyGraphNode {
   /**
    * 获取模块映射
    */
-  public getModuleMaps(): Map<string, DependencyGraphNode> {
+  public getModuleMap(): Map<string, DependencyGraphNode> {
     if (!this._modulesMap) {
-      this._modulesMap = super.getModuleMaps();
+      this._modulesMap = super.getModuleMap();
     }
 
     return this._modulesMap;
   }
 
-  public resetModuleMaps() {
+  public resetModuleMap() {
     this._modulesMap = undefined;
   }
 
