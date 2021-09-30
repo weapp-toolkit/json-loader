@@ -1,0 +1,5 @@
+<view wx:if="{{isInner}}">inner</view>
+<view wx:else>
+  outer
+  <circular isInner></circular>
+</view>

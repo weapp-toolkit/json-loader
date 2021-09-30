@@ -2,7 +2,8 @@
   "navigationBarTitleText": "my",
   "usingComponents": {
     "abc-button": "/components/abc-button/abc-button",
-    "no-data": "./components/no-data/no-data"
+    "no-data": "./components/no-data/no-data",
+    "circular": "/components/circular/circular"
   },
   "backgroundColor": "#F2F2F2"
 }
