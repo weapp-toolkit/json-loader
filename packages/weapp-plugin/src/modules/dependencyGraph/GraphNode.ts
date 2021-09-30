@@ -161,12 +161,20 @@ export class DependencyGraphNode {
    * 扫描 json 依赖，添加同名依赖（wxml、wxs 等）
    */
   public build(): void {
+    if (this._isVisiting) {
+      return;
+    }
+
+    this._isVisiting = true;
+
     const { resolve, basename } = this;
 
     const jsonPath = resolve(replaceExt(basename, '.json'));
     const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
     this.addOutgoingNodes(Object.values(json.usingComponents || {}));
+
+    this._isVisiting = false;
   }
 
   /**
