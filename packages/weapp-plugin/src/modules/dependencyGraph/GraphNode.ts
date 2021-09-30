@@ -1,6 +1,6 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import { replaceExt, Resolver, getAssetType, AssetType, removeExt } from '@weapp-toolkit/core';
+import { replaceExt, Resolver, removeExt } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
 import { isInSubPackage } from '../../utils/dependency';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
@@ -52,9 +52,6 @@ function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string
 export class DependencyGraphNode {
   /** 信号量，标记是否正在遍历，避免循环 */
   private _isVisiting = false;
-
-  /** 依赖类型 */
-  private _assetType!: AssetType;
 
   /** 依赖文件名 */
   private _basename!: string;
@@ -170,6 +167,16 @@ export class DependencyGraphNode {
     const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
     this.addOutgoingNodes(Object.values(json.usingComponents || {}));
+  }
+
+  /**
+   * 重新扫描 json 依赖，添加同名依赖（wxml、wxs 等）
+   */
+  public rebuild(): void {
+    this.graphNodeMap.clear();
+    this.outgoingNodes.clear();
+
+    this.build();
   }
 
   /** 递归所有的子节点映射 */

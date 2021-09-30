@@ -1,3 +1,4 @@
+import { removeExt } from '@weapp-toolkit/core';
 import { DependencyGraphNode } from './GraphNode';
 
 export class GraphNodeMap {
@@ -13,8 +14,6 @@ export class GraphNodeMap {
   public chunkModuleMap = new Map<string, DependencyGraphNode>();
 
   constructor(defaultSet?: Set<DependencyGraphNode> | DependencyGraphNode[]) {
-    this.clean();
-
     if (defaultSet) {
       this.init(defaultSet);
     }
@@ -46,7 +45,7 @@ export class GraphNodeMap {
   /**
    * 清除所有模块
    */
-  public clean(): void {
+  public clear(): void {
     this.modules = new Set<DependencyGraphNode>();
     this.requestModuleMap = new Map<string, DependencyGraphNode>();
     this.chunkModuleMap = new Map<string, DependencyGraphNode>();
@@ -58,7 +57,7 @@ export class GraphNodeMap {
    * @returns
    */
   public getNodeByRequest(request: string): DependencyGraphNode | undefined {
-    return this.requestModuleMap.get(request);
+    return this.requestModuleMap.get(removeExt(request));
   }
 
   /**
@@ -98,7 +97,7 @@ export class GraphNodeMap {
     const { pathname, chunkName } = node;
 
     this.modules.add(node);
-    this.requestModuleMap.set(pathname, node);
+    this.requestModuleMap.set(removeExt(pathname), node);
     this.chunkModuleMap.set(chunkName, node);
   }
 }
