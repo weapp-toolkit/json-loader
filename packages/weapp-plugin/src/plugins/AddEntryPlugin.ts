@@ -49,12 +49,52 @@ export class AddEntryPlugin {
       this.setAllEntries();
       return true;
     });
+
+    this.watchFileChange(compiler);
+  }
+
+  /**
+   * 当文件发生变化时
+   */
+  private watchFileChange(compiler: Compiler) {
+    compiler.hooks.watchRun.tap(AddEntryPlugin.PLUGIN_NAME, () => {
+      const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
+      const { modifiedFiles = [], removedFiles = [] } = compiler;
+      const modified = Array.from(modifiedFiles);
+      const modifiedGraphNode = modified
+        .filter((request) => request.endsWith('.json'))
+        .map((request) => graphNodeMap.getNodeByRequest(request));
+
+      console.info('skr: watch', { modifiedFiles, removedFiles });
+
+      if (modifiedGraphNode.length) {
+        this.dependencyGraph.clearGraphNodeMap();
+
+        modifiedGraphNode.forEach((graphNode) => {
+          if (!graphNode) {
+            return;
+          }
+
+          console.info('skr: rebuild', graphNode.pathname);
+
+          /** 重新扫描依赖 */
+          graphNode.rebuild();
+        });
+      }
+    });
+
+    compiler.hooks.beforeCompile.tap(AddEntryPlugin.PLUGIN_NAME, (params) => {
+      // console.info('skr: beforeCompile', params);
+      params.normalModuleFactory.hooks.beforeResolve.tap(AddEntryPlugin.PLUGIN_NAME, (resolvedData) => {
+        // console.info('skr: beforeResolve', resolvedData.request);
+      });
+    });
   }
 
   /**
    * 添加项目所有依赖
    */
-  setAllEntries(): void {
+  private setAllEntries(): void {
     const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
 
     graphNodeMap.modules.forEach((module) => {

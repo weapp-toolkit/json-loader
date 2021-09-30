@@ -68,7 +68,7 @@ export class DependencyGraph extends DependencyGraphNode {
     return this._graphNodeMap || (this._graphNodeMap = super.getGraphNodeMap());
   }
 
-  public resetModuleMap() {
+  public clearGraphNodeMap() {
     this._graphNodeMap = undefined;
   }
 
