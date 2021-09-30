@@ -5,3 +5,4 @@
 </view>
 <no-data></no-data>
 <include src="./template.wxml"/>
+<circular></circular>
