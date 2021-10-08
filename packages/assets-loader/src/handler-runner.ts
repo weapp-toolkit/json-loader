@@ -123,7 +123,7 @@ export class HandlerRunner<T> {
 
 export const handlerRunner = <T>(options: HandlerRunnerOptions<T>) => {
   const { handlers, loaderContext } = options;
-  const runner = new HandlerRunner($.omit(options, 'handlers'));
+  const runner = new HandlerRunner<T>($.omit(options, 'handlers'));
 
   handlers.forEach(({ test, handler }) => {
     if (test.test(loaderContext.resourcePath)) {

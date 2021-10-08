@@ -5,7 +5,7 @@ import WeappPlugin from '../lib';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: path.resolve(__dirname, '../../../test/src/app.js'),
+    app: path.resolve(__dirname, '../../../test/src/app.ts'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -35,7 +35,13 @@ const webpackConfig: webpack.Configuration = {
     rules: [
       {
         test: /\.(ts|js)$/,
-        use: ['babel-loader', '@weapp-toolkit/assets-loader'],
+        use: [
+          '@weapp-toolkit/assets-loader',
+          {
+            loader: 'babel-loader',
+            options: require('../../../babel.config'),
+          },
+        ],
         exclude: /node_modules/,
       },
       {

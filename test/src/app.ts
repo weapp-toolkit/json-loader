@@ -24,6 +24,10 @@ App({
     new Log().log(String(new Date().getHours()).padStart(2, '0'));
   },
 
+  test(a: string) {
+    console.log(a);
+  },
+
   onPageNotFound() {
     wx.redirectTo({
       url: 'pages/index/index',

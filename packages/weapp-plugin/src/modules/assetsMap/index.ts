@@ -1,7 +1,6 @@
 import path from 'path';
 import { Compilation, NormalModule } from 'webpack';
 import { replaceExt } from '@weapp-toolkit/core';
-import { shouldIgnore } from '../../utils/ignore';
 import {
   APP_GROUP_NAME,
   APP_PACKAGE_NAME,

@@ -1,22 +1,27 @@
 import globby from 'globby';
+import $ from 'lodash';
 import { transform } from '@babel/core';
 import { LoaderContext } from 'webpack';
 import { handleSourceCode } from '../core';
 import { Handler, HandlerRunner } from '../handler-runner';
 import { loadModule } from '../common';
 import { replaceExt } from '../../../core/lib';
+import { AssetsLoaderOptions } from '..';
 
-export class JavascriptHandler<T> implements Handler<T> {
+export class JavascriptHandler<T extends AssetsLoaderOptions> implements Handler<T> {
   static HANDLER_NAME = 'JavascriptHandler';
 
   apply(runner: HandlerRunner<T>): void {
-    const { loaderContext, resolver } = runner;
-    const { context, resourcePath } = loaderContext;
+    const { loaderContext, loaderOptions, resolver } = runner;
+    const { context } = loaderContext;
 
     runner.hooks.analysisCode.tap(JavascriptHandler.HANDLER_NAME, (sourceCode) => {
-      sourceCode = transform(sourceCode, { sourceType: 'module', comments: false })!.code || '';
+      // if (loaderContext.resourcePath.endsWith('.ts')) {
+      //   console.info('skr: sourceCode', sourceCode);
+      // }
+      sourceCode = transform(sourceCode, { sourceType: 'module', babelrc: false, comments: false })!.code || '';
 
-      const { code, assets } = handleSourceCode(sourceCode);
+      const { code, assets } = handleSourceCode(sourceCode, $.pick(loaderOptions, ['includes', 'excludes']));
 
       return { code, assets };
     });

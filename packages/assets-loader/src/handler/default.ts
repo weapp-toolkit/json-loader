@@ -1,3 +1,4 @@
+import $ from 'lodash';
 import path from 'path';
 import globby from 'globby';
 import { shortid } from '@weapp-toolkit/core';
@@ -13,10 +14,12 @@ export class DefaultHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'DefaultHandler';
 
   apply(runner: HandlerRunner<T>): void {
-    const { loaderContext, resolver, placeholderMap, appRoot } = runner;
+    const { loaderContext, loaderOptions, resolver, placeholderMap, appRoot } = runner;
     const { context } = loaderContext;
 
-    runner.hooks.analysisCode.tap(DefaultHandler.HANDLER_NAME, (code) => handleSourceCode(code));
+    runner.hooks.analysisCode.tap(DefaultHandler.HANDLER_NAME, (code) =>
+      handleSourceCode(code, $.pick(loaderOptions, ['includes', 'excludes'])),
+    );
 
     runner.hooks.beforeHandleAssets.tap(DefaultHandler.HANDLER_NAME, (code) => code);
 
