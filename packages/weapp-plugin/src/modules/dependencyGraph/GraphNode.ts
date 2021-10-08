@@ -1,10 +1,9 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import { replaceExt, Resolver, removeExt } from '@weapp-toolkit/core';
+import { replaceExt, Resolver, removeExt, shouldIgnore } from '@weapp-toolkit/core';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
 import { isInSubPackage } from '../../utils/dependency';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
-import { shouldIgnore } from '../../utils/ignore';
 import { GraphNodeMap } from './GraphNodeMap';
 
 export enum GraphNodeType {

@@ -39,7 +39,7 @@ export const getPageOrComponentAssets = (context: string, basename: string): str
 };
 
 /**
- * 判断pathname是否包含在分包路径内
+ * 判断 pathname 是否包含在分包路径内
  * @param pathname 文件路径
  * @param packageRoot
  * @returns boolean

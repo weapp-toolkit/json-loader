@@ -1,10 +1,9 @@
 import $ from 'lodash';
 import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
-import { removeExt } from '@weapp-toolkit/core';
+import { removeExt, shouldIgnore } from '@weapp-toolkit/core';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { DEFAULT_ASSETS_MAP_IGNORES, PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
-import { shouldIgnore } from '../utils/ignore';
 import { AssetsMap } from '../modules/assetsMap';
 import { DependencyGraph } from '../modules/dependencyGraph';
 import { isInSubPackage } from '../utils/dependency';

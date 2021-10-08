@@ -1,3 +1,4 @@
+import { shouldIgnore, shouldInclude } from '../../core/lib';
 import { GlobAsset, HttpAsset, ModuleAsset, NormalAsset, UnknownAsset } from './modules/asset';
 import { Assets } from './modules/asset/type';
 
@@ -6,9 +7,10 @@ interface IHandleSourceCodeResult {
   code: string;
 }
 
+/** 匹配普通注释（不能排除以 // 开头的 http 链接） */
+export const COMMENT_MATCHER = /\/\*[^\0]*?\*\/|\/\/.*/gm;
 /** 粗略匹配资源 */
 export const ROUGHLY_MATCHER = /((import|require)([^\w]*?)[^'"`=:]*?)?['"`][^:;<>]*?\.[a-zA-Z]+['"`]/gm;
-// export const COMMENT_MATCHER = /(\/\*[\w'\s\r\n*]*\*\/)|(\/\/[\w\s']*)|(<!--[\s\w>/]*-->)/gm;
 /** 匹配模板字符串拼接资源 */
 export const TEMPLATE_STRING_MATCHER = /(?<=[^${}'"`]+)[${]\{(.*)?\}\}?/g;
 /** 匹配表达式拼接资源 */
@@ -72,14 +74,24 @@ const handleAssets = (code: string): Assets => {
  * @param sourceCode 源码
  * @returns
  */
-export const handleSourceCode = (sourceCode: string): IHandleSourceCodeResult => {
+export const handleSourceCode = (
+  sourceCode: string,
+  options: { includes?: RegExp[]; excludes?: RegExp[] },
+): IHandleSourceCodeResult => {
+  const { includes = [], excludes = [] } = options;
   const assets: Assets[] = [];
   const code = sourceCode.replace(ROUGHLY_MATCHER, (match) => {
     const asset = handleAssets(match);
-    assets.push(asset);
 
-    /** 将资源缓存，并替换为占位字符串，后续替换代码使用 */
-    return match.replace(asset.code, getAssetsLoaderPlaceholder(assets.length - 1));
+    /** 过滤出有效资源 */
+    if (!shouldIgnore(excludes, asset.request) && shouldInclude(includes, asset.request)) {
+      assets.push(asset);
+      /** 将资源缓存，并替换为占位字符串，后续替换代码使用 */
+      return match.replace(asset.code, getAssetsLoaderPlaceholder(assets.length - 1));
+    }
+
+    /** 不替换 */
+    return match;
   });
 
   return { assets, code };

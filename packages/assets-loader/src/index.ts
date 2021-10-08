@@ -1,7 +1,15 @@
 import path from 'path';
+import $ from 'lodash';
 import { Compiler, LoaderContext } from 'webpack';
 import { JSONSchema7 } from 'json-schema';
-import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
+import {
+  createResolver,
+  resolveAppEntryPath,
+  AUDIO_EXT_REG,
+  IMAGE_EXT_REG,
+  VIDEO_EXT_REG,
+  XCX_RESOURCE_EXT_REG,
+} from '@weapp-toolkit/core';
 import { handlerRunner } from './handler-runner';
 import { DefaultHandler } from './handler/default';
 import { JavascriptHandler } from './handler/javascript';
@@ -12,6 +20,8 @@ import { CssHandler } from './handler/css';
 
 export interface AssetsLoaderOptions {
   esModule?: boolean;
+  includes?: RegExp[];
+  excludes?: RegExp[];
 }
 
 const schema: JSONSchema7 = {
@@ -20,6 +30,12 @@ const schema: JSONSchema7 = {
     esModule: {
       type: 'boolean',
       default: true,
+    },
+    includes: {
+      type: 'array',
+    },
+    excludes: {
+      type: 'array',
     },
   },
 };
@@ -32,7 +48,9 @@ const schema: JSONSchema7 = {
  * @returns
  */
 async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: string | Buffer): Promise<void> {
-  const options = this.getOptions(schema);
+  const options = $.defaults(this.getOptions(schema), {
+    includes: [XCX_RESOURCE_EXT_REG, IMAGE_EXT_REG, AUDIO_EXT_REG, VIDEO_EXT_REG],
+  });
   const callback = this.async();
 
   // const { esModule } = options;
@@ -51,7 +69,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
    * handler runner 主要为了解决不同类型文件对资源的处理不同的问题
    * 如果扁平化处理，会出现很多 if else
    */
-  const runner = handlerRunner({
+  const runner = handlerRunner<AssetsLoaderOptions>({
     loaderContext: this,
     loaderOptions: options,
     source: sourceString,
@@ -84,10 +102,10 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
       },
     ],
   });
-  const code = await runner.run();
+  const code = await runner.run().catch(this.emitError.bind(this));
 
   /** 返回处理后的字符串 */
-  return callback?.(null, code);
+  return callback?.(null, code!);
 }
 
 export default assetsLoader;

@@ -1,3 +1,4 @@
+import $ from 'lodash';
 import { transform } from '@babel/core';
 import { handleSourceCode } from '../core';
 import { handleAsset } from '../common';
@@ -10,7 +11,7 @@ export class WxsHandler<T> implements Handler<T> {
     runner.hooks.analysisCode.tap(WxsHandler.HANDLER_NAME, (sourceCode) => {
       sourceCode = transform(sourceCode, { sourceType: 'module', comments: false })!.code || '';
 
-      const { code, assets } = handleSourceCode(sourceCode);
+      const { code, assets } = handleSourceCode(sourceCode, $.pick(runner.loaderOptions, ['includes', 'excludes']));
 
       return { code, assets };
     });
