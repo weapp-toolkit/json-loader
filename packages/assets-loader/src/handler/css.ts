@@ -27,11 +27,6 @@ export class CssHandler<T extends AssetsLoaderOptions> implements Handler<T> {
       return handleSourceCode(sourceCode, $.pick(runner.loaderOptions, ['includes', 'excludes']));
     });
 
-    runner.hooks.beforeHandleAssets.tap(CssHandler.HANDLER_NAME, (code) => {
-      console.info('skr: css', code);
-      return code;
-    });
-
     runner.hooks.handleModuleAsset.tapPromise(
       CssHandler.HANDLER_NAME,
       handleAsset.bind(this, 'CSS_DEPENDENCY', runner),
