@@ -3,9 +3,10 @@ import webpack from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import WeappPlugin from '../lib';
 
+const projectPath = path.resolve(__dirname, '../../../test');
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: path.resolve(__dirname, '../../../test/src/app.ts'),
+    app: path.resolve(projectPath, 'src/app.js'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -20,9 +21,10 @@ const webpackConfig: webpack.Configuration = {
   },
   watch: true,
   target: 'node',
-  mode: 'production',
+  mode: 'development',
   optimization: {
     usedExports: true,
+    concatenateModules: false,
   },
   devtool: 'cheap-source-map',
   resolve: {
@@ -74,7 +76,7 @@ const webpackConfig: webpack.Configuration = {
         use: ['@weapp-toolkit/assets-loader'],
       },
       {
-        test: /\.(png|jpe?g|svg|gif|webp)$/,
+        test: /\.(otf|woff|png|jpe?g|svg|gif|webp)$/,
         use: [
           {
             loader: '@weapp-toolkit/cdn-loader',

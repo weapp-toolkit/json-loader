@@ -1,7 +1,7 @@
 import $ from 'lodash';
 import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
-import { removeExt, shouldIgnore } from '@weapp-toolkit/core';
+import { removeExt, shouldIgnore, getAssetType } from '@weapp-toolkit/core';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { DEFAULT_ASSETS_MAP_IGNORES, PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { AssetsMap } from '../modules/assetsMap';
@@ -115,6 +115,7 @@ export class OptimizeChunkPlugin {
       const splitChunksConfig = compiler.options.optimization.splitChunks;
       const processedConfig: typeof splitChunksConfig = {
         ...splitChunksConfig,
+
         // 不做模块合并，维持原来的文件目录结构
         minChunks: 1,
         minSize: 1,
@@ -132,7 +133,7 @@ export class OptimizeChunkPlugin {
         name: (module: Module) => {
           // 按照模块路径输出
           if (module instanceof NormalModule) {
-            if (path.extname(module.resource) === '.js' && !module.isEntryModule()) {
+            if (getAssetType(module.resource) === 'js' && !module.isEntryModule()) {
               return removeExt(path.relative(this.context, module.resource));
             }
           }
@@ -237,7 +238,6 @@ export class OptimizeChunkPlugin {
         /** 去掉尾部的斜线 */
         relativePath = relativePath.replace(/\/$/, '');
       }
-
       code = code.replace(placeholder, shouldRemoveExt ? removeExt(relativePath) : relativePath);
     });
 
