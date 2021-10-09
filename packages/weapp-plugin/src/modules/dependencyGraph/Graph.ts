@@ -104,7 +104,7 @@ export class DependencyGraph extends DependencyGraphNode {
         packageNames: this.packageNames,
         packageGroup: this.packageGroup,
         resourcePath: tabBarEntryPath,
-        nodeType: GraphNodeType.Other,
+        nodeType: GraphNodeType.Component,
       });
     }
 

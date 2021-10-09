@@ -232,7 +232,9 @@ export class DependencyGraphNode {
       nodeType,
     });
 
-    dependencyGraphNode.build();
+    if ([GraphNodeType.App, GraphNodeType.Component, GraphNodeType.Page].includes(nodeType)) {
+      dependencyGraphNode.build();
+    }
 
     this.outgoingNodes.add(dependencyGraphNode);
     dependencyGraphNode.incomingNodes.add(this);
