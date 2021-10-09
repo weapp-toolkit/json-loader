@@ -59,6 +59,7 @@ export class DependencyGraph extends DependencyGraphNode {
     this.addAppChunk(appJson);
     /** 根节点要添加自己 */
     this.graphNodeMap.add(this);
+    this.graphNodeMap.buildChunkModuleMap();
   }
 
   /**

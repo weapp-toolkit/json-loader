@@ -94,10 +94,20 @@ export class GraphNodeMap {
    * @param node
    */
   private addOneNode(node: DependencyGraphNode): void {
-    const { pathname, chunkName } = node;
+    const { pathname } = node;
 
     this.modules.add(node);
     this.requestModuleMap.set(removeExt(pathname), node);
-    this.chunkModuleMap.set(chunkName, node);
+  }
+
+  /**
+   * 需要等graph build完成后再生成chunkModuleMap
+   * 因为依赖关系变化会导致chunkName改变
+   */
+  public buildChunkModuleMap() {
+    this.modules.forEach((node) => {
+      const { chunkName } = node;
+      this.chunkModuleMap.set(chunkName, node);
+    });
   }
 }

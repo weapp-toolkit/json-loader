@@ -30,11 +30,11 @@ export interface IDependencyGraphNode {
   nodeType: GraphNodeType;
 }
 
-function recursiveAddPackageNames(node: DependencyGraphNode, packageName: string) {
+function recursiveAddPackageName(node: DependencyGraphNode, packageName: string) {
   if (!node.packageNames.has(packageName)) {
     node.packageNames.add(packageName);
     node.outgoingNodes.forEach((outgoingModule) => {
-      recursiveAddPackageNames(outgoingModule, packageName);
+      recursiveAddPackageName(outgoingModule, packageName);
     });
   }
 }
@@ -283,7 +283,7 @@ export const createDependencyGraphNode: CachedFunction<(options: IDependencyGrap
   if (cache[cacheId]) {
     dependencyGraphNode = cache[cacheId];
     packageNames.forEach((packageName) => {
-      recursiveAddPackageNames(dependencyGraphNode, packageName);
+      recursiveAddPackageName(dependencyGraphNode, packageName);
     });
   } else {
     /** 否则创建新的节点并缓存 */
