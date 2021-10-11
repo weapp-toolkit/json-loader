@@ -59,6 +59,7 @@ export class DependencyGraph extends DependencyGraphNode {
     this.addAppChunk(appJson);
     /** 根节点要添加自己 */
     this.graphNodeMap.add(this);
+    this.graphNodeMap.buildChunkModuleMap();
   }
 
   /**
@@ -103,7 +104,7 @@ export class DependencyGraph extends DependencyGraphNode {
         packageNames: this.packageNames,
         packageGroup: this.packageGroup,
         resourcePath: tabBarEntryPath,
-        nodeType: GraphNodeType.Other,
+        nodeType: GraphNodeType.Component,
       });
     }
 
