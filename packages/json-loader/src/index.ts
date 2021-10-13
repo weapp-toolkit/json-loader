@@ -1,7 +1,7 @@
 import { LoaderContext } from 'webpack';
 import { interpolateName } from 'loader-utils';
 import { JSONSchema7 } from 'json-schema';
-import { merge, replaceExt, resolveAppEntryPath } from '@weapp-toolkit/core';
+import { merge, replaceExt, resolveAppEntryPath } from '@weapp-toolkit/tools';
 import { IWeappAppConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import { IWeappConfigJSON } from './types';
 import { getConfigJsonType } from './utils';

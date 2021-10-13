@@ -7,3 +7,4 @@ tsconfig.tsbuildinfo
 **/*.log
 **/project.config.json
 **/project.private.config.json
+**/webpack.private.config.ts

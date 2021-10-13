@@ -25,11 +25,13 @@ export const getAssetType = (filename: string): AssetType => {
     case '.wxs':
       return 'wxs';
     case '.css':
+    case '.wxss':
     case '.less':
     case '.scss':
     case '.sass':
     case '.styl':
     case '.stylus':
+    case '.postcss':
       return 'css';
     default:
       return 'other';

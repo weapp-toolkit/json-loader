@@ -71,7 +71,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         /** 别名路径或者 node_modules */
         resolve(context, pathname)
           /** 可能是没加 ./ 的相对路径 */
-          .catch(() => resolve(context, `./${path.join(pathname)}`))
+          .catch(() => resolve(context, legalizationPath(pathname)))
       );
     }
 
@@ -92,7 +92,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         return resolveSync(context, pathname);
       } catch (error) {
         /** 可能是没加 ./ 的相对路径 */
-        return resolveSync(context, `./${path.join(pathname)}`);
+        return resolveSync(context, legalizationPath(pathname));
       }
     }
 
@@ -114,7 +114,7 @@ export function createResolver(compiler: Compiler, appRoot: string) {
         res = syncContextResolver.resolveSync({}, context, dirname);
       } catch (error) {
         /** 可能是没加 ./ 的相对路径 */
-        res = syncContextResolver.resolveSync({}, context, `./${dirname}`);
+        res = syncContextResolver.resolveSync({}, context, legalizationPath(dirname));
       }
     } else {
       /** 如果是绝对路径从小程序根路径开始找 */
@@ -139,6 +139,19 @@ export function createResolver(compiler: Compiler, appRoot: string) {
 /** 判断是否是相对路径 */
 export function isRelativePath(pathname: string): boolean {
   return !path.isAbsolute(pathname);
+}
+
+/**
+ * 合法化路径
+ * @param pathname
+ * @returns
+ */
+export function legalizationPath(pathname: string): string {
+  if (path.isAbsolute(pathname) || pathname.startsWith('..')) {
+    return pathname;
+  }
+
+  return `./${path.normalize(pathname)}`;
 }
 
 /**

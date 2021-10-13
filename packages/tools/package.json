@@ -1,5 +1,5 @@
 {
-  "name": "@weapp-toolkit/core",
+  "name": "@weapp-toolkit/tools",
   "version": "1.0.0",
   "description": "> TODO: description",
   "author": "CryUshio <1151291182@qq.com>",
@@ -28,8 +28,6 @@
     "url": "https://github.com/weapp-toolkit/weapp-webpack-toolkit/issues"
   },
   "dependencies": {
-    "@weapp-toolkit/tools": "^1.0.0",
-    "@weapp-toolkit/weapp-types": "^1.0.0",
     "enhanced-resolve": "^5.8.3",
     "lodash": "^4.17.21"
   }
