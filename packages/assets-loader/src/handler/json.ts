@@ -1,7 +1,6 @@
-import { replaceExt, shortid } from '@weapp-toolkit/core';
-import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import path from 'path';
-import { handleAsset } from '../common';
+import { replaceExt, shortid } from '@weapp-toolkit/tools';
+import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
 import { Handler, HandlerRunner } from '../handler-runner';
 
 export class JsonHandler<T> implements Handler<T> {
@@ -11,10 +10,10 @@ export class JsonHandler<T> implements Handler<T> {
     const { loaderContext, appRoot, resolver, placeholderMap } = runner;
     const { resourcePath, context } = loaderContext;
 
-    runner.hooks.handleNormalAsset.tapPromise(
-      JsonHandler.HANDLER_NAME,
-      handleAsset.bind(this, 'JSON_DEPENDENCY', runner),
-    );
+    runner.hooks.analysisCode.tap(JsonHandler.HANDLER_NAME, (code) => {
+      /** 后面直接读取 json 对象键值对处理 */
+      return { assets: [], code };
+    });
 
     runner.hooks.afterHandleAssets.tap(JsonHandler.HANDLER_NAME, (code) => {
       const filename = path.relative(appRoot, resourcePath);

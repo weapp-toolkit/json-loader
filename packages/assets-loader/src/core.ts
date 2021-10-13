@@ -1,4 +1,4 @@
-import { shouldIgnore, shouldInclude } from '../../core/lib';
+import { shouldIgnore, shouldInclude } from '@weapp-toolkit/tools';
 import { GlobAsset, HttpAsset, ModuleAsset, NormalAsset, UnknownAsset } from './modules/asset';
 import { Assets } from './modules/asset/type';
 

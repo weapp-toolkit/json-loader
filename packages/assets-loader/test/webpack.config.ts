@@ -4,7 +4,11 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: [path.resolve(__dirname, './src/main.js'), path.resolve(__dirname, './src/index.less')],
+    app: [
+      path.resolve(__dirname, './src/main.js'),
+      path.resolve(__dirname, './src/index.less'),
+      path.resolve(__dirname, './src/app.json'),
+    ],
     // app: path.resolve(__dirname, './src/index.wxs'),
   },
   output: {
@@ -29,7 +33,7 @@ const webpackConfig: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.(ts|js|wxml|wxs)$/,
+        test: /\.(ts|js|wxml|wxs|json)$/,
         use: [path.resolve(__dirname, '../lib/index.js')],
       },
       {

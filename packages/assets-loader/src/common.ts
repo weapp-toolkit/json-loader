@@ -1,6 +1,6 @@
 import vm from 'vm';
 import path from 'path';
-import { replaceExt, shortid } from '@weapp-toolkit/core';
+import { replaceExt, shortid } from '@weapp-toolkit/tools';
 import { LoaderContext } from 'webpack';
 import * as babel from '@babel/core';
 import { CustomAssetInfo } from '@weapp-toolkit/weapp-types';
@@ -79,8 +79,10 @@ export async function loadModule<T>(loaderContext: LoaderContext<T>, request: st
         module.buildInfo.parentsPath = new Set<string>();
       }
 
-      /** 解析模块化的资源 */
-      if (/export/.test(code)) {
+      /** 解析模块化的资源
+       * - 避免匹配到键值
+       */
+      if (/^\s*?(export|module\.exports)\b/m.test(code)) {
         resolve(evalCode(code, request));
       }
 

@@ -2,10 +2,10 @@ import globby from 'globby';
 import $ from 'lodash';
 import { transform } from '@babel/core';
 import { LoaderContext } from 'webpack';
+import { replaceExt } from '@weapp-toolkit/tools';
 import { handleSourceCode } from '../core';
 import { Handler, HandlerRunner } from '../handler-runner';
 import { loadModule } from '../common';
-import { replaceExt } from '../../../core/lib';
 import { AssetsLoaderOptions } from '..';
 
 export class JavascriptHandler<T extends AssetsLoaderOptions> implements Handler<T> {

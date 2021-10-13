@@ -9,7 +9,7 @@ import {
   IMAGE_EXT_REG,
   VIDEO_EXT_REG,
   XCX_RESOURCE_EXT_REG,
-} from '@weapp-toolkit/core';
+} from '@weapp-toolkit/tools';
 import { handlerRunner } from './handler-runner';
 import { DefaultHandler } from './handler/default';
 import { JavascriptHandler } from './handler/javascript';
@@ -93,7 +93,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
         handler: new JsonHandler(),
       },
       {
-        test: /\.(css|wxss|less|sass|scss|styl|stylus)$/,
+        test: /\.(css|wxss|less|sass|scss|styl|stylus|postcss)$/,
         handler: new CssHandler(),
       },
       {

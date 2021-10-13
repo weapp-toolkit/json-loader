@@ -26,7 +26,7 @@ export function getImageByTemplateStringNest(index) {
 }
 
 export function getImageById(id) {
-  return `./level${id}.png`;
+  return './level' + id + '.png';
 }
 
 // export function getImageHasDirectory(imgName) {

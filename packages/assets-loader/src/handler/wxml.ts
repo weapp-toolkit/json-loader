@@ -1,11 +1,11 @@
 import $ from 'lodash';
 import path from 'path';
 import globby from 'globby';
+import { shortid } from '@weapp-toolkit/tools';
 import { handleSourceCode } from '../core';
 import { handleAsset, loadModule } from '../common';
 import { Handler, HandlerRunner } from '../handler-runner';
 import { GlobAsset } from '../modules/asset';
-import { shortid } from '../../../core/lib';
 
 export class WxmlHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'WxmlHandler';

@@ -1,7 +1,7 @@
 import $ from 'lodash';
 import { LoaderContext } from 'webpack';
 import { AsyncSeriesBailHook } from 'tapable';
-import { Resolver } from '@weapp-toolkit/core';
+import { Resolver } from '@weapp-toolkit/tools';
 import { IPlaceholderMapValue, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { replacePlaceholder } from './core';
 import { Assets, AssetImportType } from './modules/asset/type';
