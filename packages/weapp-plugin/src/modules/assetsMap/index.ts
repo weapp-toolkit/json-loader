@@ -1,6 +1,6 @@
 import path from 'path';
 import { Compilation, NormalModule } from 'webpack';
-import { replaceExt } from '@weapp-toolkit/core';
+import { replaceExt } from '@weapp-toolkit/tools';
 import {
   APP_GROUP_NAME,
   APP_PACKAGE_NAME,

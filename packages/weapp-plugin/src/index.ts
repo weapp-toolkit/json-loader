@@ -1,6 +1,6 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/core';
+import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/tools';
 import { DependencyGraph } from './modules/dependencyGraph';
 import { AddEntryPlugin } from './plugins/AddEntryPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
@@ -42,11 +42,14 @@ export default class WeappPlugin {
       app,
       resolver,
       compiler,
+      ignores: this.options.ignores,
     });
     dependencyGraph.build();
     this.dependencyGraph = dependencyGraph;
 
     this.addEntryPlugin = new AddEntryPlugin({
+      context: this.context,
+      resolver,
       ignores: this.options.ignores,
       dependencyGraph,
     });

@@ -1,4 +1,4 @@
-import { removeExt } from '@weapp-toolkit/core';
+import { removeExt } from '@weapp-toolkit/tools';
 import { DependencyGraphNode } from './GraphNode';
 
 export class GraphNodeMap {

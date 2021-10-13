@@ -2,6 +2,7 @@ import { Compiler, EntryPlugin } from 'webpack';
 import fsx from 'fs-extra';
 import path from 'path';
 import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
+import { shouldIgnore } from '@weapp-toolkit/tools';
 
 /**
  * 添加模块依赖
@@ -46,4 +47,18 @@ export const getPageOrComponentAssets = (context: string, basename: string): str
  */
 export function isInSubPackage(pathname: string, packageRoot: string) {
   return pathname.startsWith(packageRoot);
+}
+
+/**
+ * 数组过滤
+ * @param ignores
+ * @param source 数组
+ * @param target 目标属性
+ * @returns
+ */
+export function filterIgnores<T>(ignores: RegExp[], source: T[], target?: (item: T) => string) {
+  return source.filter((item) => {
+    const str = target?.(item) || String(item);
+    return !shouldIgnore(ignores, str);
+  });
 }

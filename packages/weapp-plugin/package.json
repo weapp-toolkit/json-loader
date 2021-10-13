@@ -8,7 +8,7 @@
   "scripts": {
     "test": "jest",
     "dev": "tsc -w",
-    "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.config.ts'",
+    "debug": "nodemon --config ./nodemon.json --exec 'TS_NODE_PROJECT=\"./test/tsconfig.json\" webpack -c ./test/webpack.private.config.ts'",
     "debug:lite": "nodemon --config ./nodemon.json --exec 'ts-node -P ./test/tsconfig.json --cwd-mode --files' ./test/index.test.ts",
     "build": "rimraf lib && tsc"
   },
@@ -47,14 +47,16 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@weapp-toolkit/core": "^1.0.0",
+    "@weapp-toolkit/tools": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
+    "copy-webpack-plugin": "^9.0.1",
     "enhanced-resolve": "^5.8.2",
     "fs-extra": "^10.0.0",
     "globby": "11",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@types/copy-webpack-plugin": "^8.0.1",
     "@weapp-toolkit/assets-loader": "1.0.0",
     "@weapp-toolkit/cdn-loader": "1.0.0",
     "@weapp-toolkit/json-loader": "1.0.0"

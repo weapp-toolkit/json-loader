@@ -6,7 +6,7 @@ import WeappPlugin from '../lib';
 const projectPath = path.resolve(__dirname, '../../../test');
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: path.resolve(projectPath, 'src/app.js'),
+    app: path.resolve(projectPath, 'src/app.ts'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -21,7 +21,7 @@ const webpackConfig: webpack.Configuration = {
   },
   watch: true,
   target: 'node',
-  mode: 'development',
+  mode: 'production',
   optimization: {
     usedExports: true,
     concatenateModules: false,

@@ -1,8 +1,8 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import { replaceExt, Resolver, removeExt, shouldIgnore } from '@weapp-toolkit/core';
+import { replaceExt, Resolver, removeExt, shouldIgnore } from '@weapp-toolkit/tools';
 import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
-import { isInSubPackage } from '../../utils/dependency';
+import { filterIgnores, isInSubPackage } from '../../utils/dependency';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { GraphNodeMap } from './GraphNodeMap';
 
@@ -217,10 +217,6 @@ export class DependencyGraphNode {
     nodeType: GraphNodeType;
   }): void {
     const { packageNames, packageGroup, resourcePath, nodeType } = options;
-    /** 忽略处理的路径 */
-    if (shouldIgnore(this.ignores, resourcePath)) {
-      return;
-    }
 
     const dependencyGraphNode = createDependencyGraphNode({
       appRoot: this.appRoot,
@@ -231,10 +227,7 @@ export class DependencyGraphNode {
       ignores: this.ignores,
       nodeType,
     });
-
-    if ([GraphNodeType.App, GraphNodeType.Component, GraphNodeType.Page].includes(nodeType)) {
-      dependencyGraphNode.build();
-    }
+    dependencyGraphNode.build();
 
     this.outgoingNodes.add(dependencyGraphNode);
     dependencyGraphNode.incomingNodes.add(this);
@@ -248,7 +241,7 @@ export class DependencyGraphNode {
    * @param resolve
    */
   public addOutgoingNodes(resources: string[], resolve = this.resolve): void {
-    resources.map((resource) => {
+    filterIgnores(this.ignores, resources).forEach((resource) => {
       /** 获取 js 路径 */
       const resourcePath = resolve(resource);
 

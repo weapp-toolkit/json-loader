@@ -1,7 +1,7 @@
 import $ from 'lodash';
 import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
-import { removeExt, shouldIgnore, getAssetType } from '@weapp-toolkit/core';
+import { removeExt, shouldIgnore, getAssetType } from '@weapp-toolkit/tools';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
 import { DEFAULT_ASSETS_MAP_IGNORES, PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
 import { AssetsMap } from '../modules/assetsMap';
