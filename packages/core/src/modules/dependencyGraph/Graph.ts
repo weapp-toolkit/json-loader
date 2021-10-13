@@ -1,7 +1,8 @@
+import path from 'path';
 import fsx from 'fs-extra';
-import { Compiler } from 'webpack';
+import { Configuration } from 'webpack';
 import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
-import { Resolver, shouldIgnore } from '@weapp-toolkit/tools';
+import { createResolver, Resolver, shouldIgnore } from '@weapp-toolkit/tools';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { filterIgnores } from '../../utils/dependency';
 import { DependencyGraphNode } from './GraphNode';
@@ -12,39 +13,41 @@ import { GraphNodeMap } from './GraphNodeMap';
  * 依赖树初始化选项
  */
 export interface IDependencyGraphOptions {
-  /** 忽略的路径 */
-  ignores?: RegExp[];
-  /** 路径解析器 */
-  resolver: Resolver;
-  /** app 文件夹 */
-  context: string;
   /** 入口文件 */
   app: string;
-  compiler: Compiler;
+  /** 忽略的路径 */
+  ignores?: RegExp[];
+  /** webpack resolve 配置 */
+  resolveConfig: Configuration['resolve'];
 }
 
 const DEFAULT_IGNORES = [/^plugin:/];
 
 /** 依赖树 */
 export class DependencyGraph extends DependencyGraphNode {
+  static instance?: DependencyGraph;
+
   /** 缓存的节点映射 */
   private _graphNodeMap?: GraphNodeMap;
 
-  public compiler: Compiler;
-
   constructor(options: IDependencyGraphOptions) {
-    const { resolver, context, app, ignores = [], compiler } = options;
+    const { app, ignores = [], resolveConfig } = options;
+
+    const context = path.dirname(app);
 
     super({
       appRoot: context,
       packageNames: new Set([APP_PACKAGE_NAME]),
       packageGroup: APP_GROUP_NAME,
-      resolver,
+      resolver: createResolver(resolveConfig, context),
       ignores: ignores.concat(DEFAULT_IGNORES),
       pathname: app,
       nodeType: GraphNodeType.App,
     });
-    this.compiler = compiler;
+  }
+
+  static getInstance(options: IDependencyGraphOptions) {
+    return DependencyGraph.instance || (DependencyGraph.instance = new DependencyGraph(options));
   }
 
   /**
@@ -61,6 +64,13 @@ export class DependencyGraph extends DependencyGraphNode {
     /** 根节点要添加自己 */
     this.graphNodeMap.add(this);
     this.graphNodeMap.buildChunkModuleMap();
+  }
+
+  /**
+   * 重构依赖树
+   */
+  public rebuild() {
+    this.build();
   }
 
   /**

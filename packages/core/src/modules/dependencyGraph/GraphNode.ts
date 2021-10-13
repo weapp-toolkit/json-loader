@@ -5,13 +5,7 @@ import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-
 import { filterIgnores, isInSubPackage } from '../../utils/dependency';
 import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { GraphNodeMap } from './GraphNodeMap';
-
-export enum GraphNodeType {
-  App,
-  Page,
-  Component,
-  Other,
-}
+import { GraphNodeType } from './types';
 
 export interface IDependencyGraphNode {
   /** app 根绝对路径 */

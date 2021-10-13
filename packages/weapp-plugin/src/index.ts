@@ -36,7 +36,7 @@ export default class WeappPlugin {
     const app = resolveAppEntryPath(compiler);
     this.context = path.dirname(app);
 
-    const resolver = createResolver(compiler, this.context);
+    const resolver = createResolver(compiler.options.resolve, this.context);
     const dependencyGraph = new DependencyGraph({
       context: this.context,
       app,

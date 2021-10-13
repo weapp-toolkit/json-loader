@@ -5,9 +5,10 @@
       "label": "weapp-plugin: watch",
       "dependsOn": [
         "core: dev",
-        "assets-loader: dev",
-        "json-loader: dev",
+        "tools: dev",
         "cdn-loader: dev",
+        "json-loader: dev",
+        "assets-loader: dev",
         "weapp-plugin: dev",
         "weapp-plugin: debug"
       ],
@@ -31,7 +32,7 @@
     },
     {
       "label": "assets-loader: watch",
-      "dependsOn": ["core: dev", "assets-loader: dev", "assets-loader: debug"],
+      "dependsOn": ["core: dev", "tools: dev", "assets-loader: dev", "assets-loader: debug"],
       "detail": "assets-loader 开发模式"
     },
     {
@@ -52,7 +53,7 @@
     },
     {
       "label": "cdn-loader: watch",
-      "dependsOn": ["core: dev", "cdn-loader: dev", "cdn-loader: debug"],
+      "dependsOn": ["tools: dev", "cdn-loader: dev", "cdn-loader: debug"],
       "detail": "cdn-loader 开发模式"
     },
     {
@@ -73,7 +74,7 @@
     },
     {
       "label": "json-loader: watch",
-      "dependsOn": ["core: dev", "json-loader: dev", "json-loader: debug"],
+      "dependsOn": ["tools: dev", "json-loader: dev", "json-loader: debug"],
       "detail": "json-loader 开发模式"
     },
     {
@@ -99,6 +100,14 @@
       "problemMatcher": [],
       "label": "core: dev",
       "detail": "core: 开发模式"
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "packages/tools/",
+      "problemMatcher": [],
+      "label": "tools: dev",
+      "detail": "tools: 开发模式"
     }
   ]
 }

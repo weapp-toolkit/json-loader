@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { CachedInputFileSystem, ResolverFactory } from 'enhanced-resolve';
-import type { Compiler } from 'webpack';
+import type { Compiler, Configuration } from 'webpack';
 import $ from 'lodash';
 
 export type Resolver = ReturnType<typeof createResolver>;
@@ -12,8 +12,8 @@ export type Resolver = ReturnType<typeof createResolver>;
  * @param appRoot 小程序 app 根绝对路径，app.json 所在路径
  * @returns {} { resolve, resolveSync, resolveDependency }
  */
-export function createResolver(compiler: Compiler, appRoot: string) {
-  const webpackResolveOptions = $.omit(compiler.options.resolve, ['plugins', 'fileSystem']);
+export function createResolver(resolveConfig: Configuration['resolve'], appRoot: string) {
+  const webpackResolveOptions = $.omit(resolveConfig, ['plugins', 'fileSystem']);
   const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
   const resolver = ResolverFactory.createResolver({
     extensions: ['.js', '.ts'],
