@@ -30,7 +30,9 @@
   "dependencies": {
     "@weapp-toolkit/tools": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
+    "chalk": "^4.1.2",
     "enhanced-resolve": "^5.8.3",
+    "globby": "11",
     "lodash": "^4.17.21"
   }
 }

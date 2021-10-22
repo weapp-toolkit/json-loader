@@ -1,36 +1,25 @@
 import path from 'path';
 import fsx from 'fs-extra';
-import { replaceExt, Resolver, removeExt, shouldIgnore } from '@weapp-toolkit/tools';
-import { IWeappComponentConfig, IWeappPageConfig, CachedFunction } from '@weapp-toolkit/weapp-types';
-import { filterIgnores, isInSubPackage } from '../../utils/dependency';
-import { APP_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
-import { GraphNodeMap } from './GraphNodeMap';
-import { GraphNodeType } from './types';
+import globby from 'globby';
+import { replaceExt, removeExt, FileResolver } from '@weapp-toolkit/tools';
+import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
+import { APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
+import GraphNodeIndex from './GraphNodeIndex';
+import { ChunkInfo, GraphNodeType } from './types';
+import GraphNodeFactory from './GraphNodeFactory';
+import { container } from './utils';
+import { DI_TYPES } from './constant';
+import PackageManager, { PackageInfo } from '../PackageManager';
 
-export interface IDependencyGraphNode {
+export interface GraphNodeOptions {
   /** app 根绝对路径 */
   appRoot: string;
   /** 分包名 */
   packageNames: Set<string>;
-  /** 分包分组名 */
-  packageGroup: string;
   /** 依赖绝对路径 */
-  pathname: string;
-  /** 模块路径解析工具 */
-  resolver: Resolver;
-  /** 忽略的路径 */
-  ignores: RegExp[];
+  resourcePath: string;
   /** 节点类型 */
   nodeType: GraphNodeType;
-}
-
-function recursiveAddPackageName(node: DependencyGraphNode, packageName: string) {
-  if (!node.packageNames.has(packageName)) {
-    node.packageNames.add(packageName);
-    node.outgoingNodes.forEach((outgoingModule) => {
-      recursiveAddPackageName(outgoingModule, packageName);
-    });
-  }
 }
 
 /**
@@ -42,66 +31,62 @@ function recursiveAddPackageName(node: DependencyGraphNode, packageName: string)
  *  - 每个分包均属于分包粒度
  *  - 每个页面或组件均为独立的 chunk 粒度
  */
-export class DependencyGraphNode {
+export class GraphNode {
   /** 信号量，标记是否正在遍历，避免循环 */
   private _isVisiting = false;
 
   /** 依赖文件名 */
   private _basename!: string;
 
-  /** 区块名（跨分包时，同一个文件的 chunk 将会不同） */
-  private _chunkName!: string;
+  /** 工厂类 */
+  protected graphNodeFactory = container.get<GraphNodeFactory>(DI_TYPES.GraphNodeFactory);
 
-  /** 模块路径解析工具 */
-  public resolver: Resolver;
+  /** 文件路径解析器 */
+  protected resolver = container.get<FileResolver>(DI_TYPES.FileResolver);
+
+  /** 分包管理器 */
+  public packageManager = container.get<PackageManager>(DI_TYPES.PackageManager);
 
   /** 模块路径解析，不带扩展名默认解析 js、ts 文件 */
-  public resolve: (pathname: string) => string;
+  public resolve: (resourcePath: string) => string;
 
   /** app 根路径 */
   public appRoot: string;
 
-  /** 忽略的路径 */
-  public ignores: RegExp[];
-
   /** 分包名 */
   public packageNames = new Set<string>();
 
-  /** 分包分组名 */
-  public packageGroup: string;
-
   /** 依赖绝对路径 */
-  public pathname: string;
+  public resourcePath: string;
 
   /** 依赖文件夹绝对路径 */
   public context: string;
 
-  /** 父节点 （依赖了该节点的节点） */
-  public incomingNodes = new Set<DependencyGraphNode>();
-
-  /** 子节点 （该节点依赖的节点） */
-  public outgoingNodes = new Set<DependencyGraphNode>();
-
-  /** 静态资源依赖 */
-  public assets = new Set<string>();
-
-  /** 图节点映射管理 */
-  public graphNodeMap = new GraphNodeMap();
-
+  /** 节点类型 */
   public nodeType: GraphNodeType;
 
-  constructor(options: IDependencyGraphNode) {
-    const { appRoot, pathname, resolver, ignores, packageNames, packageGroup, nodeType } = options;
-    const context = path.dirname(pathname);
+  /** 父节点 （依赖了该节点的节点） */
+  public incomingNodes = new Set<GraphNode>();
+
+  /** 子节点 （该节点依赖的节点） */
+  public outgoingNodes = new Set<GraphNode>();
+
+  /** packageName => 输出绝对路径 */
+  public outputMap = new Map<string, string>();
+
+  /** chunk 信息 */
+  public chunkInfos = new Set<ChunkInfo>();
+
+  constructor(options: GraphNodeOptions) {
+    const { appRoot, resourcePath, packageNames, nodeType } = options;
+    const context = path.dirname(resourcePath);
 
     this.appRoot = appRoot;
-    this.packageGroup = packageGroup;
-    this.pathname = pathname;
+    this.resourcePath = resourcePath;
     this.context = context;
-    this.resolver = resolver;
-    this.resolve = resolver.resolveDependencySync.bind(null, context);
-    this.ignores = ignores;
+    this.resolve = this.resolver.resolveDependencySync.bind(null, context);
     this.nodeType = nodeType;
+
     packageNames.forEach((packageName) => {
       this.packageNames.add(packageName);
     });
@@ -109,45 +94,7 @@ export class DependencyGraphNode {
 
   /** 依赖文件名 */
   public get basename(): string {
-    if (!this._basename) {
-      this._basename = path.basename(this.pathname);
-    }
-    return this._basename;
-  }
-
-  /** chunk 名，用于生成 entry（跨分包时，同一个文件的 chunk 将会不同） */
-  public get chunkName(): string {
-    const { appRoot, packageGroup, pathname, packageNames } = this;
-    if (!this._chunkName) {
-      const relativePath = path.relative(appRoot, removeExt(pathname));
-
-      if (packageGroup === APP_GROUP_NAME) {
-        if (packageNames.size === 1) {
-          /** 只被一个主包或分包引用了 */
-          let packageName = '';
-          packageNames.forEach((n) => (packageName = n));
-          /** 若只被一个普通分包引用了，且pathname不在该分包，调整到对应的包内 */
-          this._chunkName =
-            packageName !== APP_PACKAGE_NAME && !isInSubPackage(relativePath, packageName)
-              ? path.join(packageName, PKG_OUTSIDE_DEP_DIRNAME, relativePath)
-              : relativePath;
-        } else {
-          this._chunkName = relativePath;
-        }
-      } else {
-        /** 如果不是主包分组的依赖，调整其模块到独立分包下 */
-        this._chunkName = isInSubPackage(relativePath, packageGroup)
-          ? relativePath
-          : path.join(packageGroup, PKG_OUTSIDE_DEP_DIRNAME, relativePath);
-      }
-    }
-
-    return this._chunkName;
-  }
-
-  /** 是否独立分包 */
-  public get independent(): boolean {
-    return this.packageGroup !== APP_GROUP_NAME;
+    return this._basename || (this._basename = path.basename(this.resourcePath));
   }
 
   /**
@@ -162,10 +109,14 @@ export class DependencyGraphNode {
 
     const { resolve, basename } = this;
 
-    const jsonPath = resolve(replaceExt(basename, '.json'));
-    const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
+    /** 只有节点是 entry 的情况下才添加其他节点 */
+    if (this.isEntryNode()) {
+      const jsonPath = resolve(replaceExt(basename, '.json'));
+      const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
-    this.addOutgoingNodes(Object.values(json.usingComponents || {}));
+      this.addEntryNodes(Object.values(json.usingComponents || {}));
+      this.addEntryAssetNodes();
+    }
 
     this._isVisiting = false;
   }
@@ -174,119 +125,179 @@ export class DependencyGraphNode {
    * 重新扫描 json 依赖，添加同名依赖（wxml、wxs 等）
    */
   public rebuild(): void {
-    this.graphNodeMap.clear();
     this.outgoingNodes.clear();
 
     this.build();
   }
 
-  /** 递归所有的子节点映射 */
-  public getGraphNodeMap(): GraphNodeMap {
-    if (this._isVisiting) {
-      /** 返回一个空的 GraphNodeMap */
-      return new GraphNodeMap();
-    }
+  /**
+   * 初始化一些属性
+   */
+  public init(): void {
+    this.computeOutputMapAndChunkInfo();
+  }
 
-    this._isVisiting = true;
+  /** 判断是否是 entry */
+  public isEntryNode(): boolean {
+    return [GraphNodeType.App, GraphNodeType.Page, GraphNodeType.Component].includes(this.nodeType);
+  }
 
-    const { outgoingNodes, graphNodeMap } = this;
+  /**
+   * 添加依赖文件
+   * @param resourcePath
+   */
+  public addNormalAssetNode(resourcePath: string): void {
+    this.addNode({
+      context: '/',
+      reference: resourcePath,
+      nodeType: GraphNodeType.NormalAsset,
+      initImmediately: true,
+    });
+  }
 
-    const childrenGraphNodeMap = Array.from(outgoingNodes).map((child) => child.getGraphNodeMap());
+  /**
+   * 添加 json 配置内的组件
+   * @param references
+   */
+  protected addEntryNodes(references: string[]): void {
+    references.forEach((reference) =>
+      this.addNode({
+        reference,
+        nodeType: GraphNodeType.Component,
+      }),
+    );
+  }
 
-    this._isVisiting = false;
+  /**
+   * 添加同名资源文件 (wxml、wxss 等)
+   */
+  protected addEntryAssetNodes(): void {
+    const assets = globby.sync(replaceExt(this.basename, '.{wxml,json,wxss,css,less,scss,sass,styl,stylus,postcss}'), {
+      cwd: this.context,
+    });
 
-    return graphNodeMap.concat(...childrenGraphNodeMap);
+    assets.forEach((asset) =>
+      this.addNode({
+        reference: asset,
+        nodeType: GraphNodeType.EntryAsset,
+      }),
+    );
   }
 
   /**
    * 将文件添加到 module
    * @param packageName 分包名
    * @param packageGroup 分包分组名
-   * @param resourcePath 资源绝对路径
+   * @param reference 资源引用路径
    */
-  public addModule(options: {
-    packageNames: Set<string>;
-    packageGroup: string;
-    resourcePath: string;
+  protected addNode(options: {
+    packageNames?: Set<string>;
+    /** 引用依赖的查找范围 */
+    context?: string;
+    /** 引用依赖的路径 */
+    reference: string;
+    /** 依赖节点类型 */
     nodeType: GraphNodeType;
+    /** 立即初始化 */
+    initImmediately?: boolean;
   }): void {
-    const { packageNames, packageGroup, resourcePath, nodeType } = options;
+    const { packageNames = this.packageNames, context = this.context, reference, nodeType, initImmediately } = options;
 
-    const dependencyGraphNode = createDependencyGraphNode({
+    const graphNode = this.graphNodeFactory.createGraphNode(this, {
       appRoot: this.appRoot,
+      context,
       packageNames,
-      packageGroup,
-      pathname: resourcePath,
-      resolver: this.resolver,
-      ignores: this.ignores,
+      reference,
       nodeType,
     });
-    dependencyGraphNode.build();
 
-    this.outgoingNodes.add(dependencyGraphNode);
-    dependencyGraphNode.incomingNodes.add(this);
+    /** ignore 的依赖不会返回节点 */
+    if (!graphNode) {
+      return;
+    }
 
-    this.graphNodeMap.add(dependencyGraphNode);
+    graphNode.build();
+
+    /** 立即初始化 */
+    if (initImmediately) {
+      graphNode.init();
+    }
   }
 
   /**
-   * 添加页面、组件依赖的子组件
-   * @param resources
-   * @param resolve
+   * 计算 packageName 到 输出路径的绝对路径 的映射
    */
-  public addOutgoingNodes(resources: string[], resolve = this.resolve): void {
-    filterIgnores(this.ignores, resources).forEach((resource) => {
-      /** 获取 js 路径 */
-      const resourcePath = resolve(resource);
+  private computeOutputMapAndChunkInfo() {
+    const { appRoot, resourcePath, packageNames, packageManager, outputMap, chunkInfos } = this;
 
-      this.addModule({
-        packageNames: this.packageNames,
-        packageGroup: this.packageGroup,
-        resourcePath,
-        nodeType: GraphNodeType.Component,
+    /** 相对 app 根目录的文件路径 */
+    const filename = path.relative(appRoot, resourcePath);
+
+    /** 非独立分包引用次数 */
+    let referenceCount = 0;
+    const packageInfoList: PackageInfo[] = [];
+
+    packageNames.forEach((packageName) => {
+      const packageInfo = packageManager.get(packageName);
+
+      if (!packageInfo) {
+        return;
+      }
+
+      const { independent } = packageInfo;
+
+      /** 独立分包和主包不相干，所以非独立分包才计数 */
+      if (!independent) {
+        referenceCount++;
+      }
+
+      packageInfoList.push(packageInfo);
+    });
+
+    /** packageNames 里没有主包，表示该节点没有被主包依赖
+     * referenceCount 小于等于 1 表示只有一个分包引用了
+     */
+    const onlyUsedInOneSubPackage = !packageNames.has(APP_PACKAGE_NAME) && referenceCount <= 1;
+
+    packageInfoList.forEach((packageInfo) => {
+      const { name, independent, root } = packageInfo;
+
+      /** 独立分包和仅一个分包引用的情况下 */
+      if (independent || onlyUsedInOneSubPackage) {
+        /**
+         * 当该节点对应的资源文件不在该分包内部时，将其移动到分包内部
+         */
+        const output = !packageManager.isLocatedInPackage(name, filename)
+          ? path.join(root, PKG_OUTSIDE_DEP_DIRNAME, filename)
+          : filename;
+        const chunkName = removeExt(output);
+
+        /** 存入映射表 */
+        outputMap.set(name, path.resolve(appRoot, output));
+
+        /**
+         * @description
+         * 不在主包的文件，其 chunk group 应该同分包路径
+         */
+
+        chunkInfos.add({
+          id: chunkName,
+          group: root,
+          independent,
+          packageName: name,
+        });
+        return;
+      }
+
+      /** 直接按原路径存入映射表 */
+      const chunkName = removeExt(path.relative(appRoot, resourcePath));
+      outputMap.set(name, resourcePath);
+      chunkInfos.add({
+        id: chunkName,
+        group: root,
+        independent,
+        packageName: name,
       });
     });
   }
 }
-
-/**
- * 创建依赖树节点
- * @param options IDependencyGraphNode
- * @returns
- */
-export const createDependencyGraphNode: CachedFunction<(options: IDependencyGraphNode) => DependencyGraphNode> = (
-  options,
-) => {
-  if (!createDependencyGraphNode.cache) {
-    createDependencyGraphNode.cache = {};
-  }
-
-  const { cache } = createDependencyGraphNode;
-  const { appRoot, packageNames, packageGroup, pathname, resolver, ignores, nodeType } = options;
-
-  const cacheId = `${packageGroup}:${pathname}`;
-
-  let dependencyGraphNode: DependencyGraphNode;
-
-  /** 如果已经有创建过，复用 */
-  if (cache[cacheId]) {
-    dependencyGraphNode = cache[cacheId];
-    packageNames.forEach((packageName) => {
-      recursiveAddPackageName(dependencyGraphNode, packageName);
-    });
-  } else {
-    /** 否则创建新的节点并缓存 */
-    dependencyGraphNode = new DependencyGraphNode({
-      appRoot,
-      packageNames: new Set(packageNames),
-      packageGroup,
-      pathname,
-      resolver,
-      ignores,
-      nodeType,
-    });
-    cache[cacheId] = dependencyGraphNode;
-  }
-
-  return dependencyGraphNode;
-};

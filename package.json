@@ -46,6 +46,7 @@
     "@types/tapable": "^2.2.2",
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",
+    "@weapp-toolkit/core": "^1.0.0",
     "babel-loader": "^8.2.2",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "core-js": "^3.18.1",

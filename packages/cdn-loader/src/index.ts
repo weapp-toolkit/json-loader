@@ -32,7 +32,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
     parseQuery(this.resourceQuery || '?'),
   ) as JsonLoaderOptions;
 
-  const { cdn, name = '[name]-[contenthash:8].[ext]', ignore = false, esModule } = options;
+  const { cdn, name = '[name].[contenthash:8].[ext]', ignore = false, esModule } = options;
   const { rootContext } = this;
 
   // console.info('skr: cdn-loader', this.resourcePath, options);

@@ -1,7 +1,6 @@
 import vm from 'vm';
 import path from 'path';
 import { replaceExt, shortid } from '@weapp-toolkit/tools';
-import { LoaderContext } from 'webpack';
 import * as babel from '@babel/core';
 import { CustomAssetInfo } from '@weapp-toolkit/weapp-types';
 import { HandlerRunner, HooksParameter } from './handler-runner';
@@ -57,7 +56,10 @@ function evalCode(code: string, filename?: string) {
  * @param request
  * @returns
  */
-export async function loadModule<T>(loaderContext: LoaderContext<T>, request: string): Promise<string | void> {
+export async function loadModule<T>(runner: HandlerRunner<T>, request: string): Promise<string | void> {
+  const { loaderContext, dependencyGraph } = runner;
+  const { graphNodeIndex } = dependencyGraph;
+
   return new Promise<string | void>((resolve, reject) => {
     /** 手动加载静态资源的依赖 */
     loaderContext.loadModule(request, (e, code, _, module) => {
@@ -67,16 +69,15 @@ export async function loadModule<T>(loaderContext: LoaderContext<T>, request: st
       }
 
       /** 去掉 query */
-      loaderContext.addDependency(request.replace(/\?.*$/, ''));
+      loaderContext.addDependency(removeQuery(request));
+      /** 在依赖图上添加依赖节点 */
+      const graphNode = graphNodeIndex.getNodeByRequest(removeQuery(loaderContext.resourcePath));
+      graphNode?.addNormalAssetNode(removeQuery(request));
 
       if (!module) {
         console.info('[assets-loader] module is undefined');
         resolve();
         return;
-      }
-
-      if (!module.buildInfo.parentsPath) {
-        module.buildInfo.parentsPath = new Set<string>();
       }
 
       /** 解析模块化的资源
@@ -86,8 +87,6 @@ export async function loadModule<T>(loaderContext: LoaderContext<T>, request: st
         resolve(evalCode(code, request));
       }
 
-      /** 记录父节点信息 */
-      module.buildInfo.parentsPath.add(loaderContext.resourcePath);
       resolve();
     });
   });
@@ -112,7 +111,7 @@ export async function handleAsset<T>(
 
   // return dependency + end(`"\` + ${placeholder} + \`"`);
 
-  const resource = await loadModule(loaderContext, request);
+  const resource = await loadModule(runner, request);
 
   /**
    * @thinking
@@ -159,4 +158,13 @@ export function handleEmit<T>(runner: HandlerRunner<T>, code: string, extname?: 
   } as CustomAssetInfo);
 
   return '';
+}
+
+/**
+ * 去掉资源地址中的 ?xxx=xxx
+ * @param request
+ * @returns
+ */
+export function removeQuery(request: string): string {
+  return request.replace(/\?.*$/, '');
 }

@@ -3,10 +3,9 @@ import path from 'path';
 import { Chunk, Compilation, Compiler, Module, NormalModule } from 'webpack';
 import { removeExt, shouldIgnore, getAssetType } from '@weapp-toolkit/tools';
 import { CustomAssetInfo, PlaceholderMap } from '@weapp-toolkit/weapp-types';
-import { DEFAULT_ASSETS_MAP_IGNORES, PKG_OUTSIDE_DEP_DIRNAME } from '../utils/constant';
-import { AssetsMap } from '../modules/assetsMap';
-import { DependencyGraph } from '../modules/dependencyGraph';
-import { isInSubPackage } from '../utils/dependency';
+import { DependencyGraph, PKG_OUTSIDE_DEP_DIRNAME } from '@weapp-toolkit/core';
+
+const DEFAULT_IGNORES = [/\.(jsx?|tsx?)$/];
 
 /**
  * DependencyPlugin 初始化选项
@@ -37,9 +36,6 @@ export class OptimizeChunkPlugin {
   /** 忽略的文件 */
   ignores: Required<IOptimizeChunkPluginOptions>['ignores'];
 
-  /** 静态资源模块依赖表 */
-  assetsMap: AssetsMap;
-
   /** 依赖树 */
   dependencyGraph!: DependencyGraph;
 
@@ -47,14 +43,7 @@ export class OptimizeChunkPlugin {
     this.context = options.context;
     this.dependencyGraph = options.dependencyGraph;
     this.publicPath = options.publicPath || PKG_OUTSIDE_DEP_DIRNAME;
-    this.ignores = DEFAULT_ASSETS_MAP_IGNORES.concat(options.ignores || []);
-
-    this.assetsMap = new AssetsMap({
-      context: options.context,
-      ignores: this.ignores,
-      dependencyGraph: options.dependencyGraph,
-      publicPath: options.publicPath,
-    });
+    this.ignores = DEFAULT_IGNORES.concat(options.ignores || []);
   }
 
   apply(compiler: Compiler): void {
@@ -65,15 +54,17 @@ export class OptimizeChunkPlugin {
         const { dependencyGraph } = this;
 
         compilation.entrypoints.forEach((entryPoint) => {
-          const graphNodeMap = dependencyGraph.getGraphNodeMap();
-          const { packageGroup, independent } = graphNodeMap.getNodeByChunkName(entryPoint.name || '') || {};
-          if (packageGroup && independent) {
-            // 对于独立分包的entryPoint，扫描其依赖的所有chunk
-            // 如果chunk不在内独立分包内，则拷贝一个新chunk输出在独立分包中
+          const { graphNodeIndex } = dependencyGraph;
+          const { independent, packageName } = graphNodeIndex.chunks.get(entryPoint.name || '') || {};
+          if (independent && packageName) {
+            /**
+             * 对于独立分包的 entryPoint，扫描其依赖的所有 chunk
+             * 如果 chunk 不在内独立分包内，则拷贝一个新 chunk 输出在独立分包中
+             */
             entryPoint.chunks.forEach((chunk) => {
-              if (!isInSubPackage(chunk.name, packageGroup)) {
-                // 从主包移动到独立分包的chunk在独立分包内的输出路径
-                const clonedChunkName = `${packageGroup}/${PKG_OUTSIDE_DEP_DIRNAME}/${chunk.name}`;
+              if (!dependencyGraph.packageManager.isLocatedInPackage(packageName, chunk.name)) {
+                // 从主包移动到独立分包的 chunk 在独立分包内的输出路径
+                const clonedChunkName = `${packageName}/${PKG_OUTSIDE_DEP_DIRNAME}/${chunk.name}`;
 
                 let clonedChunk = cloneChunkCache.get(clonedChunkName);
 
@@ -101,7 +92,6 @@ export class OptimizeChunkPlugin {
 
       /** 处理非 js 资源模块的路径和引用 */
       compilation.hooks.beforeModuleAssets.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-        this.assetsMap.init(compilation);
         this.optimizeAssetModules(compilation);
       });
 
@@ -111,29 +101,28 @@ export class OptimizeChunkPlugin {
     });
 
     compiler.hooks.environment.tap(OptimizeChunkPlugin.PLUGIN_NAME, () => {
-      // 补充一些特殊的splitChunk配置
+      const { graphNodeIndex } = this.dependencyGraph;
+      /** 补充一些特殊的 splitChunk 配置 */
       const splitChunksConfig = compiler.options.optimization.splitChunks;
       const processedConfig: typeof splitChunksConfig = {
         ...splitChunksConfig,
 
-        // 不做模块合并，维持原来的文件目录结构
+        /** 不做模块合并，维持原来的文件目录结构 */
         minChunks: 1,
         minSize: 1,
         chunks: (chunk: Chunk) => {
-          // 由主包移动到独立分包的资源不参与splitChunk
-          const graphNodeMap = this.dependencyGraph.getGraphNodeMap();
-          if (
-            graphNodeMap.getNodeByChunkName(chunk.name)?.independent &&
-            chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1
-          ) {
+          /** 由主包移动到独立分包的资源不参与 splitChunk */
+          if (graphNodeIndex.chunks.get(chunk.name)?.independent && chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1) {
+            console.info('skr: split chunk ignore', chunk.name);
             return false;
           }
+          console.info('skr: split chunk', chunk.name);
           return true;
         },
         name: (module: Module) => {
           // 按照模块路径输出
           if (module instanceof NormalModule) {
-            if (getAssetType(module.resource) === 'js' && !module.isEntryModule()) {
+            if (!graphNodeIndex.getNodeByRequest(module.resource)?.isEntryNode()) {
               return removeExt(path.relative(this.context, module.resource));
             }
           }
@@ -151,7 +140,7 @@ export class OptimizeChunkPlugin {
    * @param compilation 当前所在的compilation
    * @returns clone得到的新chunk
    */
-  cloneChunk(name: string, srcChunk: Chunk, compilation: Compilation) {
+  cloneChunk(name: string, srcChunk: Chunk, compilation: Compilation): Chunk {
     const { chunkGraph } = compilation;
 
     const clonedChunk = new Chunk(name);
@@ -168,35 +157,42 @@ export class OptimizeChunkPlugin {
 
   /** 优化静态资源路径并替换占位符 */
   optimizeAssetModules(compilation: Compilation): void {
-    const { assetsMap } = this;
+    const { dependencyGraph } = this;
+    const { graphUtil, graphNodeIndex } = dependencyGraph;
 
     compilation.modules.forEach((module) => {
       if (module instanceof NormalModule && !shouldIgnore(this.ignores, module.resource)) {
         const absolutePath = module.resource.replace(/\?.*$/, '');
         const { assets, assetsInfo } = module.buildInfo;
+        const graphNode = graphNodeIndex.getNodeByRequest(module.resource);
+
+        // if (module.resource.includes('index.wxs')) {
+        //   debugger
+        // }
 
         /** 没有资源实体 */
-        if (!assets) {
+        if (!assets || !graphNode) {
           return;
         }
 
         const clonedAssets = $.cloneDeep(assets);
         const optimizedAssets: Record<string, any> = {};
-        const chunkNames = assetsMap.getChunkNames(absolutePath);
+        const { chunkInfos } = graphNode;
 
-        for (const chunkName of chunkNames) {
-          const newFileDirname = path.dirname(assetsMap.getOutputPath(absolutePath, chunkName));
+        chunkInfos.forEach(({ packageName }) => {
+          const output = graphUtil.getOutputRelativePath(graphNode, packageName);
 
           /** 遍历 module 的 assets */
           for (const assetName in clonedAssets) {
-            const filename = path.join(newFileDirname, path.basename(assetName));
+            /** 文件名可能被 loader 更改 */
+            const filename = path.join(path.dirname(output), path.basename(assetName));
             const fileSource = $.cloneDeep(assets[assetName]);
             const fileInfo: CustomAssetInfo = assetsInfo.get(assetName) || {};
             const { placeholderMap } = fileInfo;
 
             /** 替换占位符 */
             if (placeholderMap?.size) {
-              fileSource._value = this.replaceAssetModule(absolutePath, fileSource._value, placeholderMap, chunkName);
+              fileSource._value = this.replaceAssetModule(absolutePath, fileSource._value, placeholderMap, packageName);
 
               if (fileSource._valueIsBuffer) {
                 fileSource._value = Buffer.from(fileSource._value);
@@ -211,7 +207,7 @@ export class OptimizeChunkPlugin {
              */
             optimizedAssets[fileInfo.keepName ? assetName : filename] = fileSource;
           }
-        }
+        });
 
         module.buildInfo.assets = optimizedAssets;
       }
@@ -223,12 +219,13 @@ export class OptimizeChunkPlugin {
     source: string,
     sourceCode: string | Buffer,
     placeholderMap: PlaceholderMap,
-    chunkName: string,
+    packageName: string,
   ): string {
+    const { graphUtil } = this.dependencyGraph;
     let code = sourceCode.toString();
 
     placeholderMap.forEach(({ reference, referenceDir, referenceType, shouldRemoveExt }, placeholder) => {
-      const referenceRelativePath = this.assetsMap.getReferencePath(source, reference, chunkName);
+      const referenceRelativePath = graphUtil.getReferencePath(source, reference, packageName);
       let relativePath = referenceRelativePath;
 
       if (referenceType === 'dir' && referenceDir) {

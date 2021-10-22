@@ -1,7 +1,7 @@
 import path from 'path';
 import { Compiler } from 'webpack';
-import { createResolver, resolveAppEntryPath } from '@weapp-toolkit/tools';
-import { DependencyGraph } from './modules/dependencyGraph';
+import { DependencyGraph } from '@weapp-toolkit/core';
+import { resolveAppEntryPath } from '@weapp-toolkit/tools';
 import { AddEntryPlugin } from './plugins/AddEntryPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 
@@ -19,7 +19,7 @@ export default class WeappPlugin {
   /** 小程序项目根文件夹，app.json 所在目录 */
   context!: string;
 
-  /** 依赖树 */
+  /** 依赖图 */
   dependencyGraph!: DependencyGraph;
 
   /** 处理依赖的插件 */
@@ -36,20 +36,16 @@ export default class WeappPlugin {
     const app = resolveAppEntryPath(compiler);
     this.context = path.dirname(app);
 
-    const resolver = createResolver(compiler.options.resolve, this.context);
-    const dependencyGraph = new DependencyGraph({
-      context: this.context,
+    const dependencyGraph = DependencyGraph.getInstance({
       app,
-      resolver,
-      compiler,
+      resolveConfig: compiler.options.resolve,
       ignores: this.options.ignores,
     });
-    dependencyGraph.build();
+
     this.dependencyGraph = dependencyGraph;
 
     this.addEntryPlugin = new AddEntryPlugin({
       context: this.context,
-      resolver,
       ignores: this.options.ignores,
       dependencyGraph,
     });

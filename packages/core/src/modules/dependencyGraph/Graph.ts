@@ -2,17 +2,21 @@ import path from 'path';
 import fsx from 'fs-extra';
 import { Configuration } from 'webpack';
 import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
-import { createResolver, Resolver, shouldIgnore } from '@weapp-toolkit/tools';
-import { APP_GROUP_NAME, APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
-import { filterIgnores } from '../../utils/dependency';
-import { DependencyGraphNode } from './GraphNode';
-import { GraphNodeType } from '.';
-import { GraphNodeMap } from './GraphNodeMap';
+import { FileResolver } from '@weapp-toolkit/tools';
+import { APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
+import { GraphNode } from './GraphNode';
+import { GraphNodeType } from './types';
+import GraphNodeIndex from './GraphNodeIndex';
+import { checkAppFilepath, container, validateAppJson } from './utils';
+import GraphNodeFactory from './GraphNodeFactory';
+import { DI_TYPES } from './constant';
+import PackageManager from '../PackageManager';
+import GraphUtil from './GraphUtil';
 
 /**
  * 依赖树初始化选项
  */
-export interface IDependencyGraphOptions {
+export interface GraphOptions {
   /** 入口文件 */
   app: string;
   /** 忽略的路径 */
@@ -21,33 +25,53 @@ export interface IDependencyGraphOptions {
   resolveConfig: Configuration['resolve'];
 }
 
-const DEFAULT_IGNORES = [/^plugin:/];
-
 /** 依赖树 */
-export class DependencyGraph extends DependencyGraphNode {
+export class DependencyGraph extends GraphNode {
+  static TAG = 'DependencyGraph';
+
   static instance?: DependencyGraph;
 
-  /** 缓存的节点映射 */
-  private _graphNodeMap?: GraphNodeMap;
+  private _graphNodeIndex?: GraphNodeIndex;
 
-  constructor(options: IDependencyGraphOptions) {
+  public graphUtil: GraphUtil;
+
+  constructor(options: GraphOptions) {
     const { app, ignores = [], resolveConfig } = options;
 
+    checkAppFilepath(app);
+
     const context = path.dirname(app);
+    const resolver = new FileResolver(resolveConfig, context);
+    const packageManager = new PackageManager();
+
+    container.set(DI_TYPES.FileResolver, resolver);
+    container.set(DI_TYPES.PackageManager, packageManager);
+    container.set(DI_TYPES.GraphNodeFactory, new GraphNodeFactory({ ignores, resolver }));
+
+    packageManager.set(APP_PACKAGE_NAME, { root: '' });
 
     super({
       appRoot: context,
       packageNames: new Set([APP_PACKAGE_NAME]),
-      packageGroup: APP_GROUP_NAME,
-      resolver: createResolver(resolveConfig, context),
-      ignores: ignores.concat(DEFAULT_IGNORES),
-      pathname: app,
+      resourcePath: app,
       nodeType: GraphNodeType.App,
     });
+
+    this.build();
+    this.graphUtil = new GraphUtil(this);
   }
 
-  static getInstance(options: IDependencyGraphOptions) {
-    return DependencyGraph.instance || (DependencyGraph.instance = new DependencyGraph(options));
+  static getInstance(options?: GraphOptions): DependencyGraph {
+    if (!DependencyGraph.instance && !options) {
+      throw new Error(`[${DependencyGraph.TAG}] 你必须先传入 options 进行初始化`);
+    }
+
+    return DependencyGraph.instance || (DependencyGraph.instance = new DependencyGraph(options!));
+  }
+
+  /** 图节点索引 */
+  public get graphNodeIndex(): GraphNodeIndex {
+    return this._graphNodeIndex || (this._graphNodeIndex = this.graphNodeFactory.nodeIndex.add(this));
   }
 
   /**
@@ -59,29 +83,25 @@ export class DependencyGraph extends DependencyGraphNode {
     const appJsonPath = resolve('app.json');
     const appJson: IWeappAppConfig = fsx.readJSONSync(appJsonPath);
 
+    validateAppJson(appJson);
+
     super.build();
     this.addAppChunk(appJson);
-    /** 根节点要添加自己 */
-    this.graphNodeMap.add(this);
-    this.graphNodeMap.buildChunkModuleMap();
+    this.graphNodeIndex.initGraphNodes();
   }
 
   /**
    * 重构依赖树
    */
-  public rebuild() {
+  public rebuild(): void {
+    /**
+     * 小心内存泄漏
+     * @TODO
+     */
+    this._graphNodeIndex = undefined;
+    this.graphNodeFactory.cleanCache();
+
     this.build();
-  }
-
-  /**
-   * 获取节点映射
-   */
-  public getGraphNodeMap(): GraphNodeMap {
-    return this._graphNodeMap || (this._graphNodeMap = super.getGraphNodeMap());
-  }
-
-  public clearGraphNodeMap() {
-    this._graphNodeMap = undefined;
   }
 
   /**
@@ -91,11 +111,11 @@ export class DependencyGraph extends DependencyGraphNode {
     const { pages, tabBar } = appJson;
 
     /** 添加主包里的 pages */
-    this.addPageModules(APP_PACKAGE_NAME, APP_GROUP_NAME, pages);
+    this.addPageNodes(APP_PACKAGE_NAME, this.context, pages);
     /** 添加 TabBar */
     this.addTabBar(tabBar);
     /** 添加分包 chunk */
-    this.addSubPackageChunk(appJson);
+    this.addSubPackages(appJson);
   }
 
   /**
@@ -111,10 +131,8 @@ export class DependencyGraph extends DependencyGraphNode {
     /** 如果是自定义 TabBar，解析自定义 TabBar 文件夹依赖 */
     if (custom) {
       const tabBarEntryPath = this.resolve(CUSTOM_TAB_BAR_CONTEXT);
-      this.addModule({
-        packageNames: this.packageNames,
-        packageGroup: this.packageGroup,
-        resourcePath: tabBarEntryPath,
+      this.addNode({
+        reference: tabBarEntryPath,
         nodeType: GraphNodeType.Component,
       });
     }
@@ -123,39 +141,33 @@ export class DependencyGraph extends DependencyGraphNode {
   /**
    * 添加分包 chunk
    */
-  private addSubPackageChunk(appJson: IWeappAppConfig) {
+  private addSubPackages(appJson: IWeappAppConfig) {
     /** 两种字段在小程序里面都是合法的 */
     const subPackages = appJson.subpackages || appJson.subPackages || [];
-    filterIgnores(this.ignores, subPackages, ({ root }) => root).forEach((subPackage) => {
+    subPackages.forEach((subPackage) => {
       const { root, pages, independent } = subPackage;
       /** 根据分包路径生成 packageName */
       const packageName = root.replace(/\/$/, '');
-      /** 获取分包根绝对路径，从小程序根路径开始查找 */
-      const context = this.resolver.resolveDir(this.context, packageName);
-      /** 以分包根路径作为 context 生成 resolve 函数 */
-      const resolve = this.resolver.resolveDependencySync.bind(null, context);
+      const context = path.join(this.context, packageName);
 
       /** 如果是独立分包，单独为一个 chunk，否则加入 app chunk */
-      this.addPageModules(packageName, independent ? packageName : APP_GROUP_NAME, pages, resolve);
+      this.packageManager.set(packageName, { independent, root: packageName });
+      this.addPageNodes(packageName, context, pages);
     });
   }
 
   /**
-   * 添加页面节点，可能产生新的package
+   * 添加页面节点
    * @param packageName
-   * @param packageGroup
-   * @param resources
+   * @param references
    * @param resolve
    */
-  private addPageModules(packageName: string, packageGroup: string, resources: string[], resolve = this.resolve) {
-    filterIgnores(this.ignores, resources).forEach((resource) => {
-      /** 获取路径 */
-      const resourcePath = resolve(resource);
-
-      this.addModule({
+  private addPageNodes(packageName: string, context: string, references: string[]) {
+    references.forEach((reference) => {
+      this.addNode({
         packageNames: new Set([packageName]),
-        packageGroup,
-        resourcePath,
+        context,
+        reference,
         nodeType: GraphNodeType.Page,
       });
     });

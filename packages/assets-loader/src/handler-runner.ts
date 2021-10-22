@@ -1,8 +1,9 @@
 import $ from 'lodash';
 import { LoaderContext } from 'webpack';
 import { AsyncSeriesBailHook } from 'tapable';
-import { Resolver } from '@weapp-toolkit/tools';
+import { FileResolver } from '@weapp-toolkit/tools';
 import { IPlaceholderMapValue, PlaceholderMap } from '@weapp-toolkit/weapp-types';
+import { DependencyGraph } from '@weapp-toolkit/core';
 import { replacePlaceholder } from './core';
 import { Assets, AssetImportType } from './modules/asset/type';
 import { IHandleSourceCodeResult } from './types';
@@ -12,7 +13,8 @@ export interface HandlerRunnerClassOptions<T> {
   loaderOptions: T;
   appRoot: string;
   source: string;
-  resolver: Resolver;
+  resolver: FileResolver;
+  dependencyGraph: DependencyGraph;
 }
 
 export interface Handler<T> {
@@ -54,7 +56,9 @@ export class HandlerRunner<T> {
 
   public source: string;
 
-  public resolver: Resolver;
+  public resolver: FileResolver;
+
+  public dependencyGraph: DependencyGraph;
 
   public placeholderMap: PlaceholderMap = new Map<string, IPlaceholderMapValue>();
 
@@ -64,6 +68,7 @@ export class HandlerRunner<T> {
     this.appRoot = options.appRoot;
     this.source = options.source;
     this.resolver = options.resolver;
+    this.dependencyGraph = options.dependencyGraph;
 
     this.hooks = {
       analysisCode: new AsyncSeriesBailHook<string, IHandleSourceCodeResult>(['code']),

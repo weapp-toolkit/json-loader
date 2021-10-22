@@ -68,7 +68,7 @@ export class WxmlHandler<T> implements Handler<T> {
            */
 
           /** loadModule 会写入父节点信息，后面依赖分析的时候可以挪到正确的位置 */
-          await loadModule(loaderContext, `${resolvedRequest}?ignore=true&name=${encodeURIComponent(relativePath)}`);
+          await loadModule(runner, `${resolvedRequest}?ignore=true&name=${encodeURIComponent(relativePath)}`);
         }),
       );
 

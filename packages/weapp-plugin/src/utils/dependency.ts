@@ -40,16 +40,6 @@ export const getPageOrComponentAssets = (context: string, basename: string): str
 };
 
 /**
- * 判断 pathname 是否包含在分包路径内
- * @param pathname 文件路径
- * @param packageRoot
- * @returns boolean
- */
-export function isInSubPackage(pathname: string, packageRoot: string) {
-  return pathname.startsWith(packageRoot);
-}
-
-/**
  * 数组过滤
  * @param ignores
  * @param source 数组

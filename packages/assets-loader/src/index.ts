@@ -3,13 +3,14 @@ import $ from 'lodash';
 import { Compiler, LoaderContext } from 'webpack';
 import { JSONSchema7 } from 'json-schema';
 import {
-  createResolver,
+  FileResolver,
   resolveAppEntryPath,
   AUDIO_EXT_REG,
   IMAGE_EXT_REG,
   VIDEO_EXT_REG,
   XCX_RESOURCE_EXT_REG,
 } from '@weapp-toolkit/tools';
+import { DependencyGraph } from '@weapp-toolkit/core';
 import { handlerRunner } from './handler-runner';
 import { DefaultHandler } from './handler/default';
 import { JavascriptHandler } from './handler/javascript';
@@ -61,7 +62,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   const compiler = this._compiler as Compiler;
   const app = resolveAppEntryPath(compiler);
   const appRoot = path.dirname(app);
-  const resolver = createResolver(compiler, appRoot);
+  const resolver = new FileResolver(compiler.options.resolve, appRoot);
 
   // console.info('skr: sourceString', sourceString);
 
@@ -75,6 +76,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
     source: sourceString,
     appRoot,
     resolver,
+    dependencyGraph: DependencyGraph.getInstance(),
     handlers: [
       {
         test: /\.(js|ts)$/,

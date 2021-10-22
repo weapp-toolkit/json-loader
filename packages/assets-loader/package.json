@@ -48,6 +48,7 @@
     "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.6",
     "@babel/types": "^7.15.6",
+    "@weapp-toolkit/core": "workspace:^1.0.0",
     "@weapp-toolkit/tools": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "globby": "11",

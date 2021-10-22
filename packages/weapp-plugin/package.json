@@ -47,6 +47,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@weapp-toolkit/core": "workspace:^1.0.0",
     "@weapp-toolkit/tools": "^1.0.0",
     "@weapp-toolkit/weapp-types": "^1.0.0",
     "copy-webpack-plugin": "^9.0.1",
@@ -59,6 +60,8 @@
     "@types/copy-webpack-plugin": "^8.0.1",
     "@weapp-toolkit/assets-loader": "1.0.0",
     "@weapp-toolkit/cdn-loader": "1.0.0",
-    "@weapp-toolkit/json-loader": "1.0.0"
+    "@weapp-toolkit/json-loader": "1.0.0",
+    "webpack": "^5.54.0",
+    "webpack-cli": "^4.8.0"
   }
 }

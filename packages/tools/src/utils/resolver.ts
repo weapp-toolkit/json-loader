@@ -1,37 +1,52 @@
 import fs from 'fs';
 import path from 'path';
-import { CachedInputFileSystem, ResolverFactory } from 'enhanced-resolve';
+import chalk from 'chalk';
+import { CachedInputFileSystem, ResolverFactory, Resolver } from 'enhanced-resolve';
 import type { Compiler, Configuration } from 'webpack';
 import $ from 'lodash';
 
-export type Resolver = ReturnType<typeof createResolver>;
-
 /**
- * 创建模块路径解析器
- * @param compiler webpack Compiler 对象
+ * 模块路径解析器
+ * @param resolveConfig webpack Compiler.options.resolve 对象
  * @param appRoot 小程序 app 根绝对路径，app.json 所在路径
- * @returns {} { resolve, resolveSync, resolveDependency }
  */
-export function createResolver(resolveConfig: Configuration['resolve'], appRoot: string) {
-  const webpackResolveOptions = $.omit(resolveConfig, ['plugins', 'fileSystem']);
-  const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
-  const resolver = ResolverFactory.createResolver({
-    extensions: ['.js', '.ts'],
-    fileSystem: nodeFileSystem,
-    ...webpackResolveOptions,
-  });
-  const syncResolver = ResolverFactory.createResolver({
-    extensions: ['.js', '.json'],
-    useSyncFileSystemCalls: true,
-    fileSystem: nodeFileSystem,
-    ...webpackResolveOptions,
-  });
-  const syncContextResolver = ResolverFactory.createResolver({
-    useSyncFileSystemCalls: true,
-    resolveToContext: true,
-    fileSystem: nodeFileSystem,
-    ...webpackResolveOptions,
-  });
+export class FileResolver {
+  static TAG = 'FileResolver';
+
+  private resolver: Resolver;
+
+  private syncResolver: Resolver;
+
+  private syncContextResolver: Resolver;
+
+  public appRoot: string;
+
+  constructor(resolveConfig: Configuration['resolve'], appRoot: string) {
+    this.appRoot = appRoot;
+
+    const webpackResolveOptions = $.omit(resolveConfig, ['plugins', 'fileSystem']);
+    const nodeFileSystem = new CachedInputFileSystem(fs, 4000);
+
+    this.resolver = ResolverFactory.createResolver({
+      extensions: ['.js', '.ts'],
+      fileSystem: nodeFileSystem,
+      ...webpackResolveOptions,
+    });
+
+    this.syncResolver = ResolverFactory.createResolver({
+      extensions: ['.js', '.json'],
+      useSyncFileSystemCalls: true,
+      fileSystem: nodeFileSystem,
+      ...webpackResolveOptions,
+    });
+
+    this.syncContextResolver = ResolverFactory.createResolver({
+      useSyncFileSystemCalls: true,
+      resolveToContext: true,
+      fileSystem: nodeFileSystem,
+      ...webpackResolveOptions,
+    });
+  }
 
   /**
    * 模块路径解析异步方法
@@ -39,9 +54,16 @@ export function createResolver(resolveConfig: Configuration['resolve'], appRoot:
    * @param request 文件路径
    * @returns
    */
-  const resolve = (context: string, request: string) => {
+  public resolve = (context: string, request: string): Promise<string> => {
+    this.checkInit();
+
+    const { resolver } = this;
+
     return new Promise<string>((res, rej) => {
-      resolver.resolve({}, context, request, {}, (err, result) => (err || !result ? rej(err) : res(result)));
+      resolver!.resolve({}, context, request, {}, (err, result) => (err || !result ? rej(err) : res(result)));
+    }).catch((e) => {
+      this.throwException('resolve', context, request, e);
+      return '';
     });
   };
 
@@ -51,25 +73,36 @@ export function createResolver(resolveConfig: Configuration['resolve'], appRoot:
    * @param request 文件路径
    * @returns
    */
-  const resolveSync = (context: string, request: string) => {
-    const res = syncResolver.resolveSync({}, context, request);
-    if (!res) {
-      throw new Error(`找不到该文件：${request}, 查找路径：${context}.`);
+  public resolveSync = (context: string, request: string): string => {
+    this.checkInit();
+
+    try {
+      const res = this.syncResolver!.resolveSync({}, context, request);
+      if (!res) {
+        throw new Error(`找不到该文件：${request}, 查找路径：${context}.`);
+      }
+      return res;
+    } catch (e) {
+      this.throwException('resolveSync', context, request, e);
+      return '';
     }
-    return res;
   };
 
   /**
    * 依赖路径解析
+   * @description 绝对路径将根据 `appRoot` 为根路径进行查找
    * @param context 文件夹
    * @param pathname 文件路径
-   * @returns
    */
-  const resolveDependency = async (context: string, pathname: string) => {
+  public resolveDependency = async (context: string, pathname: string): Promise<string> => {
+    this.checkInit();
+
+    const { appRoot, resolve } = this;
+
     if (isRelativePath(pathname)) {
       return (
         /** 别名路径或者 node_modules */
-        resolve(context, pathname)
+        this.resolve(context, pathname)
           /** 可能是没加 ./ 的相对路径 */
           .catch(() => resolve(context, legalizationPath(pathname)))
       );
@@ -81,11 +114,15 @@ export function createResolver(resolveConfig: Configuration['resolve'], appRoot:
 
   /**
    * 依赖路径解析同步方法
+   * @description 绝对路径将根据 `appRoot` 为根路径进行查找
    * @param context 文件夹
    * @param pathname 文件路径
-   * @returns
    */
-  const resolveDependencySync = (context: string, pathname: string) => {
+  public resolveDependencySync = (context: string, pathname: string): string => {
+    this.checkInit();
+
+    const { appRoot, resolveSync } = this;
+
     if (isRelativePath(pathname)) {
       try {
         /** 别名路径或者 node_modules */
@@ -97,28 +134,32 @@ export function createResolver(resolveConfig: Configuration['resolve'], appRoot:
     }
 
     /** 如果是绝对路径从小程序根路径开始找，并把路径转换为相对路径 */
-    return resolveSync(appRoot, `.${pathname}`);
+    return resolveSync(appRoot!, `.${pathname}`);
   };
 
   /**
    * 查找文件夹绝对路径同步方法
+   * @description 绝对路径将根据 `appRoot` 为根路径进行查找
    * @param context 文件夹
    * @param pathname 子文件夹路径
-   * @returns
    */
-  const resolveDir = (context: string, dirname: string) => {
+  public resolveDir = (context: string, dirname: string): string => {
+    this.checkInit();
+
+    const { appRoot, syncContextResolver } = this;
+
     let res;
     if (isRelativePath(dirname)) {
       try {
         /** 别名路径或者 node_modules */
-        res = syncContextResolver.resolveSync({}, context, dirname);
+        res = syncContextResolver!.resolveSync({}, context, dirname);
       } catch (error) {
         /** 可能是没加 ./ 的相对路径 */
-        res = syncContextResolver.resolveSync({}, context, legalizationPath(dirname));
+        res = syncContextResolver!.resolveSync({}, context, legalizationPath(dirname));
       }
     } else {
       /** 如果是绝对路径从小程序根路径开始找 */
-      res = syncContextResolver.resolveSync({}, appRoot, `.${dirname}`);
+      res = syncContextResolver!.resolveSync({}, appRoot, `.${dirname}`);
     }
 
     if (!res) {
@@ -127,13 +168,31 @@ export function createResolver(resolveConfig: Configuration['resolve'], appRoot:
     return res;
   };
 
-  return {
-    resolve,
-    resolveSync,
-    resolveDependency,
-    resolveDependencySync,
-    resolveDir,
-  };
+  /**
+   * 检查是否初始化
+   */
+  private checkInit() {
+    if (!this.appRoot) {
+      throw new Error('FileResolver not initialized, please invoke `init()` first!');
+    }
+  }
+
+  /**
+   * 错误抛出
+   * @param name 函数名
+   * @param context
+   * @param request
+   * @param e
+   */
+  private throwException(name: string, context: string, request: string, e: any) {
+    throw new Error(
+      `[${FileResolver.TAG}] Some error occurred in '${name}'.` +
+        `\ncontext: ${chalk.green(context)}` +
+        `\nrequest: ${chalk.yellow(request)}` +
+        `\nstack: ${new Error().stack}` +
+        `\n\n${e?.message}`,
+    );
+  }
 }
 
 /** 判断是否是相对路径 */
