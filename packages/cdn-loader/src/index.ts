@@ -50,10 +50,17 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
     sourceFilename: normalizePath(path.relative(rootContext, this.resourcePath)),
   };
 
-  /** cdn不存在则不处理 */
-  if (!cdn) {
+  /** 忽略此文件时输出到本地目录 */
+  if (ignore) {
     this.emitFile(name, source, undefined, assetInfo);
     return '';
+  }
+
+  /** cdn 不存在则不处理 */
+  if (!cdn) {
+    this.emitFile(path.basename(this.resourcePath), source, undefined, assetInfo);
+    /** 导出该文件路径 */
+    return esModule ? `export default '${this.resourcePath}'` : `module.exports = '${this.resourcePath}'`;
   }
 
   /**
@@ -61,12 +68,6 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
    * 文件的cdn访问路径拼接
    */
   const fileCdnUrl = cdn.endsWith('/') ? `${cdn}${fileOutputPath}` : `${cdn}/${fileOutputPath}`;
-
-  /** 忽略此文件时输出到本地目录 */
-  if (ignore) {
-    this.emitFile(name, source, undefined, assetInfo);
-    return '';
-  }
 
   this.emitFile(
     fileOutputPath,

@@ -1,8 +1,11 @@
 import $ from 'lodash';
 import { handleAsset, handleEmit } from '../common';
-import { COMMENT_MATCHER, handleSourceCode } from '../core';
+import { COMMENT_MATCHER, handleSourceCode, HTTP_MATCHER, MODULE_MATCHER, NORMAL_MATCHER } from '../core';
 import { Handler, HandlerRunner } from '../handler-runner';
 import { AssetsLoaderOptions } from '..';
+import { HttpAsset, ModuleAsset, NormalAsset, UnknownAsset } from '../modules/asset';
+
+const CSS_URL_MATCHER = /(?<=url)\s*\(\s*[^()]*?\.\w+\s*\)/g;
 
 export class CssHandler<T extends AssetsLoaderOptions> implements Handler<T> {
   static HANDLER_NAME = 'CssHandler';
@@ -24,12 +27,62 @@ export class CssHandler<T extends AssetsLoaderOptions> implements Handler<T> {
         sourceCode = sourceCode.replace(placeholder, url);
       });
 
-      return handleSourceCode(sourceCode, $.pick(runner.loaderOptions, ['includes', 'excludes']));
+      return handleSourceCode(
+        sourceCode,
+        $.assign(
+          {
+            matcher: CSS_URL_MATCHER,
+            handler: (code: string) => {
+              code = code.replace(/\s\r\t\n/g, '');
+              const request = code.replace(/^['"`(]/, '').replace(/['"`)]$/, '');
+
+              if (HTTP_MATCHER.test(request)) {
+                return new HttpAsset({
+                  request,
+                  code: request,
+                });
+              }
+
+              if (MODULE_MATCHER.test(request)) {
+                return new ModuleAsset({
+                  request: code.match(/(?<=['"`])(.*?)(?=['"`])/)![0],
+                  code: code.match(/['"`](.*?)['"`]/)![0],
+                });
+              }
+
+              if (NORMAL_MATCHER.test(request)) {
+                return new NormalAsset({
+                  request,
+                  code: request,
+                });
+              }
+
+              return new UnknownAsset({
+                request,
+                code: request,
+              });
+            },
+          },
+          $.pick(runner.loaderOptions, ['includes', 'excludes']),
+        ),
+      );
     });
 
-    runner.hooks.handleModuleAsset.tapPromise(
-      CssHandler.HANDLER_NAME,
-      handleAsset.bind(this, 'CSS_DEPENDENCY', runner),
+    runner.hooks.handleModuleAsset.tapPromise(CssHandler.HANDLER_NAME, (parameter) =>
+      handleAsset({
+        identify: 'CSS_DEPENDENCY',
+        runner,
+        parameter,
+      }),
+    );
+
+    runner.hooks.handleNormalAsset.tapPromise(CssHandler.HANDLER_NAME, (parameter) =>
+      handleAsset({
+        identify: 'CSS_DEPENDENCY',
+        runner,
+        parameter,
+        shouldLoadModule: false,
+      }),
     );
 
     runner.hooks.afterHandleAssets.tap(CssHandler.HANDLER_NAME, (code) => handleEmit(runner, code, '.wxss'));

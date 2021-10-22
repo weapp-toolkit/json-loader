@@ -1,3 +1,4 @@
+import { removeQuery } from '@weapp-toolkit/tools';
 import { GraphNode } from './GraphNode';
 import { ChunkInfo } from './types';
 
@@ -73,7 +74,7 @@ export default class GraphNodeIndex {
    * @returns
    */
   public getNodeByRequest(request: string): GraphNode | undefined {
-    return this.requestModuleMap.get(request);
+    return this.requestModuleMap.get(removeQuery(request));
   }
 
   /**

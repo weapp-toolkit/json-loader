@@ -16,14 +16,20 @@ export class WxsHandler<T> implements Handler<T> {
       return { code, assets };
     });
 
-    runner.hooks.handleModuleAsset.tapPromise(
-      WxsHandler.HANDLER_NAME,
-      handleAsset.bind(this, 'WXS_DEPENDENCY', runner),
+    runner.hooks.handleModuleAsset.tapPromise(WxsHandler.HANDLER_NAME, (parameter) =>
+      handleAsset({
+        identify: 'WXS_DEPENDENCY',
+        runner,
+        parameter,
+      }),
     );
 
-    runner.hooks.handleNormalAsset.tapPromise(
-      WxsHandler.HANDLER_NAME,
-      handleAsset.bind(this, 'WXS_DEPENDENCY', runner),
+    runner.hooks.handleNormalAsset.tapPromise(WxsHandler.HANDLER_NAME, (parameter) =>
+      handleAsset({
+        identify: 'WXS_DEPENDENCY',
+        runner,
+        parameter,
+      }),
     );
   }
 }

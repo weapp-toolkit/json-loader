@@ -49,15 +49,15 @@ const handleAssets = (code: string): Assets => {
     });
   }
 
-  if (NORMAL_MATCHER.test(request)) {
-    return new NormalAsset({
+  if (GLOB_MATCHER.test(request)) {
+    return new GlobAsset({
       request,
       code,
     });
   }
 
-  if (GLOB_MATCHER.test(request)) {
-    return new GlobAsset({
+  if (NORMAL_MATCHER.test(request)) {
+    return new NormalAsset({
       request,
       code,
     });
@@ -76,12 +76,12 @@ const handleAssets = (code: string): Assets => {
  */
 export const handleSourceCode = (
   sourceCode: string,
-  options: { includes?: RegExp[]; excludes?: RegExp[] },
+  options: { includes?: RegExp[]; excludes?: RegExp[]; matcher?: RegExp; handler?: (code: string) => Assets },
 ): IHandleSourceCodeResult => {
-  const { includes = [], excludes = [] } = options;
+  const { includes = [], excludes = [], matcher = ROUGHLY_MATCHER, handler = handleAssets } = options;
   const assets: Assets[] = [];
-  const code = sourceCode.replace(ROUGHLY_MATCHER, (match) => {
-    const asset = handleAssets(match);
+  const code = sourceCode.replace(matcher, (match) => {
+    const asset = handler(match);
 
     /** 过滤出有效资源 */
     if (!shouldIgnore(excludes, asset.request) && shouldInclude(includes, asset.request)) {

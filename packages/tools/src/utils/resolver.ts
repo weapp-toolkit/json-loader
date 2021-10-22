@@ -108,8 +108,8 @@ export class FileResolver {
       );
     }
 
-    /** 如果是绝对路径从小程序根路径开始找 */
-    return resolve(appRoot, `.${pathname}`);
+    /** 如果是绝对路径从小程序根路径开始找，失败则降级为系统路径 */
+    return resolve(appRoot, `.${pathname}`).catch(() => resolve('/', pathname));
   };
 
   /**
@@ -133,8 +133,12 @@ export class FileResolver {
       }
     }
 
-    /** 如果是绝对路径从小程序根路径开始找，并把路径转换为相对路径 */
-    return resolveSync(appRoot!, `.${pathname}`);
+    /** 如果是绝对路径从小程序根路径开始找，并把路径转换为相对路径，失败则降级为系统路径 */
+    try {
+      return resolveSync(appRoot!, `.${pathname}`);
+    } catch (error) {
+      return resolveSync('/', pathname);
+    }
   };
 
   /**
@@ -158,12 +162,16 @@ export class FileResolver {
         res = syncContextResolver!.resolveSync({}, context, legalizationPath(dirname));
       }
     } else {
-      /** 如果是绝对路径从小程序根路径开始找 */
-      res = syncContextResolver!.resolveSync({}, appRoot, `.${dirname}`);
+      try {
+        /** 如果是绝对路径从小程序根路径开始找 */
+        res = syncContextResolver!.resolveSync({}, appRoot, `.${dirname}`);
+      } catch (error) {
+        res = syncContextResolver!.resolveSync({}, '/', dirname);
+      }
     }
 
     if (!res) {
-      throw new Error(`找不到该文件夹：${dirname}, 查找路径：${context}，${appRoot}.`);
+      throw new Error(`找不到该文件夹：${dirname}, 查找路径：${context}，${appRoot}, /.`);
     }
     return res;
   };
@@ -233,6 +241,15 @@ export function replaceExt(pathname: string, ext: string): string {
  */
 export function removeExt(pathname: string): string {
   return pathname.replace(path.extname(pathname), '');
+}
+
+/**
+ * 去掉资源地址中的 ?xxx=xxx
+ * @param request
+ * @returns
+ */
+export function removeQuery(request: string): string {
+  return request.replace(/\?.*$/, '');
 }
 
 /**

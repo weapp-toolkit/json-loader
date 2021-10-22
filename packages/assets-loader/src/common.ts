@@ -1,6 +1,6 @@
 import vm from 'vm';
 import path from 'path';
-import { replaceExt, shortid } from '@weapp-toolkit/tools';
+import { replaceExt, shortid, removeQuery } from '@weapp-toolkit/tools';
 import * as babel from '@babel/core';
 import { CustomAssetInfo } from '@weapp-toolkit/weapp-types';
 import { HandlerRunner, HooksParameter } from './handler-runner';
@@ -71,7 +71,7 @@ export async function loadModule<T>(runner: HandlerRunner<T>, request: string): 
       /** 去掉 query */
       loaderContext.addDependency(removeQuery(request));
       /** 在依赖图上添加依赖节点 */
-      const graphNode = graphNodeIndex.getNodeByRequest(removeQuery(loaderContext.resourcePath));
+      const graphNode = graphNodeIndex.getNodeByRequest(loaderContext.resourcePath);
       graphNode?.addNormalAssetNode(removeQuery(request));
 
       if (!module) {
@@ -92,12 +92,14 @@ export async function loadModule<T>(runner: HandlerRunner<T>, request: string): 
   });
 }
 
-export async function handleAsset<T>(
-  identify: string,
-  runner: HandlerRunner<T>,
-  parameter: HooksParameter,
-): Promise<string> {
-  const { loaderContext, resolver, placeholderMap } = runner;
+export async function handleAsset<T>(options: {
+  identify: string;
+  runner: HandlerRunner<T>;
+  parameter: HooksParameter;
+  shouldLoadModule?: boolean;
+}): Promise<string> {
+  const { identify, runner, shouldLoadModule = true, parameter } = options;
+  const { loaderContext, resolver, placeholderMap, dependencyGraph } = runner;
   const { context } = loaderContext;
   const { asset, end } = parameter;
 
@@ -105,13 +107,16 @@ export async function handleAsset<T>(
   const request = await resolver.resolveDependency(context, asset.request);
 
   const placeholder = `___${identify}_${shortid()}___`;
-  // const dependency = `
-  //   var ${placeholder} = require('${request}');
-  // `;
 
-  // return dependency + end(`"\` + ${placeholder} + \`"`);
+  let resource = '';
 
-  const resource = await loadModule(runner, request);
+  if (shouldLoadModule) {
+    resource = (await loadModule(runner, request)) || '';
+  } else {
+    /** 在依赖图上添加依赖节点 */
+    const graphNode = dependencyGraph.graphNodeIndex.getNodeByRequest(removeQuery(loaderContext.resourcePath));
+    graphNode?.addNormalAssetNode(removeQuery(request));
+  }
 
   /**
    * @thinking
@@ -158,13 +163,4 @@ export function handleEmit<T>(runner: HandlerRunner<T>, code: string, extname?: 
   } as CustomAssetInfo);
 
   return '';
-}
-
-/**
- * 去掉资源地址中的 ?xxx=xxx
- * @param request
- * @returns
- */
-export function removeQuery(request: string): string {
-  return request.replace(/\?.*$/, '');
 }

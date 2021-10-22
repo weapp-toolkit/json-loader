@@ -34,7 +34,7 @@ export default class GraphNodeFactory {
 
   public createGraphNode(thisNode: GraphNode, options: CreateGraphNodeOptions): GraphNode | null {
     const { ignores, nodeIndex } = this;
-    const { packageNames, reference, context, nodeType } = options;
+    const { packageNames, reference, context } = options;
 
     if (shouldIgnore(ignores, reference)) {
       return null;
@@ -42,12 +42,8 @@ export default class GraphNodeFactory {
 
     /**
      * 获取完整路径
-     * @description NormalAsset 为 loader 动态扫描添加，其绝对路径是相对于操作系统的路径
      */
-    const resourcePath =
-      nodeType === GraphNodeType.NormalAsset
-        ? this.resolver.resolveSync(context, reference)
-        : this.resolver.resolveDependencySync(context, reference);
+    const resourcePath = this.resolver.resolveDependencySync(context, reference);
 
     let graphNode = nodeIndex.getNodeByRequest(resourcePath);
 

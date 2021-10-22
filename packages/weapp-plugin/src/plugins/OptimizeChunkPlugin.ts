@@ -166,10 +166,6 @@ export class OptimizeChunkPlugin {
         const { assets, assetsInfo } = module.buildInfo;
         const graphNode = graphNodeIndex.getNodeByRequest(module.resource);
 
-        // if (module.resource.includes('index.wxs')) {
-        //   debugger
-        // }
-
         /** 没有资源实体 */
         if (!assets || !graphNode) {
           return;

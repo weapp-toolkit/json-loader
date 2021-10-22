@@ -23,9 +23,12 @@ export class WxmlHandler<T> implements Handler<T> {
       return { code, assets };
     });
 
-    runner.hooks.handleNormalAsset.tapPromise(
-      WxmlHandler.HANDLER_NAME,
-      handleAsset.bind(this, 'WXML_DEPENDENCY', runner),
+    runner.hooks.handleNormalAsset.tapPromise(WxmlHandler.HANDLER_NAME, (parameter) =>
+      handleAsset({
+        identify: 'WXML_DEPENDENCY',
+        runner,
+        parameter,
+      }),
     );
 
     runner.hooks.handleGlobAssets.tapPromise(WxmlHandler.HANDLER_NAME, async ({ asset, end }) => {

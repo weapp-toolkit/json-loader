@@ -82,7 +82,7 @@ const webpackConfig: webpack.Configuration = {
             loader: '@weapp-toolkit/cdn-loader',
             options: {
               cdn: 'https://raw.abcmouse.qq.com/',
-              name: 'cdn/[name]-[contenthash:8].[ext]',
+              name: 'cdn/[name].[contenthash:8].[ext]',
             },
           },
         ],
