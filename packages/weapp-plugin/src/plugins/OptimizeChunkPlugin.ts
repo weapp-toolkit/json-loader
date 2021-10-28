@@ -113,10 +113,8 @@ export class OptimizeChunkPlugin {
         chunks: (chunk: Chunk) => {
           /** 由主包移动到独立分包的资源不参与 splitChunk */
           if (graphNodeIndex.chunks.get(chunk.name)?.independent && chunk.name.indexOf(PKG_OUTSIDE_DEP_DIRNAME) > -1) {
-            console.info('skr: split chunk ignore', chunk.name);
             return false;
           }
-          console.info('skr: split chunk', chunk.name);
           return true;
         },
         name: (module: Module) => {

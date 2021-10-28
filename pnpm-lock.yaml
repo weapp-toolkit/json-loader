@@ -148,9 +148,11 @@ importers:
 
   packages/cdn-loader:
     specifiers:
+      '@weapp-toolkit/tools': workspace:^1.0.0
       '@weapp-toolkit/weapp-types': ^1.0.0
       loader-utils: ^2.0.0
     dependencies:
+      '@weapp-toolkit/tools': link:../tools
       '@weapp-toolkit/weapp-types': link:../weapp-types
       loader-utils: 2.0.0
 

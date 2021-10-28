@@ -1,8 +1,8 @@
+import path from 'path';
 import { LoaderContext, AssetInfo } from 'webpack';
 import { interpolateName, parseQuery } from 'loader-utils';
 import { JSONSchema7 } from 'json-schema';
-import path from 'path';
-
+import { shouldIgnore } from '@weapp-toolkit/tools';
 import { normalizePath } from './util';
 import schema from './options';
 
@@ -15,6 +15,8 @@ export interface JsonLoaderOptions {
   name?: string;
   /** 忽略处理此文件 */
   ignore?: boolean;
+  /** 忽略的文件 */
+  exclude?: RegExp[];
 }
 
 /**
@@ -32,7 +34,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
     parseQuery(this.resourceQuery || '?'),
   ) as JsonLoaderOptions;
 
-  const { cdn, name = '[name].[contenthash:8].[ext]', ignore = false, esModule } = options;
+  const { cdn, name = '[name].[contenthash:8].[ext]', ignore = false, esModule, exclude = [] } = options;
   const { rootContext } = this;
 
   // console.info('skr: cdn-loader', this.resourcePath, options);
@@ -51,7 +53,7 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
   };
 
   /** 忽略此文件时输出到本地目录 */
-  if (ignore) {
+  if (ignore || shouldIgnore(exclude, this.resourcePath)) {
     this.emitFile(name, source, undefined, assetInfo);
     return '';
   }

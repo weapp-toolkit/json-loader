@@ -10,6 +10,9 @@ export default {
     ignore: {
       type: 'boolean',
     },
+    exclude: {
+      type: 'array',
+    },
     name: {
       type: 'string',
     },
