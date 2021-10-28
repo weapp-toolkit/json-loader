@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { CachedInputFileSystem, ResolverFactory, Resolver } from 'enhanced-resolve';
 import type { Compiler, Configuration } from 'webpack';
 import $ from 'lodash';
+import { TryCatch } from './try';
 
 /**
  * 模块路径解析器
@@ -61,9 +62,6 @@ export class FileResolver {
 
     return new Promise<string>((res, rej) => {
       resolver!.resolve({}, context, request, {}, (err, result) => (err || !result ? rej(err) : res(result)));
-    }).catch((e) => {
-      this.throwException('resolve', context, request, e);
-      return '';
     });
   };
 
@@ -76,16 +74,11 @@ export class FileResolver {
   public resolveSync = (context: string, request: string): string => {
     this.checkInit();
 
-    try {
-      const res = this.syncResolver!.resolveSync({}, context, request);
-      if (!res) {
-        throw new Error(`找不到该文件：${request}, 查找路径：${context}.`);
-      }
-      return res;
-    } catch (e) {
-      this.throwException('resolveSync', context, request, e);
-      return '';
+    const res = this.syncResolver!.resolveSync({}, context, request);
+    if (!res) {
+      throw new Error(`找不到该文件：${request}, 查找路径：${context}.`);
     }
+    return res;
   };
 
   /**
@@ -109,7 +102,12 @@ export class FileResolver {
     }
 
     /** 如果是绝对路径从小程序根路径开始找，失败则降级为系统路径 */
-    return resolve(appRoot, `.${pathname}`).catch(() => resolve('/', pathname));
+    return resolve(appRoot, `.${pathname}`)
+      .catch(() => resolve('/', pathname))
+      .catch((e) => {
+        this.throwException('resolveDependency', [context, appRoot, '/'], pathname, e);
+        return '';
+      });
   };
 
   /**
@@ -124,21 +122,33 @@ export class FileResolver {
     const { appRoot, resolveSync } = this;
 
     if (isRelativePath(pathname)) {
-      try {
-        /** 别名路径或者 node_modules */
-        return resolveSync(context, pathname);
-      } catch (error) {
+      return new TryCatch<string>(() => {
         /** 可能是没加 ./ 的相对路径 */
         return resolveSync(context, legalizationPath(pathname));
-      }
+      })
+        .catch(() => {
+          /** 别名路径或者 node_modules */
+          return resolveSync(context, pathname);
+        })
+        .catch((e) => {
+          this.throwException('resolveDependencySync', [context], pathname, e);
+          return '';
+        })
+        .do();
     }
 
     /** 如果是绝对路径从小程序根路径开始找，并把路径转换为相对路径，失败则降级为系统路径 */
-    try {
+    return new TryCatch<string>(() => {
       return resolveSync(appRoot!, `.${pathname}`);
-    } catch (error) {
-      return resolveSync('/', pathname);
-    }
+    })
+      .catch(() => {
+        return resolveSync('/', pathname);
+      })
+      .catch((e) => {
+        this.throwException('resolveDependencySync', [appRoot, '/'], pathname, e);
+        return '';
+      })
+      .do();
   };
 
   /**
@@ -154,20 +164,30 @@ export class FileResolver {
 
     let res;
     if (isRelativePath(dirname)) {
-      try {
-        /** 别名路径或者 node_modules */
-        res = syncContextResolver!.resolveSync({}, context, dirname);
-      } catch (error) {
+      new TryCatch(() => {
         /** 可能是没加 ./ 的相对路径 */
         res = syncContextResolver!.resolveSync({}, context, legalizationPath(dirname));
-      }
+      })
+        .catch(() => {
+          /** 别名路径或者 node_modules */
+          res = syncContextResolver!.resolveSync({}, context, dirname);
+        })
+        .catch((e) => {
+          this.throwException('resolveDir', [context], dirname, e);
+        })
+        .do();
     } else {
-      try {
+      new TryCatch(() => {
         /** 如果是绝对路径从小程序根路径开始找 */
         res = syncContextResolver!.resolveSync({}, appRoot, `.${dirname}`);
-      } catch (error) {
-        res = syncContextResolver!.resolveSync({}, '/', dirname);
-      }
+      })
+        .catch(() => {
+          res = syncContextResolver!.resolveSync({}, '/', dirname);
+        })
+        .catch((e) => {
+          this.throwException('resolveDir', [appRoot, '/'], dirname, e);
+        })
+        .do();
     }
 
     if (!res) {
@@ -192,10 +212,10 @@ export class FileResolver {
    * @param request
    * @param e
    */
-  private throwException(name: string, context: string, request: string, e: any) {
+  private throwException(name: string, context: string[], request: string, e: any) {
     throw new Error(
       `[${FileResolver.TAG}] Some error occurred in '${name}'.` +
-        `\ncontext: ${chalk.green(context)}` +
+        `\ncontext: ${chalk.green(context.join(', '))}` +
         `\nrequest: ${chalk.yellow(request)}` +
         `\nstack: ${new Error().stack}` +
         `\n\n${e?.message}`,

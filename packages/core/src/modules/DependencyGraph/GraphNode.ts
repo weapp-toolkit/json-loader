@@ -3,8 +3,7 @@ import fsx from 'fs-extra';
 import globby from 'globby';
 import { replaceExt, removeExt, FileResolver } from '@weapp-toolkit/tools';
 import { IWeappComponentConfig, IWeappPageConfig } from '@weapp-toolkit/weapp-types';
-import { APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
-import GraphNodeIndex from './GraphNodeIndex';
+import { APP_CHUNK_GROUP_NAME, APP_PACKAGE_NAME, PKG_OUTSIDE_DEP_DIRNAME } from '../../utils/constant';
 import { ChunkInfo, GraphNodeType } from './types';
 import GraphNodeFactory from './GraphNodeFactory';
 import { container } from './utils';
@@ -37,6 +36,9 @@ export class GraphNode {
 
   /** 依赖文件名 */
   private _basename!: string;
+
+  /** 入口文件 json 配置中 usingComponents 的键值对映射 */
+  private _components = new Map<string, string>();
 
   /** 工厂类 */
   protected graphNodeFactory = container.get<GraphNodeFactory>(DI_TYPES.GraphNodeFactory);
@@ -98,6 +100,20 @@ export class GraphNode {
   }
 
   /**
+   * 获取 entry 对应的 json 文件 usingComponents 的键值对绝对值路径
+   */
+  public get components(): Map<string, string> | void {
+    if (this.isEntryNode()) {
+      return this._components;
+    }
+
+    /** 该文件是 entry 的资源文件时，返回 entry 对应 js 保存的 components */
+    if (this.nodeType === GraphNodeType.EntryAsset) {
+      return Array.from(this.incomingNodes).find((node) => node.isEntryNode())?.components;
+    }
+  }
+
+  /**
    * 扫描 json 依赖，添加同名依赖（wxml、wxs 等）
    */
   public build(): void {
@@ -114,7 +130,7 @@ export class GraphNode {
       const jsonPath = resolve(replaceExt(basename, '.json'));
       const json: IWeappPageConfig | IWeappComponentConfig = fsx.readJSONSync(jsonPath);
 
-      this.addEntryNodes(Object.values(json.usingComponents || {}));
+      this.addEntryNodes(json.usingComponents || {});
       this.addEntryAssetNodes();
     }
 
@@ -157,15 +173,19 @@ export class GraphNode {
 
   /**
    * 添加 json 配置内的组件
-   * @param references
+   * @param components
    */
-  protected addEntryNodes(references: string[]): void {
-    references.forEach((reference) =>
-      this.addNode({
+  protected addEntryNodes(components: Record<string, string>): void {
+    Object.entries(components).forEach(([key, reference]) => {
+      const node = this.addNode({
         reference,
         nodeType: GraphNodeType.Component,
-      }),
-    );
+      });
+
+      if (node) {
+        this._components.set(key, node.resourcePath);
+      }
+    });
   }
 
   /**
@@ -200,7 +220,7 @@ export class GraphNode {
     nodeType: GraphNodeType;
     /** 立即初始化 */
     initImmediately?: boolean;
-  }): void {
+  }): GraphNode | void {
     const { packageNames = this.packageNames, context = this.context, reference, nodeType, initImmediately } = options;
 
     const graphNode = this.graphNodeFactory.createGraphNode(this, {
@@ -222,6 +242,8 @@ export class GraphNode {
     if (initImmediately) {
       graphNode.init();
     }
+
+    return graphNode;
   }
 
   /**
@@ -289,12 +311,15 @@ export class GraphNode {
         return;
       }
 
-      /** 直接按原路径存入映射表 */
+      /**
+       * 直接按原路径存入映射表
+       * 由于存在共享，其 group 应为 app group
+       */
       const chunkName = removeExt(path.relative(appRoot, resourcePath));
       outputMap.set(name, resourcePath);
       chunkInfos.add({
         id: chunkName,
-        group: root,
+        group: APP_CHUNK_GROUP_NAME,
         independent,
         packageName: name,
       });

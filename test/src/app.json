@@ -3,6 +3,7 @@
   "subpackages": [
     {
       "root": "pages/my/",
+      "name": "my",
       "pages": ["my"]
     },
     {

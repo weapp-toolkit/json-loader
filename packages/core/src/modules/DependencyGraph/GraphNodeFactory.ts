@@ -1,5 +1,4 @@
 import { FileResolver, shouldIgnore } from '@weapp-toolkit/tools';
-import { GraphNodeType } from '.';
 import { GraphNode, GraphNodeOptions } from './GraphNode';
 import GraphNodeIndex from './GraphNodeIndex';
 
@@ -36,7 +35,7 @@ export default class GraphNodeFactory {
     const { ignores, nodeIndex } = this;
     const { packageNames, reference, context } = options;
 
-    if (shouldIgnore(ignores, reference)) {
+    if (shouldIgnore(ignores, context) || shouldIgnore(ignores, reference)) {
       return null;
     }
 
