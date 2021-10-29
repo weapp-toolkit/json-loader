@@ -8,6 +8,7 @@ import {
   AUDIO_EXT_REG,
   IMAGE_EXT_REG,
   VIDEO_EXT_REG,
+  CSS_EXT_REG,
   XCX_RESOURCE_EXT_REG,
 } from '@weapp-toolkit/tools';
 import { DependencyGraph } from '@weapp-toolkit/core';
@@ -95,7 +96,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
         handler: new JsonHandler(),
       },
       {
-        test: /\.(css|wxss|less|sass|scss|styl|stylus|postcss)$/,
+        test: CSS_EXT_REG,
         handler: new CssHandler(),
       },
       {
