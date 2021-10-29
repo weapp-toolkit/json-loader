@@ -110,6 +110,7 @@ export async function handleAsset<T>(options: {
 
   let resource = '';
 
+  /** 图片被 extract-loader 处理过了，再在这里 loadModule 的话会重复 load，故提供此 api */
   if (shouldLoadModule) {
     resource = (await loadModule(runner, request)) || '';
   } else {
