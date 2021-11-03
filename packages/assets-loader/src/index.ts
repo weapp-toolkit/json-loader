@@ -42,6 +42,8 @@ const schema: JSONSchema7 = {
   },
 };
 
+const DEFAULT_INCLUDES = [XCX_RESOURCE_EXT_REG, IMAGE_EXT_REG, AUDIO_EXT_REG, VIDEO_EXT_REG];
+
 /**
  * 微信小程序 js 解析器
  * 解析 js 内部引用的图片等资源
@@ -50,8 +52,8 @@ const schema: JSONSchema7 = {
  * @returns
  */
 async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: string | Buffer): Promise<void> {
-  const options = $.defaults(this.getOptions(schema), {
-    includes: [XCX_RESOURCE_EXT_REG, IMAGE_EXT_REG, AUDIO_EXT_REG, VIDEO_EXT_REG],
+  const options = $.updateWith(this.getOptions(schema), 'includes', (old) => {
+    return old ? old.concat(DEFAULT_INCLUDES) : DEFAULT_INCLUDES;
   });
   const callback = this.async();
 

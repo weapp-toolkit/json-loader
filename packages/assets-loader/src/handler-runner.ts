@@ -83,7 +83,9 @@ export class HandlerRunner<T> {
   }
 
   async run(): Promise<string> {
-    const { assets, code } = await this.hooks.analysisCode.promise(this.source);
+    const { assets, code } = await this.hooks.analysisCode.promise(this.source).catch((e) => {
+      throw new Error(e);
+    });
     return this.handle(assets, code);
   }
 

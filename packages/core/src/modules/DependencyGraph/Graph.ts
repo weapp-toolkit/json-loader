@@ -1,7 +1,7 @@
 import path from 'path';
 import fsx from 'fs-extra';
 import { Configuration } from 'webpack';
-import { IWeappAppConfig } from '@weapp-toolkit/weapp-types';
+import { IWeappAppConfig, IWeappTabBarItem } from '@weapp-toolkit/weapp-types';
 import { FileResolver } from '@weapp-toolkit/tools';
 import { APP_PACKAGE_NAME, CUSTOM_TAB_BAR_CONTEXT } from '../../utils/constant';
 import { GraphNode } from './GraphNode';
@@ -136,6 +136,9 @@ export class DependencyGraph extends GraphNode {
         nodeType: GraphNodeType.Component,
       });
     }
+
+    /** 添加 tabBar 图标 */
+    this.addTabBarAssetNodes(tabBar.list);
   }
 
   /**
@@ -170,6 +173,26 @@ export class DependencyGraph extends GraphNode {
         reference,
         nodeType: GraphNodeType.Page,
       });
+    });
+  }
+
+  /**
+   * 添加 TabBar 图标资源
+   */
+  private addTabBarAssetNodes(tabBarList: IWeappTabBarItem[]): void {
+    tabBarList.forEach((tab) => {
+      if (tab.iconPath) {
+        this.addNode({
+          reference: tab.iconPath,
+          nodeType: GraphNodeType.NormalAsset,
+        });
+      }
+      if (tab.selectedIconPath) {
+        this.addNode({
+          reference: tab.selectedIconPath,
+          nodeType: GraphNodeType.NormalAsset,
+        });
+      }
     });
   }
 }

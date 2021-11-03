@@ -118,8 +118,16 @@ export class OptimizeChunkPlugin {
           return true;
         },
         name: (module: Module) => {
-          // 按照模块路径输出
           if (module instanceof NormalModule) {
+            /** 修改 node_modules 文件夹名称 */
+            if (/node_modules/.test(module.resource)) {
+              return removeExt(path.relative(this.context, module.resource)).replace(
+                /\bnode_modules\b/,
+                'miniprogram_npm',
+              );
+            }
+
+            /** 按照模块路径输出 */
             if (!graphNodeIndex.getNodeByRequest(module.resource)?.isEntryNode()) {
               return removeExt(path.relative(this.context, module.resource));
             }

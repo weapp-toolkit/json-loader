@@ -2,6 +2,7 @@ import path from 'path';
 import { Compiler } from 'webpack';
 import { DependencyGraph } from '@weapp-toolkit/core';
 import { resolveAppEntryPath } from '@weapp-toolkit/tools';
+import CopyPlugin from 'copy-webpack-plugin';
 import { AddEntryPlugin } from './plugins/AddEntryPlugin';
 import { OptimizeChunkPlugin } from './plugins/OptimizeChunkPlugin';
 
@@ -57,5 +58,22 @@ export default class WeappPlugin {
       dependencyGraph,
     });
     this.optimizeChunkPlugin.apply(compiler);
+
+    this.copy(compiler);
+  }
+
+  /**
+   * 复制静态资源文件
+   * @param compiler
+   */
+  private copy(compiler: Compiler) {
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(this.context, 'sitemap.json'),
+          to: compiler.options.output.path || 'dist',
+        },
+      ],
+    }).apply(compiler);
   }
 }

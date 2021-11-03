@@ -10,7 +10,7 @@ export class DefaultHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'DefaultHandler';
 
   apply(runner: HandlerRunner<T>): void {
-    const { loaderOptions } = runner;
+    const { loaderOptions, loaderContext } = runner;
 
     runner.hooks.analysisCode.tap(DefaultHandler.HANDLER_NAME, (code) =>
       handleSourceCode(code, $.pick(loaderOptions, ['includes', 'excludes'])),
@@ -26,7 +26,15 @@ export class DefaultHandler<T> implements Handler<T> {
 
     runner.hooks.handleNormalAsset.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
 
-    runner.hooks.handleGlobAssets.tap(DefaultHandler.HANDLER_NAME, this.defaultHandle);
+    /**
+     * 无法分析运行时代码，这里抛出警告
+     */
+    runner.hooks.handleGlobAssets.tap(DefaultHandler.HANDLER_NAME, (params) => {
+      loaderContext.emitWarning(
+        new Error(`[${DefaultHandler.HANDLER_NAME}] 无法解析动态资源引用，请修改源代码：${loaderContext.resourcePath}`),
+      );
+      return this.defaultHandle(params);
+    });
 
     runner.hooks.afterHandleAssets.tap(DefaultHandler.HANDLER_NAME, handleEmit.bind(this, runner));
   }

@@ -1,3 +1,4 @@
+import { getGlobalData } from '@tencent/abcmouse-sdk-mp-tools';
 import Log from './libs/log';
 // 测试文件依赖使用
 import filePng from './assets/img/file.png';
@@ -22,6 +23,7 @@ App({
   },
   onLaunch() {
     new Log().log(String(new Date().getHours()).padStart(2, '0'));
+    getGlobalData('memberid');
   },
 
   test(a: string) {
