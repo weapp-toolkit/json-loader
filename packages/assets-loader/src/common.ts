@@ -53,29 +53,37 @@ function evalCode(code: string, filename?: string) {
 /**
  * 使用 loader 加载模块并注入父节点信息，返回加载结果
  * @param loaderContext
- * @param request
+ * @param request 绝对路径
  * @returns
  */
 export async function loadModule<T>(runner: HandlerRunner<T>, request: string): Promise<string | void> {
   const { loaderContext, dependencyGraph } = runner;
   const { graphNodeIndex } = dependencyGraph;
 
+  /**
+   * 这里要在 load 这个模块之前添加到 依赖图
+   * 否则此模块的子依赖在 load 的时候将在 依赖图 上找不到此依赖
+   * 因为父依赖要在子依赖 load 完之后才会完成 load
+   * 类比 React render 完成顺序
+   *
+   * 这里的 request 是经过 resolve 的，是真实路径
+   */
+  /** 去掉 query */
+  loaderContext.addDependency(removeQuery(request));
+  /** 在依赖图上添加依赖节点 */
+  const graphNode = graphNodeIndex.getNodeByRequest(loaderContext.resourcePath);
+  graphNode?.addNormalAssetNode(removeQuery(request));
+
   return new Promise<string | void>((resolve, reject) => {
     /** 手动加载静态资源的依赖 */
     loaderContext.loadModule(request, (e, code, _, module) => {
       if (e) {
-        console.error('[assets-loader]', e);
+        loaderContext.emitError(e);
         reject(e);
       }
 
-      /** 去掉 query */
-      loaderContext.addDependency(removeQuery(request));
-      /** 在依赖图上添加依赖节点 */
-      const graphNode = graphNodeIndex.getNodeByRequest(loaderContext.resourcePath);
-      graphNode?.addNormalAssetNode(removeQuery(request));
-
       if (!module) {
-        console.info('[assets-loader] module is undefined');
+        console.warn('[assets-loader] module is undefined: ', request);
         resolve();
         return;
       }
@@ -128,8 +136,8 @@ export async function handleAsset<T>(options: {
    * 相对地址则走标准依赖分析流程？
    */
 
-  /** 如果返回了资源，并且是网络地址 */
-  if (resource && HTTP_MATCHER.test(resource)) {
+  /** 如果是网络地址 */
+  if (HTTP_MATCHER.test(resource)) {
     /** 直接写入，不需要依赖分析 */
     return end(`"${resource}"`);
   }

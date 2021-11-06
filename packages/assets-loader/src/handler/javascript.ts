@@ -1,11 +1,8 @@
-import globby from 'globby';
 import $ from 'lodash';
 import { transform } from '@babel/core';
-import { LoaderContext } from 'webpack';
-import { replaceExt } from '@weapp-toolkit/tools';
 import { handleSourceCode } from '../core';
 import { Handler, HandlerRunner } from '../handler-runner';
-import { loadModule } from '../common';
+import { handleAsset, loadModule } from '../common';
 import { AssetsLoaderOptions } from '..';
 
 export class JavascriptHandler<T extends AssetsLoaderOptions> implements Handler<T> {
@@ -25,12 +22,26 @@ export class JavascriptHandler<T extends AssetsLoaderOptions> implements Handler
       return { code, assets };
     });
 
-    runner.hooks.handleNormalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async ({ asset, end }) => {
-      const request = await resolver.resolveDependency(context, asset.request);
+    runner.hooks.handleModuleAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async (parameter) => {
+      await handleAsset({
+        identify: 'JavaScript_DEPENDENCY',
+        runner,
+        parameter,
+        shouldLoadModule: false,
+      });
 
-      /** 将原来的引入替换成模块化引入 */
-      return end(`require('${request}')`);
+      const { asset, end } = parameter;
+
+      return end(asset.code);
     });
+
+    runner.hooks.handleNormalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async (parameter) =>
+      handleAsset({
+        identify: 'JavaScript_DEPENDENCY',
+        runner,
+        parameter,
+      }),
+    );
 
     runner.hooks.afterHandleAssets.tapPromise(JavascriptHandler.HANDLER_NAME, async (code) => {
       if (!entryGraphNode) {
