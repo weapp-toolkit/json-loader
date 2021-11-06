@@ -1,18 +1,5 @@
 {
-  "pages": ["pages/growth/index", "pages-kbone/pages/welfare/index"],
-  "subPackages": [
-    {
-      "root": "pages-dev",
-      "pages": ["tools/tools"],
-      "plugins": {
-        "tools-plugin": {
-          "version": "1.0.5",
-          "provider": "wxbfdf33f581386a7a",
-          "export": "export.js"
-        }
-      }
-    }
-  ],
+  "pages": ["./test/test"],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",

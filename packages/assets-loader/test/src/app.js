@@ -1,6 +1,4 @@
 import path from 'path';
-// import './index.wxss';
-import { a } from '@/index.wxml';
 
 const imageMap = {
   LEVEL_1: './level1.png',

@@ -10,7 +10,7 @@ interface IHandleSourceCodeResult {
 /** 匹配普通注释（不能排除以 // 开头的 http 链接） */
 export const COMMENT_MATCHER = /\/\*[^\0]*?\*\/|\/\/.*/gm;
 /** 粗略匹配资源 */
-export const ROUGHLY_MATCHER = /((import|require)([^\w]*?)[^'"`=:]*?)?['"`][^:;<>]*?\.[a-zA-Z]+['"`]/gm;
+export const ROUGHLY_MATCHER = /((import|require)([^\w]*?)[^'"`=:]*?)?['"`][^=:;<>]*?\.[a-zA-Z]+['"`]/gm;
 /** 匹配模板字符串拼接资源 */
 export const TEMPLATE_STRING_MATCHER = /(?<=[^${}'"`]+)[${]\{(.*)?\}\}?/g;
 /** 匹配表达式拼接资源 */
@@ -79,13 +79,20 @@ export const handleSourceCode = (
   options: { includes?: RegExp[]; excludes?: RegExp[]; matcher?: RegExp; handler?: (code: string) => Assets },
 ): IHandleSourceCodeResult => {
   const { includes = [], excludes = [], matcher = ROUGHLY_MATCHER, handler = handleAssets } = options;
+  /** 缓存所有扫描出的资源 */
   const assets: Assets[] = [];
+  const assetsMap: Set<string> = new Set();
+
   const code = sourceCode.replace(matcher, (match) => {
     const asset = handler(match);
 
     /** 过滤出有效资源 */
     if (!shouldIgnore(excludes, asset.request) && shouldInclude(includes, asset.request)) {
-      assets.push(asset);
+      /** 去重 */
+      if (!assetsMap.has(asset.request)) {
+        assets.push(asset);
+        assetsMap.add(asset.request);
+      }
       /** 将资源缓存，并替换为占位字符串，后续替换代码使用 */
       return match.replace(asset.code, getAssetsLoaderPlaceholder(assets.length - 1));
     }
@@ -101,6 +108,6 @@ export const handleSourceCode = (
  * 替换掉代码中的占位符
  */
 export function replacePlaceholder(index: number, code: string, replacer: string): string {
-  const regex = new RegExp(getAssetsLoaderPlaceholder(index));
+  const regex = new RegExp(getAssetsLoaderPlaceholder(index), 'g');
   return code.replace(regex, replacer);
 }

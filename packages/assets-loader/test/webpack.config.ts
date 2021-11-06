@@ -4,12 +4,7 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
 const webpackConfig: webpack.Configuration = {
   entry: {
-    app: [
-      path.resolve(__dirname, './src/main.js'),
-      path.resolve(__dirname, './src/index.less'),
-      path.resolve(__dirname, './src/app.json'),
-    ],
-    // app: path.resolve(__dirname, './src/index.wxs'),
+    app: [path.resolve(__dirname, './src/app.js')],
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -22,7 +17,7 @@ const webpackConfig: webpack.Configuration = {
     modules: false,
   },
   target: 'node',
-  mode: 'production',
+  mode: 'development',
   devtool: 'cheap-source-map',
   resolve: {
     extensions: ['.ts', '.js'],

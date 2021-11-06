@@ -138,6 +138,7 @@ importers:
       '@weapp-toolkit/core': workspace:^1.0.0
       '@weapp-toolkit/tools': ^1.0.0
       '@weapp-toolkit/weapp-types': ^1.0.0
+      chalk: ^4.1.2
       globby: '11'
       lodash: ^4.17.21
       tapable: ^2.2.0
@@ -148,6 +149,7 @@ importers:
       '@weapp-toolkit/core': link:../core
       '@weapp-toolkit/tools': link:../tools
       '@weapp-toolkit/weapp-types': link:../weapp-types
+      chalk: 4.1.2
       globby: 11.0.4
       lodash: 4.17.21
       tapable: 2.2.1

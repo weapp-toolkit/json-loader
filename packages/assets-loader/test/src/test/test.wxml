@@ -1,0 +1,4 @@
+<view class="test">
+  新建组件：
+  <image src="../level2.png"></image>
+</view>

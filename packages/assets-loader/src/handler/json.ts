@@ -27,7 +27,7 @@ export class JsonHandler<T> implements Handler<T> {
 
         components.forEach((reference, key) => {
           const placeholder = `___JSON_DEPENDENCY_${shortid()}___`;
-          /** 记录占位符和资源的映射，在还原的时候需要**特别兼容** json 类型文件，去掉后缀名 */
+          /** 记录占位符和资源的映射，在还原的时候需要 **特别兼容** 组件引用格式，必须去掉后缀名 */
           placeholderMap.set(placeholder, {
             reference,
             shouldRemoveExt: true,
@@ -77,10 +77,8 @@ export class JsonHandler<T> implements Handler<T> {
       const reference = node.resourcePath;
 
       const placeholder = `___JSON_DEPENDENCY_${shortid()}___`;
-      /** 记录占位符和资源的映射，在还原的时候需要**特别兼容** json 类型文件，去掉后缀名 */
       placeholderMap.set(placeholder, {
         reference,
-        shouldRemoveExt: true,
       });
 
       return placeholder;

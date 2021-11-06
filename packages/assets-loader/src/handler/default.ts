@@ -1,4 +1,5 @@
 import $ from 'lodash';
+import chalk from 'chalk';
 import { Handler, HandlerRunner, HooksParameter } from '../handler-runner';
 import { handleEmit } from '../common';
 import { handleSourceCode } from '../core';
@@ -31,7 +32,9 @@ export class DefaultHandler<T> implements Handler<T> {
      */
     runner.hooks.handleGlobAssets.tap(DefaultHandler.HANDLER_NAME, (params) => {
       loaderContext.emitWarning(
-        new Error(`[${DefaultHandler.HANDLER_NAME}] 无法解析动态资源引用，请修改源代码：${loaderContext.resourcePath}`),
+        new Error(
+          `[${DefaultHandler.HANDLER_NAME}] 无法解析动态资源引用：\n\n\t${params.asset.code}\n\t${chalk.red('^')}`,
+        ),
       );
       return this.defaultHandle(params);
     });

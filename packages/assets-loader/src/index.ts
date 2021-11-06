@@ -79,7 +79,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
     source: sourceString,
     appRoot,
     resolver,
-    dependencyGraph: DependencyGraph.getInstance(),
+    dependencyGraph: DependencyGraph.getInstance({ app, resolveConfig: this._compiler?.options.resolve }),
     handlers: [
       {
         test: /\.(js|ts)$/,

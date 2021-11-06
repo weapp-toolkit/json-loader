@@ -1,0 +1,14 @@
+<!-- <import src="@/comp.wxml"/> -->
+<wxs module="tool" src="./index.wxs"></wxs>
+<wxs module="tool" src="{{ true || "./index.wxs" }}"></wxs>
+<wxs module="tool" src="{{ true && "./index.wxs" }}"></wxs>
+<wxs module="tool" src="{{ true ? "./index.wxs" : "./comp.wxml" }}"></wxs>
+<wxs module="tool" src="./index{{index ? a : b}}.wxs"></wxs>
+<wxs module="tool" src="./index{{index ? a : b + c}}.wxs"></wxs>
+
+<template is="comp"></template>
+<view>hello world</view>
+<!-- <image src="@/growth{{tools.getWordLevel(score)}}.png" /> -->
+<image src="{{ true && "@/growth" + tools.getWordLevel(score) + ".png" }}" />
+<image src="./level1.png" />
+<!-- <include src="./comp.wxml"/> -->

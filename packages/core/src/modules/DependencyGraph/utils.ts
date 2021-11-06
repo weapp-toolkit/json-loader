@@ -23,6 +23,6 @@ export function checkAppFilepath(appPath: string): void {
  */
 export function validateAppJson(appJson: Partial<IWeappAppConfig>): void {
   if (!appJson.pages || appJson.pages.length === 0) {
-    throw new Error('非法的 app.json 文件');
+    throw new Error('非法的 app.json 文件，需要配置至少一个 page');
   }
 }

@@ -1,35 +1,25 @@
 import $ from 'lodash';
-import path from 'path';
-import globby from 'globby';
-import { shortid } from '@weapp-toolkit/tools';
 import { handleSourceCode } from '../core';
-import { handleAsset, loadModule } from '../common';
+import { handleAsset } from '../common';
 import { Handler, HandlerRunner } from '../handler-runner';
 
 export class WxmlHandler<T> implements Handler<T> {
   static HANDLER_NAME = 'WxmlHandler';
 
   apply(runner: HandlerRunner<T>): void {
-    const { loaderContext, resolver, placeholderMap, appRoot } = runner;
-    const { context } = loaderContext;
-
     runner.hooks.analysisCode.tap(WxmlHandler.HANDLER_NAME, (sourceCode) => {
       /** 删除注释 */
       sourceCode = sourceCode.replace(/<!--[^\0]*?-->/gm, '');
 
-      // return handleSourceCode(
-      //   sourceCode,
-      //   $.assign(
-      //     {
-      //       matcher: /(src|url|poster|href)\s*=\s*""/g,
-      //     },
-      //     $.pick(runner.loaderOptions, ['includes', 'excludes']),
-      //   ),
-      // );
-
-      const { code, assets } = handleSourceCode(sourceCode, $.pick(runner.loaderOptions, ['includes', 'excludes']));
-
-      return { code, assets };
+      return handleSourceCode(
+        sourceCode,
+        $.assign(
+          {
+            matcher: /['"`]([^=?:;&|<>]*?|[^"'`]*?)\.[a-zA-Z]+['"`]/gm,
+          },
+          $.pick(runner.loaderOptions, ['includes', 'excludes']),
+        ),
+      );
     });
 
     runner.hooks.handleNormalAsset.tapPromise(WxmlHandler.HANDLER_NAME, (parameter) =>

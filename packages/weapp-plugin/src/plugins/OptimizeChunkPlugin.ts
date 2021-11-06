@@ -237,7 +237,8 @@ export class OptimizeChunkPlugin {
         /** 去掉尾部的斜线 */
         relativePath = relativePath.replace(/\/$/, '');
       }
-      code = code.replace(placeholder, shouldRemoveExt ? removeExt(relativePath) : relativePath);
+
+      code = code.replace(new RegExp(placeholder, 'g'), shouldRemoveExt ? removeExt(relativePath) : relativePath);
     });
 
     return code;
