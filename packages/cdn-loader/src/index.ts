@@ -54,7 +54,8 @@ function loader(this: LoaderContext<JsonLoaderOptions>, source: Buffer): Buffer 
 
   /** 忽略此文件时输出到本地目录 */
   if (ignore || shouldIgnore(exclude, this.resourcePath)) {
-    this.emitFile(name, source, undefined, assetInfo);
+    this.emitFile(path.basename(this.resourcePath), source, undefined, assetInfo);
+    // this.emitFile(name, source, undefined, assetInfo);
     return '';
   }
 

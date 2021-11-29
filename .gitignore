@@ -3,6 +3,7 @@ package-lock.json
 lib/
 es/
 dist/
+dist-cdn/
 tsconfig.tsbuildinfo
 **/*.log
 **/project.config.json

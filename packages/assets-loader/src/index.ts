@@ -110,7 +110,7 @@ async function assetsLoader(this: LoaderContext<AssetsLoaderOptions>, source: st
   const code = await runner.run().catch(this.emitError.bind(this));
 
   /** 返回处理后的字符串 */
-  return callback?.(null, code!);
+  return callback?.(null, code || '');
 }
 
 export default assetsLoader;
