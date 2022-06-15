@@ -17,6 +17,7 @@ module.exports = {
     // ],
     '@babel/preset-typescript',
   ],
+  sourceType: 'unambiguous',
   plugins: [
     // 解决多个地方使用相同代码导致打包重复的问题
     ['@babel/plugin-transform-runtime'],

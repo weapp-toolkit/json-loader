@@ -35,13 +35,17 @@ export class JavascriptHandler<T extends AssetsLoaderOptions> implements Handler
       return end(asset.code);
     });
 
-    runner.hooks.handleNormalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async (parameter) =>
-      handleAsset({
+    runner.hooks.handleNormalAsset.tapPromise(JavascriptHandler.HANDLER_NAME, async (parameter) => {
+      await handleAsset({
         identify: 'JavaScript_DEPENDENCY',
         runner,
         parameter,
-      }),
-    );
+      });
+
+      const { asset, end } = parameter;
+
+      return end(asset.code);
+    });
 
     runner.hooks.afterHandleAssets.tapPromise(JavascriptHandler.HANDLER_NAME, async (code) => {
       if (!entryGraphNode) {

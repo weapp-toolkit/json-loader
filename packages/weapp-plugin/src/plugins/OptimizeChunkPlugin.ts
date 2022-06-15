@@ -123,7 +123,7 @@ export class OptimizeChunkPlugin {
             if (/node_modules/.test(module.resource)) {
               return removeExt(path.relative(this.context, module.resource)).replace(
                 /\bnode_modules\b/,
-                'miniprogram_npm',
+                'miniprogram_npm_alias',
               );
             }
 

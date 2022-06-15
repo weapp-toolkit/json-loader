@@ -83,7 +83,7 @@ export async function loadModule<T>(runner: HandlerRunner<T>, request: string): 
       }
 
       if (!module) {
-        console.warn('[assets-loader] module is undefined: ', request);
+        console.warn('[assets-loader] module is undefined: ', request, loaderContext.resourcePath);
         resolve();
         return;
       }
